@@ -1,93 +1,89 @@
-# AQM Labs
+**A Brief Description of the Game**
+The game takes place on a 2-dimensional top-down map featuring cities, industrial facilities, and a 
+predefined road network connecting them. The player can build roads, place stops on the road 
+network, purchase road vehicles, define routes, and use them to transport goods and/or passengers. 
+The game runs in real-time, but the speed of the game can be accelerated. 
+Map 
+The game operates on a grid-based map. The map contains pre-placed cities and industrial facilities 
+(e.g., mine, farm, factory). Cities and industrial facilities have fixed positions and cannot be moved. A 
+city or an industrial facility occupies multiple tiles on the map: 
+ A facility covers at least a 2×2 tile area, 
+ A city covers at least a 3×3 tile area. 
+Roads cannot be built on the tiles occupied by cities and industrial facilities; however, stops and roads 
+can be connected along their edges. Within a city's area, there is a predefined internal road network 
+modeling intra-city traffic, which the player cannot modify, but vehicles can use for travel. 
 
+**Road construction** 
+Building road infrastructure is part of the core task. The player can build roads on empty tiles for a 
+specified cost. Vehicles can only travel on the road network between industrial facilities and cities. 
+Goods and Demands 
+The game must include at least 3 different types of transportable industrial raw materials/products 
+(e.g., wood, paper, iron, steel), as well as passengers. Industrial facilities produce certain goods (e.g., 
+a mine can produce iron ore) and consume others (e.g., a steel mill requires iron ore and produces 
+steel). Cities demand passengers and/or finished products. 
+Demands change over time, but not instantly (slow increase or decrease). 
 
+**Vehicles** 
+Only road vehicles are included in the task. There should be distinct transport vehicles for different 
+raw material/product types, as well as buses for passenger transport. There must be at least 2 
+different vehicle types per category, with varying speeds, capacities, and maintenance costs. 
+Vehicles travel between stops, following a given route, and load if there is available cargo or 
+passengers. Only one vehicle traveling in a given direction can occupy a road tile at a time. (Therefore, 
+a maximum of 2 vehicles can be on one tile in total.) 
 
-## Getting started
+**Stops and Routes** 
+The player can place stops along roads, near cities and industrial facilities. Stops occupy one tile. 
+Circular routes can be assigned to vehicles (e.g., A → B → C → A). A stop can belong to multiple routes. 
+Vehicles automatically repeat their assigned route. 
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+**Economy** 
+The player starts with a given initial capital. Income is generated from successfully delivered goods or 
+passengers. However, there are costs for building roads, maintaining vehicles, and purchasing new 
+vehicles. 
+If the player's capital becomes negative, they go bankrupt and the game ends. 
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+**Time management** 
+The game runs in continuous time. There must be at least three time speed settings: 
+● pause 
+● normal 
+● fast  (e.g. 2x speed) 
+● very fast (e.g. 4x speed) 
 
-## Add your files
+**Display** 
+A 2D top-down display is expected for the core task, where the content of individual tiles is illustrated 
+by images. The map should visually show the industrial facilities, cities, the road network, vehicle 
+positions, stops, and routes. 
 
-* [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-* [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+**Sub-tasks** 
 
-```
-cd existing_repo
-git remote add origin https://szofttech.inf.elte.hu/software-technology-2026/group-10/aqm-labs.git
-git branch -M master
-git push -uf origin master
-```
+**Forests** [0.5 complexity] 
+Trees can appear on empty tiles. There can be 1-4 trees on a tile. Over time, the number of trees on a 
+tile can increase (e.g., 1 → 4), and new trees can appear on adjacent empty tiles. 
+Roads can also be built on forested tiles, but at a higher cost (clearing). 
 
-## Integrate with your tools
+**Rivers and Lakes** [0.5 complexity] 
+The map should also have water fields that, when initially placed (either pre-set or randomly 
+generated), form lakes and rivers. There should be at least 3 different bridge types in the 
+game, with different costs, maximum bridge distances, and speed limits. 
 
-* [Set up project integrations](https://szofttech.inf.elte.hu/software-technology-2026/group-10/aqm-labs/-/settings/integrations)
+**Garage** [0.5 complexity] 
+The player should be able to build one or more garages, which also need to be connected to the road 
+network. Vehicles can be purchased and maintained in the garage. Vehicles should automatically 
+return to the garage for maintenance at specified intervals. The older a vehicle is, the more frequent 
+maintenance it should require. There should be an option to sell over-aged vehicles to avoid further 
+operational difficulties and costs. 
+ 
+**Minimap** [0.5 complexity] 
+The game map should be larger than the displayed area and should be scrollable in both X and Y 
+dimensions for navigation. For easier orientation, a navigable minimap should be part of the game 
+interface. 
 
-## Collaborate with your team
+**Continous movement** [0.5 complexity] 
+The movement of vehicles between tiles on the game map should not be jumpy but continuous. 
+Vehicles can still logically be exclusively on a single tile at any time, but their movement between tiles 
+should be animated and smooth. 
 
-* [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-* [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-* [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-* [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-* [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
-
-## Test and Deploy
-
-Use the built-in continuous integration in GitLab.
-
-* [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-* [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-* [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-* [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-* [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
-
-***
-
-# Editing this README
-
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
-
-## Suggestions for a good README
-
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
-
-## Name
-Choose a self-explaining name for your project.
-
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
-
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
-
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
-
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
-
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
-
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
-
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
-
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
-
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
-
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
-
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
-
-## License
-For open source projects, say how it is licensed.
-
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+**2.5D Graphics** [0.5 complexity] 
+The requirement for the base task is to implement a top-down graphic display where every object 
+appears within its own tile. This sub-task involves implementing a 2.5-dimensional graphic style where 
+objects can visually overflow beyond their own cell's boundaries.
