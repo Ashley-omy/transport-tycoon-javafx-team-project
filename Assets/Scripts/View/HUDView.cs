@@ -1,16 +1,24 @@
+using TMPro;
 using UnityEngine;
 
 public class HUDView : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public TextMeshProUGUI selectedTileText;
+
+    private UIState _uiState;
+
+    public void Init(UIState uiState)
     {
-        
+        _uiState = uiState;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
+        if (_uiState == null) return;
+
+        if (_uiState.selectedTile.HasValue)
+            selectedTileText.text = "Selected: " + _uiState.selectedTile.Value;
+        else
+            selectedTileText.text = "Selected: none";
     }
 }

@@ -2,15 +2,28 @@ using UnityEngine;
 
 public class InputController : MonoBehaviour
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public Camera mainCamera;
+    public MapView mapView;
+
+    private SelectionController _selectionController;
+    private GameMap _map;
+
+    public void Init(SelectionController selectionController, GameMap map)
     {
-        
+        _selectionController = selectionController;
+        _map = map;
     }
 
-    // Update is called once per frame
-    void Update()
+    private void Update()
     {
-        
+        if (Input.GetMouseButtonDown(0))
+        {
+            GridPos clickedTile = mapView.ScreenToTile(Input.mousePosition, mainCamera);
+
+            if (_map.InBounds(clickedTile))
+            {
+                _selectionController.SelectTile(clickedTile);
+            }
+        }
     }
 }
