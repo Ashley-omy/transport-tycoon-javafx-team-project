@@ -1,16 +1,17 @@
 using UnityEngine;
 
-public class Vehicle : MonoBehaviour
+public class Vehicle
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    public int id;
+    public Vector2 worldPos;   // current world position (for now)
+    public GridPos tilePos;    // logical tile
+    public Color color;
 
-    // Update is called once per frame
-    void Update()
+    public Vehicle(int id, GridPos tilePos, Vector2 worldPos, Color color)
     {
-        
+        this.id = id;
+        this.tilePos = tilePos;
+        this.worldPos = worldPos;
+        this.color = color;
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 public class GameMap
@@ -8,6 +9,8 @@ public class GameMap
     private TerrainType[,] _terrain;
     private EntityType[,] _entities;
 
+    public List<Vehicle> Vehicles { get; private set; } = new List<Vehicle>();
+
     public GameMap(int width, int height)
     {
         Width = width;
@@ -17,6 +20,20 @@ public class GameMap
         _entities = new EntityType[Width, Height];
 
         GenerateSimpleTerrain();
+
+        // demo vehicle
+        var start = new GridPos(Mathf.Max(1, Width / 2), Mathf.Max(1, Height / 2));
+        AddVehicle(new Vehicle(
+            id: 1,
+            tilePos: start,
+            worldPos: new Vector2(start.x + 0.5f, start.y + 0.5f),
+            color: Color.cyan
+        ));
+    }
+
+    public void AddVehicle(Vehicle v)
+    {
+        Vehicles.Add(v);
     }
 
     public bool InBounds(GridPos p)
@@ -35,8 +52,6 @@ public class GameMap
 
     private void GenerateSimpleTerrain()
     {
-        // Simple deterministic pattern for now:
-        // left band = water, center = land, some forest stripes
         for (int y = 0; y < Height; y++)
         {
             for (int x = 0; x < Width; x++)

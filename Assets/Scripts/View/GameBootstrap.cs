@@ -7,6 +7,7 @@ public class GameBootstrap : MonoBehaviour
     public HUDView hudView;
     public TileRenderer tileRenderer;
     public EntityRenderer entityRenderer;
+    public VehicleRenderer vehicleRenderer;
 
     private void Start()
     {
@@ -15,6 +16,7 @@ public class GameBootstrap : MonoBehaviour
         if (hudView == null) { Debug.LogError("hudView missing"); return; }
         if (tileRenderer == null) { Debug.LogError("tileRenderer missing"); return; }
         if (entityRenderer == null) { Debug.LogError("entityRenderer missing"); return; }
+        if (vehicleRenderer == null) { Debug.LogError("vehicleRenderer missing"); return; }
 
         GameMap map = new GameMap(mapView.mapWidth, mapView.mapHeight);
         UIState uiState = new UIState();
@@ -30,5 +32,8 @@ public class GameBootstrap : MonoBehaviour
 
         inputController.Init(selectionController, map, uiState);
         hudView.Init(uiState);
+
+        vehicleRenderer.tileSize = mapView.tileSize;
+        vehicleRenderer.Init(map);
     }
 }
