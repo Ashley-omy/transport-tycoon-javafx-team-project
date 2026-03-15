@@ -109,19 +109,6 @@ public class TileRenderer : MonoBehaviour
             }
         }
 
-        // 6) Entities overlay (visible only)
-        for (int y = minY; y <= maxY; y++)
-        {
-            for (int x = minX; x <= maxX; x++)
-            {
-                var p = new GridPos(x, y);
-                var entity = _map.GetEntity(p);
-
-                if (entity == EntityType.STOP) _renderers[x, y].color = stopColor;
-                else if (entity == EntityType.GARAGE) _renderers[x, y].color = garageColor;
-            }
-        }
-
         // 7) Selected tile top overlay
         if (_uiState.selectedTile.HasValue)
         {
