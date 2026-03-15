@@ -1,16 +1,8 @@
-using UnityEngine;
-
-public class BuildMode : MonoBehaviour
+public enum BuildMode
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    NONE,
+    ROAD,
+    BRIDGE,
+    STOP,
+    GARAGE
 }

@@ -1,16 +1,15 @@
-using UnityEngine;
 
-public class GridPos : MonoBehaviour
+[System.Serializable]
+public struct GridPos
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public int x;
+    public int y;
+
+    public GridPos(int x, int y)
     {
-        
+        this.x = x;
+        this.y = y;
     }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public override string ToString() => $"({x}, {y})";
 }

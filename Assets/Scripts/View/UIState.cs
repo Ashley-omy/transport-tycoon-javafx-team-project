@@ -1,16 +1,18 @@
-using UnityEngine;
+using System.Collections.Generic;
 
-public class UIState : MonoBehaviour
+public class UIState
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    public GridPos? selectedTile;
+    public BuildMode buildMode = BuildMode.NONE;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
+    public GridPos? dragStartTile;
+    public GridPos? dragEndTile;
+    public List<GridPos> dragPreviewTiles = new List<GridPos>();
+    public HashSet<string> roadTiles = new HashSet<string>();
+
+    // New UI/game window state
+    public int money = 1000;
+    public float gameSpeed = 1f; // 0.5x .. 4x
+    public bool isPaused = false;
+    public int placementRotation = 0; // for Q/E
 }

@@ -1,16 +1,16 @@
 using UnityEngine;
 
-public class InputEvent : MonoBehaviour
+public class InputEvent
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
+    public string type; // "Click", "DragStart", "DragEnd"
+    public Vector2 mousePos;
+    public GridPos tilePos;
+    public int mouseButton;
+    public GridPos dragStartTile;
+    public GridPos dragEndTile;
 
-    // Update is called once per frame
-    void Update()
+    public InputEvent(string type)
     {
-        
+        this.type = type;
     }
 }
