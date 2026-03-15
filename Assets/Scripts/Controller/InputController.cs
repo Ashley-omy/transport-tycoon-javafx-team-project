@@ -38,6 +38,10 @@ public class InputController : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.Alpha3)) _uiState.buildMode = BuildMode.STOP;
         if (Input.GetKeyDown(KeyCode.Alpha4)) _uiState.buildMode = BuildMode.GARAGE;
         if (Input.GetKeyDown(KeyCode.Escape)) _uiState.buildMode = BuildMode.NONE;
+        if (Input.GetKeyDown(KeyCode.Delete)) _uiState.selectedTile = null;
+        if (Input.GetKeyDown(KeyCode.Space)) _uiState.isPaused = !_uiState.isPaused;
+        if (Input.GetKeyDown(KeyCode.Q)) _uiState.placementRotation = (_uiState.placementRotation + 270) % 360; // -90
+        if (Input.GetKeyDown(KeyCode.E)) _uiState.placementRotation = (_uiState.placementRotation + 90) % 360;
     }
 
     private void HandleLeftClickAndDrag()

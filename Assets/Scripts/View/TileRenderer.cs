@@ -2,16 +2,22 @@ using UnityEngine;
 
 public class TileRenderer : MonoBehaviour
 {
+    [Header("Refs")]
+    public Camera mainCamera;
+    public MapView mapView;
+
+    [Header("Tile")]
     public float tileSize = 1f;
 
+    [Header("Terrain Colors")]
     public Color landColor = new Color(0.55f, 0.8f, 0.45f, 1f);
     public Color waterColor = new Color(0.35f, 0.6f, 0.9f, 1f);
     public Color forestColor = new Color(0.2f, 0.55f, 0.25f, 1f);
 
+    [Header("Overlay Colors")]
     public Color roadColor = new Color(0.2f, 0.2f, 0.2f, 1f);
     public Color previewColor = new Color(1f, 0.7f, 0.1f, 0.9f);
     public Color selectedColor = new Color(1f, 0.9f, 0.2f, 1f);
-
     public Color stopColor = new Color(1f, 0.2f, 0.2f, 1f);
     public Color garageColor = new Color(0.65f, 0.2f, 1f, 1f);
 
@@ -25,6 +31,7 @@ public class TileRenderer : MonoBehaviour
     {
         _map = map;
         _uiState = uiState;
+
         _sprite = Create1x1Sprite();
         BuildTiles();
     }
@@ -35,11 +42,16 @@ public class TileRenderer : MonoBehaviour
         _renderers = new SpriteRenderer[_map.Width, _map.Height];
 
         for (int y = 0; y < _map.Height; y++)
+        {
             for (int x = 0; x < _map.Width; x++)
             {
                 var go = new GameObject($"Tile_{x}_{y}");
                 go.transform.SetParent(transform, false);
-                go.transform.position = new Vector3(x * tileSize + tileSize / 2f, y * tileSize + tileSize / 2f, 0f);
+                go.transform.position = new Vector3(
+                    x * tileSize + tileSize * 0.5f,
+                    y * tileSize + tileSize * 0.5f,
+                    0f
+                );
                 go.transform.localScale = new Vector3(tileSize, tileSize, 1f);
 
                 var sr = go.AddComponent<SpriteRenderer>();
@@ -49,53 +61,72 @@ public class TileRenderer : MonoBehaviour
                 _tileObjects[x, y] = go;
                 _renderers[x, y] = sr;
             }
+        }
     }
 
     private void Update()
     {
-        if (_map == null || _uiState == null || _renderers == null) return;
+        if (_map == null || _uiState == null || _renderers == null || mapView == null || mainCamera == null)
+            return;
 
-        // 1) Terrain base
+        // 1) Hide all first (visible-only rendering approach)
         for (int y = 0; y < _map.Height; y++)
             for (int x = 0; x < _map.Width; x++)
+                _renderers[x, y].enabled = false;
+
+        // 2) Compute visible tile bounds from camera
+        mapView.GetVisibleTileBounds(mainCamera, out int minX, out int maxX, out int minY, out int maxY);
+
+        // 3) Render only visible base terrain
+        for (int y = minY; y <= maxY; y++)
+        {
+            for (int x = minX; x <= maxX; x++)
             {
                 var p = new GridPos(x, y);
-                _renderers[x, y].color = TerrainColor(_map.GetTerrain(p));
+                var sr = _renderers[x, y];
+                sr.enabled = true;
+                sr.color = TerrainColor(_map.GetTerrain(p));
             }
+        }
 
-        // 2) Roads overlay
-        for (int y = 0; y < _map.Height; y++)
-            for (int x = 0; x < _map.Width; x++)
+        // 4) Roads overlay (visible only)
+        for (int y = minY; y <= maxY; y++)
+        {
+            for (int x = minX; x <= maxX; x++)
             {
                 if (_uiState.roadTiles.Contains($"{x},{y}"))
                     _renderers[x, y].color = roadColor;
             }
+        }
 
-        // 3) Drag preview overlay
+        // 5) Drag preview overlay
         if (_uiState.dragPreviewTiles != null)
         {
             foreach (var p in _uiState.dragPreviewTiles)
             {
-                if (_map.InBounds(p))
+                if (p.x >= minX && p.x <= maxX && p.y >= minY && p.y <= maxY && _map.InBounds(p))
                     _renderers[p.x, p.y].color = previewColor;
             }
         }
 
-        // 4) Entities overlay
-        for (int y = 0; y < _map.Height; y++)
-            for (int x = 0; x < _map.Width; x++)
+        // 6) Entities overlay (visible only)
+        for (int y = minY; y <= maxY; y++)
+        {
+            for (int x = minX; x <= maxX; x++)
             {
                 var p = new GridPos(x, y);
                 var entity = _map.GetEntity(p);
+
                 if (entity == EntityType.STOP) _renderers[x, y].color = stopColor;
                 else if (entity == EntityType.GARAGE) _renderers[x, y].color = garageColor;
             }
+        }
 
-        // 5) Selected tile top
+        // 7) Selected tile top overlay
         if (_uiState.selectedTile.HasValue)
         {
             var s = _uiState.selectedTile.Value;
-            if (_map.InBounds(s))
+            if (_map.InBounds(s) && s.x >= minX && s.x <= maxX && s.y >= minY && s.y <= maxY)
                 _renderers[s.x, s.y].color = selectedColor;
         }
     }
@@ -112,9 +143,10 @@ public class TileRenderer : MonoBehaviour
 
     private Sprite Create1x1Sprite()
     {
-        Texture2D tex = new Texture2D(1, 1);
+        var tex = new Texture2D(1, 1);
         tex.SetPixel(0, 0, Color.white);
         tex.Apply();
+
         return Sprite.Create(tex, new Rect(0, 0, 1, 1), new Vector2(0.5f, 0.5f), 1f);
     }
 }

@@ -347,10 +347,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7aeefac292a0e554ea0ad54b5c89dd6b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::TileRenderer
+  mainCamera: {fileID: 115411279}
+  mapView: {fileID: 125801772}
   tileSize: 1
-  defaultColor: {r: 0.75, g: 0.75, b: 0.75, a: 1}
-  selectedColor: {r: 1, g: 0.9, b: 0.2, a: 1}
+  landColor: {r: 0.55, g: 0.8, b: 0.45, a: 1}
+  waterColor: {r: 0.35, g: 0.6, b: 0.9, a: 1}
+  forestColor: {r: 0.2, g: 0.55, b: 0.25, a: 1}
+  roadColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
   previewColor: {r: 1, g: 0.7, b: 0.1, a: 0.85}
+  selectedColor: {r: 1, g: 0.9, b: 0.2, a: 1}
+  stopColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+  garageColor: {r: 0.65, g: 0.2, b: 1, a: 1}
 --- !u!4 &282496692
 Transform:
   m_ObjectHideFlags: 0
