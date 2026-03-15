@@ -14,11 +14,12 @@ public class HUDView : MonoBehaviour
 
     private void Update()
     {
-        if (_uiState == null) return;
+        if (_uiState == null || selectedTileText == null) return;
 
-        if (_uiState.selectedTile.HasValue)
-            selectedTileText.text = "Selected: " + _uiState.selectedTile.Value;
-        else
-            selectedTileText.text = "Selected: none";
+        string tileText = _uiState.selectedTile.HasValue
+            ? _uiState.selectedTile.Value.ToString()
+            : "none";
+
+        selectedTileText.text = $"Selected: {tileText} | Mode: {_uiState.buildMode}";
     }
 }
