@@ -1,4 +1,4 @@
-
+using System.Collections.Generic;
 using UnityEngine;
 
 public class InputController : MonoBehaviour
@@ -10,7 +10,6 @@ public class InputController : MonoBehaviour
     private GameMap _map;
     private UIState _uiState;
 
-    // drag state
     private bool _isDragging = false;
     private GridPos _dragStartTile;
     private GridPos _dragCurrentTile;
@@ -20,7 +19,6 @@ public class InputController : MonoBehaviour
         _selectionController = selectionController;
         _map = map;
         _uiState = uiState;
-        Debug.Log("InputController Init done");
     }
 
     private void Update()
@@ -43,7 +41,6 @@ public class InputController : MonoBehaviour
 
     private void HandleLeftClickAndDrag()
     {
-        // mouse down = click + possible drag start
         if (Input.GetMouseButtonDown(0))
         {
             GridPos tile = mapView.ScreenToTile(Input.mousePosition, mainCamera);
@@ -55,37 +52,57 @@ public class InputController : MonoBehaviour
             _dragStartTile = tile;
             _dragCurrentTile = tile;
 
-            InputEvent ev = new InputEvent("DragStart");
-            ev.mousePos = Input.mousePosition;
-            ev.tilePos = tile;
-            ev.mouseButton = 0;
-            ev.dragStartTile = tile;
-            ev.dragEndTile = tile;
+            _uiState.dragStartTile = tile;
+            _uiState.dragEndTile = tile;
+            _uiState.dragPreviewTiles.Clear();
+            _uiState.dragPreviewTiles.Add(tile);
 
             Debug.Log($"DragStart at {tile}");
         }
 
-        // while held = track drag
         if (_isDragging && Input.GetMouseButton(0))
         {
             GridPos tile = mapView.ScreenToTile(Input.mousePosition, mainCamera);
-            if (_map.InBounds(tile))
+            if (!_map.InBounds(tile)) return;
+
+            if (tile.x != _dragCurrentTile.x || tile.y != _dragCurrentTile.y)
+            {
                 _dragCurrentTile = tile;
+                _uiState.dragEndTile = tile;
+                _uiState.dragPreviewTiles = BuildStraightPath(_dragStartTile, _dragCurrentTile);
+            }
         }
 
-        // mouse up = drag end
         if (_isDragging && Input.GetMouseButtonUp(0))
         {
             _isDragging = false;
-
-            InputEvent ev = new InputEvent("DragEnd");
-            ev.mousePos = Input.mousePosition;
-            ev.tilePos = _dragCurrentTile;
-            ev.mouseButton = 0;
-            ev.dragStartTile = _dragStartTile;
-            ev.dragEndTile = _dragCurrentTile;
-
             Debug.Log($"Drag from {_dragStartTile} to {_dragCurrentTile}");
+            // Keep preview visible for now; clear if you prefer:
+            // _uiState.dragPreviewTiles.Clear();
         }
+    }
+
+    private List<GridPos> BuildStraightPath(GridPos a, GridPos b)
+    {
+        List<GridPos> path = new List<GridPos>();
+
+        int dx = Mathf.Abs(b.x - a.x);
+        int dy = Mathf.Abs(b.y - a.y);
+
+        // force axis-aligned line (for early road/bridge prototype)
+        if (dx >= dy)
+        {
+            int step = a.x <= b.x ? 1 : -1;
+            for (int x = a.x; x != b.x + step; x += step)
+                path.Add(new GridPos(x, a.y));
+        }
+        else
+        {
+            int step = a.y <= b.y ? 1 : -1;
+            for (int y = a.y; y != b.y + step; y += step)
+                path.Add(new GridPos(a.x, y));
+        }
+
+        return path;
     }
 }

@@ -32,7 +32,7 @@ public class MapView : MonoBehaviour
         );
     }
 
-    private void OnDrawGizmos()
+   /* private void OnDrawGizmos()
     {
         if (_map == null) return;
 
@@ -54,5 +54,16 @@ public class MapView : MonoBehaviour
             GridPos p = _uiState.selectedTile.Value;
             Gizmos.DrawCube(TileToWorldCenter(p), new Vector3(tileSize * 0.9f, tileSize * 0.9f, 0.01f));
         }
-    }
+
+        // Drag preview tiles
+        if (_uiState != null && _uiState.dragPreviewTiles != null && _uiState.dragPreviewTiles.Count > 0)
+        {
+            Gizmos.color = new Color(1f, 0.8f, 0.1f, 0.7f); // yellow/orange
+            foreach (var p in _uiState.dragPreviewTiles)
+            {
+                Vector3 c = new Vector3(p.x * tileSize + tileSize / 2f, p.y * tileSize + tileSize / 2f, 0f);
+                Gizmos.DrawWireCube(c, new Vector3(tileSize * 0.95f, tileSize * 0.95f, 0f));
+            }
+        }
+    }*/
 }

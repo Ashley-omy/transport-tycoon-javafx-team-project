@@ -1,4 +1,3 @@
-
 using UnityEngine;
 
 public class GameBootstrap : MonoBehaviour
@@ -6,12 +5,13 @@ public class GameBootstrap : MonoBehaviour
     public MapView mapView;
     public InputController inputController;
     public HUDView hudView;
+    public TileRenderer tileRenderer;
 
     private void Start()
     {
-        if (mapView == null || inputController == null || hudView == null)
+        if (mapView == null || inputController == null || hudView == null || tileRenderer == null)
         {
-            Debug.LogError("GameBootstrap refs missing. Assign in Inspector.");
+            Debug.LogError("Missing refs in GameBootstrap");
             return;
         }
 
@@ -20,9 +20,10 @@ public class GameBootstrap : MonoBehaviour
         SelectionController selectionController = new SelectionController(uiState);
 
         mapView.Init(map, uiState);
-        inputController.Init(selectionController, map, uiState); // changed
-        hudView.Init(uiState);
+        tileRenderer.tileSize = mapView.tileSize;
+        tileRenderer.Init(map, uiState);
 
-        Debug.Log("Bootstrap OK");
+        inputController.Init(selectionController, map, uiState);
+        hudView.Init(uiState);
     }
 }
