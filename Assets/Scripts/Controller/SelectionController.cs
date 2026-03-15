@@ -1,16 +1,16 @@
 using UnityEngine;
 
-public class SelectionController
+public class SelectionController : MonoBehaviour
 {
-    private UIState _uiState;
-
-    public SelectionController(UIState uiState)
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
     {
-        _uiState = uiState;
+        
     }
 
-    public void SelectTile(GridPos pos)
+    // Update is called once per frame
+    void Update()
     {
-        _uiState.selectedTile = pos;
+        
     }
 }
