@@ -13,6 +13,7 @@ public class InputController : MonoBehaviour
     private bool _isDragging = false;
     private GridPos _dragStartTile;
     private GridPos _dragCurrentTile;
+    private string TileKey(GridPos p) => $"{p.x},{p.y}";
 
     public void Init(SelectionController selectionController, GameMap map, UIState uiState)
     {
@@ -77,8 +78,24 @@ public class InputController : MonoBehaviour
         {
             _isDragging = false;
             Debug.Log($"Drag from {_dragStartTile} to {_dragCurrentTile}");
-            // Keep preview visible for now; clear if you prefer:
-            // _uiState.dragPreviewTiles.Clear();
+
+            if (_uiState.buildMode == BuildMode.ROAD)
+            {
+                foreach (var p in _uiState.dragPreviewTiles)
+                    _uiState.roadTiles.Add($"{p.x},{p.y}");
+
+                Debug.Log($"Placed road tiles: {_uiState.dragPreviewTiles.Count}");
+            }
+            else if (_uiState.buildMode == BuildMode.STOP)
+            {
+                _map.SetEntity(_dragCurrentTile, EntityType.STOP);
+                Debug.Log($"Placed STOP at {_dragCurrentTile}");
+            }
+            else if (_uiState.buildMode == BuildMode.GARAGE)
+            {
+                _map.SetEntity(_dragCurrentTile, EntityType.GARAGE);
+                Debug.Log($"Placed GARAGE at {_dragCurrentTile}");
+            }
         }
     }
 

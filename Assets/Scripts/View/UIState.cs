@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using UnityEngine;
 
 public class UIState
 {
@@ -8,6 +7,8 @@ public class UIState
 
     public GridPos? dragStartTile;
     public GridPos? dragEndTile;
-
     public List<GridPos> dragPreviewTiles = new List<GridPos>();
+
+    // MVP road storage
+    public HashSet<string> roadTiles = new HashSet<string>();
 }
