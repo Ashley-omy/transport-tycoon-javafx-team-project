@@ -8,6 +8,7 @@ public class GameBootstrap : MonoBehaviour
     public TileRenderer tileRenderer;
     public EntityRenderer entityRenderer;
     public VehicleRenderer vehicleRenderer;
+    public AnimationEngine animationEngine;
 
     private void Start()
     {
@@ -17,6 +18,7 @@ public class GameBootstrap : MonoBehaviour
         if (tileRenderer == null) { Debug.LogError("tileRenderer missing"); return; }
         if (entityRenderer == null) { Debug.LogError("entityRenderer missing"); return; }
         if (vehicleRenderer == null) { Debug.LogError("vehicleRenderer missing"); return; }
+        if (animationEngine == null) { Debug.LogError("animationEngine missing"); return; }
 
         GameMap map = new GameMap(mapView.mapWidth, mapView.mapHeight);
         UIState uiState = new UIState();
@@ -30,10 +32,12 @@ public class GameBootstrap : MonoBehaviour
         entityRenderer.tileSize = mapView.tileSize;
         entityRenderer.Init(map, uiState);
 
-        inputController.Init(selectionController, map, uiState);
-        hudView.Init(uiState);
-
         vehicleRenderer.tileSize = mapView.tileSize;
         vehicleRenderer.Init(map);
+
+        animationEngine.Init(map, uiState, mapView);
+
+        inputController.Init(selectionController, map, uiState);
+        hudView.Init(uiState);
     }
 }

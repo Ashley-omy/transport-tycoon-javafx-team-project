@@ -3,8 +3,15 @@ using UnityEngine;
 public class Vehicle
 {
     public int id;
-    public Vector2 worldPos;   // current world position (for now)
-    public GridPos tilePos;    // logical tile
+
+    // Logical tile position (target tile)
+    public GridPos tilePos;
+
+    // Animation world positions
+    public Vector2 worldFrom;
+    public Vector2 worldTo;
+    public Vector2 worldPos; // interpolated current render pos
+
     public Color color;
 
     public Vehicle(int id, GridPos tilePos, Vector2 worldPos, Color color)
@@ -12,6 +19,8 @@ public class Vehicle
         this.id = id;
         this.tilePos = tilePos;
         this.worldPos = worldPos;
+        this.worldFrom = worldPos;
+        this.worldTo = worldPos;
         this.color = color;
     }
 }
