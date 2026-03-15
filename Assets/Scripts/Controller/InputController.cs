@@ -33,15 +33,38 @@ public class InputController : MonoBehaviour
 
     private void HandleBuildModeHotkeys()
     {
+        // Existing build keys...
         if (Input.GetKeyDown(KeyCode.Alpha1)) _uiState.buildMode = BuildMode.ROAD;
         if (Input.GetKeyDown(KeyCode.Alpha2)) _uiState.buildMode = BuildMode.BRIDGE;
         if (Input.GetKeyDown(KeyCode.Alpha3)) _uiState.buildMode = BuildMode.STOP;
         if (Input.GetKeyDown(KeyCode.Alpha4)) _uiState.buildMode = BuildMode.GARAGE;
         if (Input.GetKeyDown(KeyCode.Escape)) _uiState.buildMode = BuildMode.NONE;
+
+        // Non-build shortcuts (Task 113 completion)
         if (Input.GetKeyDown(KeyCode.Delete)) _uiState.selectedTile = null;
-        if (Input.GetKeyDown(KeyCode.Space)) _uiState.isPaused = !_uiState.isPaused;
-        if (Input.GetKeyDown(KeyCode.Q)) _uiState.placementRotation = (_uiState.placementRotation + 270) % 360; // -90
+        if (Input.GetKeyDown(KeyCode.Q)) _uiState.placementRotation = (_uiState.placementRotation + 270) % 360;
         if (Input.GetKeyDown(KeyCode.E)) _uiState.placementRotation = (_uiState.placementRotation + 90) % 360;
+
+        // Pause toggle
+        if (Input.GetKeyDown(KeyCode.Space))
+        {
+            _uiState.isPaused = !_uiState.isPaused;
+            Debug.Log(_uiState.isPaused ? "Game Paused" : "Game Running");
+        }
+
+        // Speed down
+        if (Input.GetKeyDown(KeyCode.Minus) || Input.GetKeyDown(KeyCode.KeypadMinus))
+        {
+            _uiState.gameSpeed = Mathf.Max(0.5f, _uiState.gameSpeed - 0.5f);
+            Debug.Log($"Game Speed x{_uiState.gameSpeed:0.0}");
+        }
+
+        // Speed up
+        if (Input.GetKeyDown(KeyCode.Equals) || Input.GetKeyDown(KeyCode.KeypadPlus))
+        {
+            _uiState.gameSpeed = Mathf.Min(4f, _uiState.gameSpeed + 0.5f);
+            Debug.Log($"Game Speed x{_uiState.gameSpeed:0.0}");
+        }
     }
 
     private void HandleLeftClickAndDrag()

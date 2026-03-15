@@ -6,7 +6,10 @@ public class HUDView : MonoBehaviour
     public TextMeshProUGUI selectedTileText;
     private UIState _uiState;
 
-    public void Init(UIState uiState) => _uiState = uiState;
+    public void Init(UIState uiState)
+    {
+        _uiState = uiState;
+    }
 
     private void Update()
     {
@@ -17,6 +20,11 @@ public class HUDView : MonoBehaviour
             ? $"{_uiState.dragStartTile.Value} -> {_uiState.dragEndTile.Value}"
             : "none";
 
-        selectedTileText.text = $"Selected: {selected} | Mode: {_uiState.buildMode} | Drag: {drag}";
+        string paused = _uiState.isPaused ? "Paused" : "Running";
+
+        selectedTileText.text =
+            $"Selected: {selected} | Drag: {drag}\n" +
+            $"Mode: {_uiState.buildMode} | Rot: {_uiState.placementRotation}\n" +
+            $"Money: ${_uiState.money} | Speed: x{_uiState.gameSpeed:0.0} ({paused})";
     }
 }
