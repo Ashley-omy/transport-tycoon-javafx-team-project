@@ -1,13 +1,43 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
 
-/**
- *
- * @author lenovo
- */
 public class Game {
-    
+    private final World world;
+    private final Company company;
+
+    private long tick = 0L;
+
+    private boolean paused = false;
+    private double speedMultiplier = 1.0;
+
+    public static final double SPEED_NORMAL = 1.0;
+    public static final double SPEED_FAST = 2.0;
+    public static final double SPEED_VERY_FAST = 4.0;
+
+    public Game(World world, Company company) {
+        this.world = world;
+        this.company = company;
+    }
+
+    public void update(double deltaTime) {
+        if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
+
+        double simDelta = paused ? 0.0 : deltaTime * speedMultiplier;
+        if (simDelta <= 0.0) return;
+
+        tick++;
+
+        world.tick(simDelta);
+        company.tick(simDelta);
+    }
+
+    public long getTick() { return tick; }
+
+    public void setPaused(boolean paused) { this.paused = paused; }
+    public boolean isPaused() { return paused; }
+
+    public void setSpeedMultiplier(double speedMultiplier) {
+        if (speedMultiplier <= 0.0) throw new IllegalArgumentException("speedMultiplier must be > 0");
+        this.speedMultiplier = speedMultiplier;
+    }
+    public double getSpeedMultiplier() { return speedMultiplier; }
 }
