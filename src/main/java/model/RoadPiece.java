@@ -4,10 +4,10 @@
  */
 package model;
 
-/**
- *
- * @author lenovo
- */
+import java.util.List;
+
 public class RoadPiece {
-    
+    private List<Tile> occupiedTiles;
+    private RoadKind kind;
+    private BridgeSpec bridgeSpec;
 }
