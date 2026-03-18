@@ -9,7 +9,7 @@ public class Shipment {
     private int units;
     private final Id fromStopId;
     private final Id toStopId;
-    private final Money valuePerUnit; // Payment per unit delivered
+    private final Money valuePerTile;
 
     public Shipment(
             ShipmentKind kind,
@@ -17,13 +17,13 @@ public class Shipment {
             int units,
             Id fromStopId,
             Id toStopId,
-            Money valuePerUnit
+            Money valuePerTile
     ) {
         if (kind == null) throw new IllegalArgumentException("kind cannot be null");
         if (units <= 0) throw new IllegalArgumentException("units must be > 0");
         if (fromStopId == null) throw new IllegalArgumentException("fromStopId cannot be null");
         if (toStopId == null) throw new IllegalArgumentException("toStopId cannot be null");
-        if (valuePerUnit == null) throw new IllegalArgumentException("valuePerUnit cannot be null");
+        if (valuePerTile == null) throw new IllegalArgumentException("valuePerTile cannot be null");
 
         if (kind == ShipmentKind.GOODS && goodsType == null) {
             throw new IllegalArgumentException("goodsType required for GOODS shipment");
@@ -37,7 +37,7 @@ public class Shipment {
         this.units = units;
         this.fromStopId = fromStopId;
         this.toStopId = toStopId;
-        this.valuePerUnit = valuePerUnit;
+        this.valuePerTile = valuePerTile;
     }
 
     public ShipmentKind getKind() { return kind; }
@@ -45,7 +45,7 @@ public class Shipment {
     public int getUnits() { return units; }
     public Id getFromStopId() { return fromStopId; }
     public Id getToStopId() { return toStopId; }
-    public Money getValuePerUnit() { return valuePerUnit; }
+    public Money getValuePerTile() { return valuePerTile; }
 
     public boolean isPassengers() { return kind == ShipmentKind.PASSENGERS; }
     public boolean isGoods() { return kind == ShipmentKind.GOODS; }
@@ -68,7 +68,7 @@ public class Shipment {
                 amount,
                 this.fromStopId,
                 this.toStopId,
-                this.valuePerUnit
+                this.valuePerTile
         );
     }
 }

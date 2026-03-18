@@ -63,22 +63,24 @@ public abstract class Vehicle {
     public boolean loadFrom(Stop stop) {
         if (stop == null) return false;
 
-        Shipment loaded = (Shipment) stop.dequeueFor(this);
-        if (loaded == null) return false;
+        List<Shipment> loaded = stop.dequeueFor(this);
+        if (loaded == null || loaded.isEmpty()) return false;
 
-        if (cargo == null) {
-            cargo = loaded;
-        } else {
-            // merge units into existing cargo (same type guaranteed by canLoad)
-            int mergedUnits = cargo.getUnits() + loaded.getUnits();
-            cargo = new Shipment(
-                    cargo.getKind(),
-                    cargo.getGoodsType(),
-                    mergedUnits,
-                    cargo.getFromStopId(),
-                    cargo.getToStopId(),
-                    cargo.getValuePerUnit()
-            );
+        for (Shipment shipment : loaded) {
+            if (cargo == null) {
+                cargo = shipment;
+            } else {
+                // merge units into existing cargo (same type guaranteed by canLoad)
+                int mergedUnits = cargo.getUnits() + shipment.getUnits();
+                cargo = new Shipment(
+                        cargo.getKind(),
+                        cargo.getGoodsType(),
+                        mergedUnits,
+                        cargo.getFromStopId(),
+                        cargo.getToStopId(),
+                        cargo.getValuePerTile()
+                );
+            }
         }
         return true;
     }
