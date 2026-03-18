@@ -4,7 +4,7 @@ import common.GridPos;
 import common.Money;
 
 public class World {
-    public static final Money ROAD_BUILD_COST = Money.of(100);
+    public static final Money ROAD_BUILD_COST = Money.of(150);
 
     public boolean canBuildAt(GridPos pos) {
         return true;
