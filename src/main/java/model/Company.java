@@ -45,6 +45,7 @@ public class Company {
                           "Purchased vehicle " + v.getId())) {
             return false;
         }
+        v.setOwner(this); // Set this company as owner
         fleet.add(v);
         return true;
     }
@@ -52,6 +53,7 @@ public class Company {
     public void sellVehicle(Vehicle v) {
         if (v == null) return;
         if (fleet.remove(v)) {
+            v.setOwner(null); // Remove ownership
             economy.earn(DEFAULT_VEHICLE_RESALE_VALUE, TransactionType.VEHICLE_SALE, 
                         "Sold vehicle " + v.getId());
         }

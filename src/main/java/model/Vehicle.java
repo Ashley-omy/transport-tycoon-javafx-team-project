@@ -10,6 +10,7 @@ public abstract class Vehicle {
     protected final Money maintenanceCost;
     protected final double speed;
     protected Shipment cargo;
+    protected Company owner; // Company that owns this vehicle
 
     protected Vehicle(Id id, int capacityUnits, Money purchaseCost, Money maintenanceCost, double speed) {
         if (id == null) throw new IllegalArgumentException("id cannot be null");
@@ -28,6 +29,8 @@ public abstract class Vehicle {
     public Money getPurchaseCost() { return purchaseCost; }
     public Money getMaintenanceCost() { return maintenanceCost; }
     public double getSpeed() { return speed; }
+    
+    public void setOwner(Company owner) { this.owner = owner; }
 
     public Shipment getCargo() { return cargo; }
 
@@ -82,7 +85,14 @@ public abstract class Vehicle {
 
     public Money unloadTo(Stop stop) {
         if (stop == null) return Money.ZERO;
-        return stop.deliverFrom(this);
+        Money payout = stop.deliverFrom(this);
+        
+        // Pay the company for successful delivery
+        if (owner != null && payout.isPositive()) {
+            owner.completeShipmentWithPayout(payout);
+        }
+        
+        return payout;
     }
 
     public abstract boolean acceptsKind(ShipmentKind kind);
