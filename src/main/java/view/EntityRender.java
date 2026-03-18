@@ -8,6 +8,6 @@ package view;
  *
  * @author lenovo
  */
-public class Camera {
+public class EntityRender {
     
 }
