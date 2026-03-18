@@ -11,11 +11,24 @@ public class Company {
 
     public static final Money DEFAULT_STARTING_CAPITAL = Money.of(100_000);
 
-    // temporary fixed costs until vehicle and shipment classes are implemented
+    // cost constants
     private static final Money DEFAULT_VEHICLE_PURCHASE_COST = Money.of(5_000);
     private static final Money DEFAULT_VEHICLE_RESALE_VALUE = Money.of(2_500);
     private static final Money MAINTENANCE_COST_PER_VEHICLE_PER_TICK = Money.of(2);
     private static final Money DEFAULT_DELIVERY_INCOME = Money.of(300);
+
+    // getters for cost constants (useful for UI)
+    public static Money getVehiclePurchaseCost() {
+        return DEFAULT_VEHICLE_PURCHASE_COST;
+    }
+
+    public static Money getVehicleResaleValue() {
+        return DEFAULT_VEHICLE_RESALE_VALUE;
+    }
+
+    public static Money getMaintenanceCostPerVehiclePerTick() {
+        return MAINTENANCE_COST_PER_VEHICLE_PER_TICK;
+    }
 
     public Company() {
         this(DEFAULT_STARTING_CAPITAL);
@@ -37,7 +50,10 @@ public class Company {
     // vehicle purchase cost
     public boolean buyVehicle(Vehicle v) {
         if (v == null) throw new IllegalArgumentException("vehicle cannot be null");
-        if (!economy.spend(DEFAULT_VEHICLE_PURCHASE_COST)) return false;
+        if (!economy.spend(DEFAULT_VEHICLE_PURCHASE_COST, TransactionType.VEHICLE_PURCHASE, 
+                          "Purchased vehicle " + v.getId())) {
+            return false;
+        }
         fleet.add(v);
         return true;
     }
@@ -45,14 +61,24 @@ public class Company {
     public void sellVehicle(Vehicle v) {
         if (v == null) return;
         if (fleet.remove(v)) {
-            economy.earn(DEFAULT_VEHICLE_RESALE_VALUE);
+            economy.earn(DEFAULT_VEHICLE_RESALE_VALUE, TransactionType.VEHICLE_SALE, 
+                        "Sold vehicle " + v.getId());
         }
     }
 
     // income from deliveries
     public void completeShipment(Shipment s) {
         if (s == null) return;
-        economy.earn(DEFAULT_DELIVERY_INCOME);
+        // Use fixed income for now, but could calculate based on shipment value
+        Money income = DEFAULT_DELIVERY_INCOME;
+        economy.earn(income, TransactionType.DELIVERY_INCOME, 
+                    "Delivered shipment from " + s.getFromStopId() + " to " + s.getToStopId());
+    }
+
+    // income from deliveries with actual payout
+    public void completeShipmentWithPayout(Money payout) {
+        if (payout == null || payout.isNegative()) return;
+        economy.earn(payout, TransactionType.DELIVERY_INCOME, "Delivered shipment");
     }
 
     public void earn(Money amount) {
@@ -73,11 +99,15 @@ public class Company {
         if (Double.isNaN(deltaTime) || deltaTime <= 0.0) return;
 
         // charge maintenance every tick per vehicle
-        for (int i = 0; i < fleet.size(); i++) {
-            boolean paid = economy.spend(MAINTENANCE_COST_PER_VEHICLE_PER_TICK);
+        for (Vehicle v : fleet) {
+            boolean paid = economy.spend(MAINTENANCE_COST_PER_VEHICLE_PER_TICK, 
+                                        TransactionType.VEHICLE_MAINTENANCE, 
+                                        "Maintenance for vehicle " + v.getId());
             if (!paid) {
                 // force negative balance to trigger bankruptcy
-                economy.forceSubtract(MAINTENANCE_COST_PER_VEHICLE_PER_TICK);
+                economy.forceSubtract(MAINTENANCE_COST_PER_VEHICLE_PER_TICK, 
+                                     TransactionType.VEHICLE_MAINTENANCE, 
+                                     "Forced maintenance for vehicle " + v.getId());
             }
         }
     }

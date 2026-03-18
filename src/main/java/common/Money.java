@@ -52,14 +52,50 @@ public final class Money implements Comparable<Money> {
         return amount == 0;
     }
 
+    public boolean isPositive() {
+        return amount > 0;
+    }
+
+    public Money negate() {
+        return new Money(-this.amount, this.currency);
+    }
+
+    public Money abs() {
+        return amount < 0 ? new Money(-amount, currency) : this;
+    }
+
     public boolean greaterOrEqual(Money other) {
         requireSameCurrency(other);
         return this.amount >= other.amount;
     }
 
+    public boolean greaterThan(Money other) {
+        requireSameCurrency(other);
+        return this.amount > other.amount;
+    }
+
     public boolean lessThan(Money other) {
         requireSameCurrency(other);
         return this.amount < other.amount;
+    }
+
+    public boolean lessOrEqual(Money other) {
+        requireSameCurrency(other);
+        return this.amount <= other.amount;
+    }
+
+    public static Money max(Money a, Money b) {
+        if (a == null) return b;
+        if (b == null) return a;
+        a.requireSameCurrency(b);
+        return a.amount >= b.amount ? a : b;
+    }
+
+    public static Money min(Money a, Money b) {
+        if (a == null) return b;
+        if (b == null) return a;
+        a.requireSameCurrency(b);
+        return a.amount <= b.amount ? a : b;
     }
 
     private void requireSameCurrency(Money other) {
@@ -73,6 +109,19 @@ public final class Money implements Comparable<Money> {
     public int compareTo(Money o) {
         requireSameCurrency(o);
         return Long.compare(this.amount, o.amount);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Money money = (Money) o;
+        return amount == money.amount && Objects.equals(currency, money.currency);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(amount, currency);
     }
 
     @Override

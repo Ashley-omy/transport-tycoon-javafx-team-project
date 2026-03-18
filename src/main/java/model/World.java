@@ -14,7 +14,10 @@ public class World {
         if (company == null) throw new IllegalArgumentException("company cannot be null");
         if (!canBuildAt(pos)) return false;
 
-        if (!company.spend(ROAD_BUILD_COST)) return false;
+        if (!company.getEconomy().spend(ROAD_BUILD_COST, TransactionType.ROAD_CONSTRUCTION, 
+                                        "Built road at " + pos)) {
+            return false;
+        }
 
         return true;
     }
