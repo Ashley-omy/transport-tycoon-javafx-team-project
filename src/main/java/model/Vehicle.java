@@ -77,7 +77,7 @@ public abstract class Vehicle {
                     mergedUnits,
                     cargo.getFromStopId(),
                     cargo.getToStopId(),
-                    cargo.getValuePerTile()
+                    cargo.getValuePerUnit()
             );
         }
         return true;

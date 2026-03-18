@@ -71,7 +71,7 @@ public class Stop {
         if (cargo == null) return Money.ZERO;
         if (!id.equals(cargo.getToStopId())) return Money.ZERO;
 
-        Money payout = cargo.getValuePerTile().multiply(cargo.getUnits());
+        Money payout = cargo.getValuePerUnit().multiply(cargo.getUnits());
         vehicle.clearCargo();
         return payout;
     }
