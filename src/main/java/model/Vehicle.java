@@ -3,6 +3,8 @@ package model;
 import common.Id;
 import common.Money;
 
+import java.util.List;
+
 public abstract class Vehicle {
     protected final Id id;
     protected final int capacityUnits;
