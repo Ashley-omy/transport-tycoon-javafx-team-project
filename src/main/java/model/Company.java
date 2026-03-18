@@ -11,23 +11,14 @@ public class Company {
 
     public static final Money DEFAULT_STARTING_CAPITAL = Money.of(100_000);
 
-    // cost constants
-    private static final Money DEFAULT_VEHICLE_PURCHASE_COST = Money.of(5_000);
+    // Note: Vehicle costs are now per-vehicle (stored in Vehicle class)
+    // These are kept for backward compatibility
     private static final Money DEFAULT_VEHICLE_RESALE_VALUE = Money.of(2_500);
-    private static final Money MAINTENANCE_COST_PER_VEHICLE_PER_TICK = Money.of(2);
     private static final Money DEFAULT_DELIVERY_INCOME = Money.of(300);
 
     // getters for cost constants (useful for UI)
-    public static Money getVehiclePurchaseCost() {
-        return DEFAULT_VEHICLE_PURCHASE_COST;
-    }
-
     public static Money getVehicleResaleValue() {
         return DEFAULT_VEHICLE_RESALE_VALUE;
-    }
-
-    public static Money getMaintenanceCostPerVehiclePerTick() {
-        return MAINTENANCE_COST_PER_VEHICLE_PER_TICK;
     }
 
     public Company() {
@@ -50,7 +41,7 @@ public class Company {
     // vehicle purchase cost
     public boolean buyVehicle(Vehicle v) {
         if (v == null) throw new IllegalArgumentException("vehicle cannot be null");
-        if (!economy.spend(DEFAULT_VEHICLE_PURCHASE_COST, TransactionType.VEHICLE_PURCHASE, 
+        if (!economy.spend(v.getPurchaseCost(), TransactionType.VEHICLE_PURCHASE, 
                           "Purchased vehicle " + v.getId())) {
             return false;
         }
@@ -98,14 +89,15 @@ public class Company {
     public void tick(double deltaTime) {
         if (Double.isNaN(deltaTime) || deltaTime <= 0.0) return;
 
-        // charge maintenance every tick per vehicle
+        // charge maintenance every tick per vehicle (vehicle-specific cost)
         for (Vehicle v : fleet) {
-            boolean paid = economy.spend(MAINTENANCE_COST_PER_VEHICLE_PER_TICK, 
+            Money cost = v.getMaintenanceCost();
+            boolean paid = economy.spend(cost, 
                                         TransactionType.VEHICLE_MAINTENANCE, 
                                         "Maintenance for vehicle " + v.getId());
             if (!paid) {
                 // force negative balance to trigger bankruptcy
-                economy.forceSubtract(MAINTENANCE_COST_PER_VEHICLE_PER_TICK, 
+                economy.forceSubtract(cost, 
                                      TransactionType.VEHICLE_MAINTENANCE, 
                                      "Forced maintenance for vehicle " + v.getId());
             }

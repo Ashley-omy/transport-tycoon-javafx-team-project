@@ -1,10 +1,11 @@
 package model;
 
 import common.Id;
+import common.Money;
 
 public class Bus extends Vehicle {
-    public Bus(Id id, int capacityUnits) {
-        super(id, capacityUnits);
+    public Bus(Id id, int capacityUnits, Money purchaseCost, Money maintenanceCost, double speed) {
+        super(id, capacityUnits, purchaseCost, maintenanceCost, speed);
     }
 
     @Override

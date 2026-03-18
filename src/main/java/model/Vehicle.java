@@ -6,16 +6,28 @@ import common.Money;
 public abstract class Vehicle {
     protected final Id id;
     protected final int capacityUnits;
+    protected final Money purchaseCost;
+    protected final Money maintenanceCost;
+    protected final double speed;
     protected Shipment cargo;
 
-    protected Vehicle(Id id, int capacityUnits) {
+    protected Vehicle(Id id, int capacityUnits, Money purchaseCost, Money maintenanceCost, double speed) {
         if (id == null) throw new IllegalArgumentException("id cannot be null");
         if (capacityUnits <= 0) throw new IllegalArgumentException("capacityUnits must be > 0");
+        if (purchaseCost == null) throw new IllegalArgumentException("purchaseCost cannot be null");
+        if (maintenanceCost == null) throw new IllegalArgumentException("maintenanceCost cannot be null");
+        if (speed <= 0) throw new IllegalArgumentException("speed must be > 0");
         this.id = id;
         this.capacityUnits = capacityUnits;
+        this.purchaseCost = purchaseCost;
+        this.maintenanceCost = maintenanceCost;
+        this.speed = speed;
     }
 
     public Id getId() { return id; }
+    public Money getPurchaseCost() { return purchaseCost; }
+    public Money getMaintenanceCost() { return maintenanceCost; }
+    public double getSpeed() { return speed; }
 
     public Shipment getCargo() { return cargo; }
 
