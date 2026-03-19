@@ -1,18 +1,23 @@
 package model;
 import common.GridPos;
 
+import common.GridPos;
+import model.Terrain;
+import model.RoadPiece;
+import model.Stop;
+import model.Garage;
+import model.MapEntity;
+
 public class Tile {
-    private final GridPos pos;
-    private Terrain terrain;
-    private RoadPiece road;
-    private Stop stop;
+    private GridPos pos;
+    private Terrain terrain;   // #163  Implement tile terrain field
+    private RoadPiece road;    // # 166 Implement tile roadPiece field
+    private Stop stop;         // #165  Implement tile stop field
     private Garage garage;
-    private MapEntity entity;
+    private MapEntity entity;  // #164 Implement tile entity field
 
-
-    public Tile(GridPos pos, Terrain terrain) {
+    public Tile(GridPos pos) {
         this.pos = pos;
-        this.terrain = terrain;
     }
 
     public GridPos getPos() {

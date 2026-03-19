@@ -4,9 +4,13 @@
  */
 package model;
 
-public class Terrain {
+import java.util.List;
+import model.Tile;
 
-    public boolean isPassableForRoad() {
-        return false;
-    }
+public abstract class Terrain {
+    private List<Tile> occupiedTiles;
+
+    public abstract boolean isPassable();
+    public abstract double buildMultiplier();
+
 }
