@@ -8,6 +8,15 @@ package view;
  *
  * @author lenovo
  */
+import common.Vec2;
+
 public class AnimationEngine {
-    
+
+    public void update(double deltaTime) {
+        // future animation logic
+    }
+
+    public Vec2 interpolateVehicle(common.GridPos tilePos, double progress) {
+        return new Vec2(tilePos.x, tilePos.y);
+    }
 }
