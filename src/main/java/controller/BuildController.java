@@ -11,9 +11,11 @@ import java.util.List;
 
 public class BuildController {
     private final GameMap gameMap;
+    private final RoadNetwork roadNetwork;
 
-    public BuildController(GameMap gameMap) {
+    public BuildController(GameMap gameMap, RoadNetwork roadNetwork) {
         this.gameMap = gameMap;
+        this.roadNetwork = roadNetwork;
     }
 
     // for if user is allowed to build road
@@ -75,10 +77,13 @@ public class BuildController {
         RoadPiece piece = new RoadPiece(RoadKind.ROAD, null);
         piece.addTile(tile);
         tile.setRoadPiece(piece);
+
+        roadNetwork.rebuild();
     }
 
     // road removal
     public void removeRoad(Tile tile) {
         tile.setRoadPiece(null);
+        roadNetwork.rebuild();
     }
 }
