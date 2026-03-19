@@ -4,10 +4,9 @@
  */
 package model;
 
-/**
- *
- * @author lenovo
- */
 public class Terrain {
-    
+
+    public boolean isPassableForRoad() {
+        return false;
+    }
 }
