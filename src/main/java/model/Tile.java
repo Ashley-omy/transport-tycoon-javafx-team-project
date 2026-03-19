@@ -1,11 +1,5 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
-
-// #68 Implement Tile class
-
 package model;
+import common.GridPos;
 
 import common.GridPos;
 import model.Terrain;
@@ -38,11 +32,11 @@ public class Tile {
         this.terrain = terrain;
     }
 
-    public RoadPiece getRoad() {
+    public RoadPiece getRoadPiece() {
         return road;
     }
 
-    public void setRoad(RoadPiece road) {
+    public void setRoadPiece(RoadPiece road) {
         this.road = road;
     }
 

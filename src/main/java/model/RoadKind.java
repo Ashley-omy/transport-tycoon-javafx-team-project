@@ -4,10 +4,7 @@
  */
 package model;
 
-/**
- *
- * @author lenovo
- */
-public class RoadKind {
-    
+public enum RoadKind {
+    ROAD,
+    BRIDGE
 }
