@@ -12,8 +12,4 @@ public abstract class Terrain {
 
     public abstract boolean isPassable();
     public abstract double buildMultiplier();
-
-    public boolean isPassableForRoad() {
-        return false;
-    }
 }
