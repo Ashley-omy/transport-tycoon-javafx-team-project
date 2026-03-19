@@ -8,6 +8,33 @@ package controller;
  *
  * @author lenovo
  */
+import common.GridPos;
+
 public class SelectionController {
-    
+
+    private GridPos selectedTile;
+    private String selectedVehicleId;
+
+    public void selectTile(GridPos pos) {
+        this.selectedTile = pos;
+        this.selectedVehicleId = null;
+    }
+
+    public void selectVehicle(String id) {
+        this.selectedVehicleId = id;
+        this.selectedTile = null;
+    }
+
+    public void clear() {
+        selectedTile = null;
+        selectedVehicleId = null;
+    }
+
+    public GridPos getSelectedTile() {
+        return selectedTile;
+    }
+
+    public String getSelectedVehicleId() {
+        return selectedVehicleId;
+    }
 }
