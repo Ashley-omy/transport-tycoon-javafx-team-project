@@ -29,7 +29,7 @@ public class EntityRenderer {
                     size * 0.5, size * 0.5);
         }
 
-        if (t.getFacility() != null) {
+        if (t.getEntity() != null) {
             gc.setFill(Color.DARKRED);
             gc.fillRect(pos.x + size * 0.1, pos.y + size * 0.1,
                     size * 0.8, size * 0.8);
