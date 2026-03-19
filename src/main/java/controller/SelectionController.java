@@ -6,7 +6,7 @@ package controller;
 
 /**
  *
- * @author lenovo
+ * @author asuna
  */
 import common.GridPos;
 
