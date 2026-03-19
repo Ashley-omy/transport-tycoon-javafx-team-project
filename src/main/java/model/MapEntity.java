@@ -4,10 +4,6 @@
  */
 package model;
 
-/**
- *
- * @author lenovo
- */
-public class MapEntity {
+public abstract class MapEntity {
     
 }
