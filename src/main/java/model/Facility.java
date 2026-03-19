@@ -4,10 +4,10 @@
  */
 package model;
 
-/**
- *
- * @author lenovo
- */
-public class Facility {
-    
+import common.Id;
+
+public abstract class Facility extends MapEntity {
+    public Facility(Id id, GoodsType input, GoodsType output) {
+        super(id);
+    }
 }
