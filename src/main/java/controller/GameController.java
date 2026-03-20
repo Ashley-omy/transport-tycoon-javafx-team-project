@@ -10,9 +10,11 @@ package controller;
  * implementd UI-related parts
  */
 
+import common.GridPos;
 import javafx.animation.AnimationTimer;
 import model.Game;
 import view.GameWindow;
+import model.*;
 
 import java.util.List;
 
@@ -114,10 +116,18 @@ public class GameController {
         /* Build Controller and Fleet Controller triggering logic here */
         switch (window.getUIState().getBuildMode()) {
             case ROAD:
-
+                if (selection.getSelectedTile() != null) {
+                    GridPos pos = selection.getSelectedTile();
+                    Tile tile1 = game.getWorld().getMap().getTile(pos);
+                    build.buildRoad(tile1);
+                }
                 break;
             case STOP:
-
+                if (selection.getSelectedTile() != null) {
+                    GridPos pos = selection.getSelectedTile();
+                    Tile tile1 = game.getWorld().getMap().getTile(pos);
+                    build.placeStop(tile1);
+                }
                 break;
             case GARAGE:
 

@@ -12,4 +12,7 @@ public abstract class Terrain {
 
     public abstract boolean isPassable();
     public abstract double buildMultiplier();
+
+    public boolean isWater() {return false;}
+    public boolean isForest() {return false;}
 }

@@ -10,4 +10,7 @@ public class Water extends Terrain {
 
     @Override
     public double buildMultiplier() {return 2.0;}
+
+    @Override
+    public boolean isWater() {return true;}
 }
