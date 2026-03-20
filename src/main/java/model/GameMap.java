@@ -1,4 +1,5 @@
 package model;
+
 import common.GridPos;
 
 public class GameMap {
@@ -26,7 +27,7 @@ public class GameMap {
     private void initializeTiles() {
         for (int x = 0; x < width; ++x) {
             for (int y = 0; y < height; ++y) {
-                tiles[x][y] = null;
+                tiles[x][y] = new Tile(new GridPos(x, y), new Land());
             }
         }
     }
