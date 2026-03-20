@@ -63,7 +63,7 @@ public abstract class Vehicle {
     public boolean loadFrom(Stop stop) {
         if (stop == null) return false;
 
-        Shipment loaded = (Shipment) stop.dequeueFor(this);
+        Shipment loaded = stop.dequeueFor(this);
         if (loaded == null) return false;
 
         if (cargo == null) {

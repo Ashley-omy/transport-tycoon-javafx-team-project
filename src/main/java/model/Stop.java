@@ -41,28 +41,52 @@ public class Stop {
         return List.copyOf(queue);
     }
 
-    public List<Shipment> dequeueFor(Vehicle vehicle) {
-        List<Shipment> loaded = new ArrayList<>();
-        if (vehicle == null || queue.isEmpty()) return loaded;
+    public Shipment dequeueFor(Vehicle vehicle) {
+        if (vehicle == null || queue.isEmpty()) return null;
 
         int free = vehicle.getFreeCapacityUnits();
-        if (free <= 0) return loaded;
+        if (free <= 0) return null;
 
+        Shipment result = null;
+        
         for (Shipment s : new ArrayList<>(queue)) {
-            if (free <= 0) break;
             if (!vehicle.canLoad(s)) continue;
 
             if (s.getUnits() <= free) {
                 queue.remove(s);
-                loaded.add(s);
+                if (result == null) {
+                    result = s;
+                } else {
+                    int mergedUnits = result.getUnits() + s.getUnits();
+                    result = new Shipment(
+                        result.getKind(),
+                        result.getGoodsType(),
+                        mergedUnits,
+                        result.getFromStopId(),
+                        result.getToStopId(),
+                        result.getValuePerTile()
+                    );
+                }
                 free -= s.getUnits();
             } else {
                 Shipment part = s.splitOff(free);
-                loaded.add(part);
-                free = 0;
+                if (result == null) {
+                    result = part;
+                } else {
+                    int mergedUnits = result.getUnits() + part.getUnits();
+                    result = new Shipment(
+                        result.getKind(),
+                        result.getGoodsType(),
+                        mergedUnits,
+                        result.getFromStopId(),
+                        result.getToStopId(),
+                        result.getValuePerTile()
+                    );
+                }
+                break;
             }
         }
-        return loaded;
+        return result;
     }
 
     public Money deliverFrom(Vehicle vehicle) {
