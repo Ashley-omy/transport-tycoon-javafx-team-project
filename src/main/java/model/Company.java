@@ -14,7 +14,7 @@ public class Company {
     private static final Money DEFAULT_VEHICLE_RESALE_VALUE = Money.of(2_500);
     private static final Money DEFAULT_DELIVERY_INCOME = Money.of(300);
 
-    // getters for cost constants (useful for UI)
+    // getters for cost constants
     public static Money getVehicleResaleValue() {
         return DEFAULT_VEHICLE_RESALE_VALUE;
     }

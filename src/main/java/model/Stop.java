@@ -29,7 +29,6 @@ public class Stop {
 
     public void tick(double deltaTime) {
         if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
-        // future: queue aging / local generation hooks
     }
 
     public void enqueue(Shipment s) {
