@@ -12,6 +12,7 @@ public abstract class Vehicle {
     protected Shipment cargo;
     protected Company owner;
     protected VehicleState state;
+    protected Route assignedRoute;
 
     protected Vehicle(Id id, int capacityUnits, Money purchaseCost, Money maintenanceCost, double speed) {
         if (id == null) throw new IllegalArgumentException("id cannot be null");
@@ -33,6 +34,25 @@ public abstract class Vehicle {
     public double getSpeed() { return speed; }
     
     public void setOwner(Company owner) { this.owner = owner; }
+
+    // Route assignment methods
+    public void assignRoute(Route route) {
+        if (route == null) throw new IllegalArgumentException("route cannot be null");
+        this.assignedRoute = route;
+    }
+    
+    public Route getAssignedRoute() {
+        return assignedRoute;
+    }
+    
+    public boolean hasRoute() {
+        return assignedRoute != null;
+    }
+    
+    public void clearRoute() {
+        this.assignedRoute = null;
+        this.state = VehicleState.IDLE;
+    }
 
     // Cargo storage methods
     public Shipment getCargo() { return cargo; }
@@ -81,7 +101,7 @@ public abstract class Vehicle {
         if (cargo == null) {
             cargo = loaded;
         } else {
-            // merge units into existing cargo (same type guaranteed by canLoad)
+            // merge units into existing cargo
             int mergedUnits = cargo.getUnits() + loaded.getUnits();
             cargo = new Shipment(
                     cargo.getKind(),

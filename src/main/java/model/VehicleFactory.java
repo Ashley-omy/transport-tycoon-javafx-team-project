@@ -11,28 +11,26 @@ public class VehicleFactory {
     /**
      * Small truck: Low capacity, cheap, fast
      */
-    public static Truck createSmallTruck(Id id, GoodsType specialization) {
+    public static Truck createSmallTruck(Id id) {
         return new Truck(
             id,
             50,                    // capacity: 50 units
             Money.of(3_000),       // purchase: 3,000 coins
             Money.of(1),           // maintenance: 1 coin/tick
-            2.0,                   // speed: 2.0 tiles/second
-            specialization
+            2.0                    // speed: 2.0 tiles/second
         );
     }
     
     /**
      * Large truck: High capacity, expensive, slow
      */
-    public static Truck createLargeTruck(Id id, GoodsType specialization) {
+    public static Truck createLargeTruck(Id id) {
         return new Truck(
             id,
             150,                   // capacity: 150 units
             Money.of(8_000),       // purchase: 8,000 coins
             Money.of(4),           // maintenance: 4 coins/tick
-            1.0,                   // speed: 1.0 tiles/second
-            specialization
+            1.0                    // speed: 1.0 tiles/second
         );
     }
     
