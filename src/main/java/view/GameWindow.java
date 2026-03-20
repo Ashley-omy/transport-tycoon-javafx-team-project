@@ -11,6 +11,7 @@ package view;
 import controller.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.input.KeyEvent;
 import model.Game;
 import model.GameMap;
 import model.RoadNetwork;
@@ -95,7 +96,17 @@ public class GameWindow extends BorderPane {
         mapView.setOnMouseDragged(inputController::onMouseDragged);
 
         // Keyboard events
-        this.setOnKeyPressed(inputController::onKeyPressed);
+        this.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
+            try {
+                // Always forward to InputController from the root capture phase.
+                // This avoids reliance on node focus, since HUD buttons steal focus.
+                inputController.onKeyPressed(e);
+
+                // Prevent further handling that might duplicate or get swallowed by focused buttons.
+                e.consume();
+            } catch (Exception ignored) {
+            }
+        });
 
         // Enable focus (important for keyboard input)
         this.setFocusTraversable(true);
