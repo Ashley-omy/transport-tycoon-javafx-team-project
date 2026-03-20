@@ -66,7 +66,6 @@ public class GameController {
 
     // Main update loop
     public void update(double deltaTime) {
-
         // Apply time speed multiplier (Uncomment when TimeController is implemented)
         //double scaledDelta = deltaTime * time.getSpeedMultiplier();
 
@@ -91,7 +90,6 @@ public class GameController {
     private void handleInput(List<InputEvent> events) {
 
         for (InputEvent e : events) {
-
             switch (e.type) {
 
                 case "MOUSE_DOWN":
@@ -130,7 +128,17 @@ public class GameController {
     }
 
     private void handleKey(InputEvent e) {
-        if ("SPACE".equals(e.key)) {
+        var cam = window.getMapView().getCamera();
+
+        if ("UP".equals(e.key)) {
+            cam.pan(0, -1);
+        } else if ("DOWN".equals(e.key)) {
+            cam.pan(0, 1);
+        } else if ("LEFT".equals(e.key)) {
+            cam.pan(-1, 0);
+        } else if ("RIGHT".equals(e.key)) {
+            cam.pan(1, 0);
+        } else if ("SPACE".equals(e.key)) {
             //time.togglePause();
         }
     }

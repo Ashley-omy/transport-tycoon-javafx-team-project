@@ -33,7 +33,9 @@ public class MapView extends Pane {
 
         this.getChildren().add(canvas);
 
-        this.camera = new Camera(new GridPos(0, 0), width, height);
+        camera = new Camera(new GridPos(0,0),
+                (int) canvas.getWidth(),
+                (int) canvas.getHeight());
         this.renderer = new Renderer();
     }
 
