@@ -37,6 +37,10 @@ public class Game {
         }
     }
 
+    public World getWorld() {
+        return world;
+    }
+
     public boolean isGameOver() { return gameOver; }
     public long getTick() { return tick; }
     public void setPaused(boolean paused) { this.paused = paused; }

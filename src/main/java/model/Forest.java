@@ -4,10 +4,10 @@
  */
 package model;
 
-/**
- *
- * @author lenovo
- */
-public class Forest {
-    
+public class Forest extends Terrain {
+    @Override
+    public boolean isPassable() { return true; }
+
+    @Override
+    public double buildMultiplier() { return 1.5; }
 }

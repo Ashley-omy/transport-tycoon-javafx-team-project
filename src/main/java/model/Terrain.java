@@ -4,10 +4,12 @@
  */
 package model;
 
-/**
- *
- * @author lenovo
- */
-public class Terrain {
-    
+import java.util.List;
+import model.Tile;
+
+public abstract class Terrain {
+    private List<Tile> occupiedTiles;
+
+    public abstract boolean isPassable();
+    public abstract double buildMultiplier();
 }

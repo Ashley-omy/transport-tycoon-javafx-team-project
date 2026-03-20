@@ -4,11 +4,19 @@ import common.GridPos;
 import common.Money;
 
 public class World {
+
+    private GameMap map;
+
+    public World(int width, int height){
+        this.map = new GameMap(width, height);
+    }
+
     public static final Money ROAD_BUILD_COST = Money.of(150);
 
     public boolean canBuildAt(GridPos pos) {
         return true;
     }
+    public GameMap getMap(){ return map;}
 
     public boolean buildRoad(GridPos pos, Company company) {
         if (company == null) throw new IllegalArgumentException("company cannot be null");

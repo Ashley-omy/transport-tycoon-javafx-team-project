@@ -4,10 +4,13 @@
  */
 package model;
 
-/**
- *
- * @author lenovo
- */
-public class City {
-    
+import common.*;
+
+public class City extends MapEntity {
+    public City(Id id) {
+        super(id);
+    }
+
+    @Override
+    public void tick(double deltaTime) {}
 }
