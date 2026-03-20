@@ -36,14 +36,23 @@ public class Route {
         return stops.get(index);
     }
 
+    // returns true for circular routes
     public boolean hasNextStop(int currentIndex) {
-        return currentIndex >= 0 && currentIndex < stops.size() - 1;
+        if (currentIndex < 0 || currentIndex >= stops.size()) {
+            throw new IllegalArgumentException("invalid current index: " + currentIndex);
+        }
+        return true;
+    }
+
+    // for circular, get first stop after last.
+    public int getNextStopIndex(int currentIndex) {
+        if (currentIndex < 0 || currentIndex >= stops.size()) {
+            throw new IllegalArgumentException("invalid current index: " + currentIndex);
+        }
+        return (currentIndex + 1) % stops.size();
     }
 
     public Stop getNextStop(int currentIndex) {
-        if (!hasNextStop(currentIndex)) {
-            throw new IllegalArgumentException("no next stop after index: " + currentIndex);
-        }
-        return stops.get(currentIndex + 1);
+        return stops.get(getNextStopIndex(currentIndex));
     }
 }
