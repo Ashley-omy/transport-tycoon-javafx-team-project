@@ -8,25 +8,22 @@ import common.*;
 import java.util.*;
 
 public class RoadNetwork {
-    private final GameMap gameMap;
     private final Set<GridPos> roadTiles = new HashSet<>();
 
     // wanna make an adjacency list: road tile -> its connected neighbors
     private final Map<GridPos, List<GridPos>> adjacency = new HashMap<>();
 
-    public RoadNetwork(GameMap gameMap) {
-        this.gameMap = gameMap;
-    }
+    public RoadNetwork() { }
 
-    public void rebuild() {
+    public void rebuild(GameMap map) {
         roadTiles.clear();
         adjacency.clear();
 
         // step 1: we collect all road tiles
-        for (int x = 0; x < gameMap.getWidth(); ++x) {
-            for (int y = 0; y < gameMap.getHeight(); ++y) {
+        for (int x = 0; x < map.getWidth(); ++x) {
+            for (int y = 0; y < map.getHeight(); ++y) {
                 GridPos pos = new GridPos(x, y);
-                Tile tile = gameMap.getTile(pos);
+                Tile tile = map.getTile(pos);
 
                 if (tile.getRoadPiece() != null) {
                     roadTiles.add(pos);
