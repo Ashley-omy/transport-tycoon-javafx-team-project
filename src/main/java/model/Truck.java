@@ -5,12 +5,8 @@ import common.Money;
 
 public class Truck extends Vehicle {
 
-    // null = accepts all goods
-    private final GoodsType specialization;
-
-    public Truck(Id id, int capacityUnits, Money purchaseCost, Money maintenanceCost, double speed, GoodsType specialization) {
+    public Truck(Id id, int capacityUnits, Money purchaseCost, Money maintenanceCost, double speed) {
         super(id, capacityUnits, purchaseCost, maintenanceCost, speed);
-        this.specialization = specialization;
     }
 
     @Override
@@ -20,7 +16,6 @@ public class Truck extends Vehicle {
 
     @Override
     public boolean acceptsGoodsType(GoodsType goodsType) {
-        if (goodsType == null) return false;
-        return specialization == null || specialization == goodsType;
+        return goodsType != null; // accepts any goods type
     }
 }
