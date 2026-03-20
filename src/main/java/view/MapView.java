@@ -20,6 +20,7 @@ public class MapView extends Pane {
 
     private final Canvas canvas;
     private final GraphicsContext gc;
+    private UIState uiState;
 
     private Camera camera;
     private Renderer renderer;
@@ -44,6 +45,10 @@ public class MapView extends Pane {
         return camera;
     }
 
+    public void setUIState(UIState uiState) {
+        this.uiState = uiState;
+    }
+
     public GridPos screenToTile(Vec2 screenPos) {
         return camera.screenToTile(screenPos);
     }
@@ -54,6 +59,6 @@ public class MapView extends Pane {
         // Clear screen
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-        renderer.render(gc, map, camera);
+        renderer.render(gc, map, camera, uiState);
     }
 }
