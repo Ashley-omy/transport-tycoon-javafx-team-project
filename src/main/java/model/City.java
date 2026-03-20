@@ -6,20 +6,35 @@ import java.util.Map;
 
 /**
  * City consumes goods and passengers.
- * Cities generates passengers.
+ * Cities generate passengers and have demands that increase over time.
  */
 public class City extends MapEntity {
     private static final int STANDARD_POPULATION = 5000;
+    private static final double DEMAND_INCREASE_RATE = 0.5; // Units per second
+    private static final int INITIAL_DEMAND = 50;
+    private static final int MAX_DEMAND = 500;
     
     private final int population;
     private final Map<GoodsType, Integer> receivedGoods;  // Tracks delivered goods
     private int receivedPassengers;  // Tracks delivered passengers
+
+    private final Map<GoodsType, Double> goodsDemand;  // Current demand for each goods type
+    private double passengerDemand;  // Current demand for passengers
 
     public City(Id id) {
         super(id);
         this.population = STANDARD_POPULATION;
         this.receivedGoods = new HashMap<>();
         this.receivedPassengers = 0;
+        
+        // Initialize demands
+        this.goodsDemand = new HashMap<>();
+        
+        // initial demand for finished products
+        goodsDemand.put(GoodsType.STEEL, (double) INITIAL_DEMAND);
+        goodsDemand.put(GoodsType.PAPER, (double) INITIAL_DEMAND);
+        
+        this.passengerDemand = INITIAL_DEMAND;
     }
 
     public int getPopulation() {
@@ -32,6 +47,15 @@ public class City extends MapEntity {
 
     public int getReceivedGoods(GoodsType type) {
         return receivedGoods.getOrDefault(type, 0);
+    }
+    
+    public int getGoodsDemand(GoodsType type) {
+        Double demand = goodsDemand.getOrDefault(type, 0.0);
+        return demand.intValue();
+    }
+    
+    public int getPassengerDemand() {
+        return (int) passengerDemand;
     }
 
     /**
@@ -56,7 +80,8 @@ public class City extends MapEntity {
     @Override
     public void emitSupplyToStops() {
         if (servedStops.isEmpty()) return;
-        int passengersToEmit = population / 10; // 1 passenger per 10 population
+        
+        int passengersToEmit = population / 10; //
         if (passengersToEmit <= 0) return;
 
         // Distribute evenly to all stops
@@ -77,10 +102,27 @@ public class City extends MapEntity {
         }
     }
 
+    /**
+     * Update demand levels - demands increase slowly over time.
+     */
     @Override
     public void tick(double deltaTime) {
         if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
-        // will add: demand logic, consumption, growth
+        
+        // Increase goods demand gradually
+        for (GoodsType type : goodsDemand.keySet()) {
+            double current = goodsDemand.get(type);
+            
+            if (current < MAX_DEMAND) {
+                double newDemand = Math.min(current + DEMAND_INCREASE_RATE * deltaTime, MAX_DEMAND);
+                goodsDemand.put(type, newDemand);
+            }
+        }
+        
+        // Increase passenger demand gradually
+        if (passengerDemand < MAX_DEMAND) {
+            passengerDemand = Math.min(passengerDemand + DEMAND_INCREASE_RATE * deltaTime, MAX_DEMAND);
+        }
     }
 }
 
