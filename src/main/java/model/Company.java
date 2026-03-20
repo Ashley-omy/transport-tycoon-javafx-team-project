@@ -11,8 +11,6 @@ public class Company {
 
     public static final Money DEFAULT_STARTING_CAPITAL = Money.of(100_000);
 
-    // Note: Vehicle costs are now per-vehicle (stored in Vehicle class)
-    // These are kept for backward compatibility
     private static final Money DEFAULT_VEHICLE_RESALE_VALUE = Money.of(2_500);
     private static final Money DEFAULT_DELIVERY_INCOME = Money.of(300);
 
