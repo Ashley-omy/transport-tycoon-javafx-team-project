@@ -3,12 +3,18 @@ package model;
 import common.GridPos;
 import common.Money;
 
+import java.util.List;
+
 public class World {
 
     private GameMap map;
+    private RoadNetwork roads;
+    private List<BridgeSpec> bridgeCatalog;
+    private long mgSeed;
 
     public World(int width, int height){
         this.map = new GameMap(width, height);
+        this.roads = new RoadNetwork();
     }
 
     public static final Money ROAD_BUILD_COST = Money.of(150);
@@ -17,6 +23,10 @@ public class World {
         return true;
     }
     public GameMap getMap(){ return map;}
+
+    public RoadNetwork getRoadNetwork() {
+        return roads;
+    }
 
     public boolean buildRoad(GridPos pos, Company company) {
         if (company == null) throw new IllegalArgumentException("company cannot be null");
@@ -33,4 +43,6 @@ public class World {
     public void tick(double deltaTime) {
         if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
     }
+
+
 }
