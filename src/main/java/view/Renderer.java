@@ -22,7 +22,7 @@ public class Renderer {
         this.anim = new AnimationEngine();
     }
 
-    public void render(GraphicsContext gc, GameMap map, Camera camera) {
+    public void render(GraphicsContext gc, GameMap map, Camera camera, UIState uiState) {
 
         int tileSize = camera.getTileSize();
 
