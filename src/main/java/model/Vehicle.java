@@ -3,8 +3,6 @@ package model;
 import common.Id;
 import common.Money;
 
-import java.util.List;
-
 public abstract class Vehicle {
     protected final Id id;
     protected final int capacityUnits;
@@ -12,7 +10,8 @@ public abstract class Vehicle {
     protected final Money maintenanceCost;
     protected final double speed;
     protected Shipment cargo;
-    protected Company owner; // Company that owns this vehicle
+    protected Company owner;
+    protected VehicleState state;
 
     protected Vehicle(Id id, int capacityUnits, Money purchaseCost, Money maintenanceCost, double speed) {
         if (id == null) throw new IllegalArgumentException("id cannot be null");
@@ -25,6 +24,7 @@ public abstract class Vehicle {
         this.purchaseCost = purchaseCost;
         this.maintenanceCost = maintenanceCost;
         this.speed = speed;
+        this.state = VehicleState.IDLE;
     }
 
     public Id getId() { return id; }
@@ -34,6 +34,7 @@ public abstract class Vehicle {
     
     public void setOwner(Company owner) { this.owner = owner; }
 
+    // Cargo storage methods
     public Shipment getCargo() { return cargo; }
 
     public void clearCargo() { this.cargo = null; }
@@ -44,6 +45,15 @@ public abstract class Vehicle {
 
     public boolean hasCargo() {
         return cargo != null && cargo.getUnits() > 0;
+    }
+
+    public VehicleState getState() {
+        return state;
+    }
+    
+    public void setState(VehicleState state) {
+        if (state == null) throw new IllegalArgumentException("state cannot be null");
+        this.state = state;
     }
 
     public boolean canLoad(Shipment s) {
