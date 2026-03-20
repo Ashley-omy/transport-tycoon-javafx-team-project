@@ -48,4 +48,12 @@ public class Tile {
     public Facility getFacility() {
         return (entity instanceof Facility) ? (Facility) entity : null;
     }
+
+    public boolean isWater() {
+        return terrain.isWater();
+    }
+
+    public boolean isForest() {
+        return terrain.isForest();
+    }
 }

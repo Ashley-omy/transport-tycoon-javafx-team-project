@@ -4,10 +4,21 @@
  */
 package controller;
 
+import common.*;
+import model.*;
+
+import javax.swing.*;
+
 /**
  *
- * @author lenovo
+ * @author Qian
  */
 public class FleetController {
-    
+    private final Company company;
+    private final World world;
+
+    public FleetController(Company company, World world) {
+        this.company = company;
+        this.world = world;
+    }
 }

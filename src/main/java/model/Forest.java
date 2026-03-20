@@ -10,4 +10,7 @@ public class Forest extends Terrain {
 
     @Override
     public double buildMultiplier() { return 1.5; }
+
+    @Override
+    public boolean isForest() {return true;}
 }

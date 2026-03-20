@@ -4,10 +4,9 @@
  */
 package controller;
 
-/**
- *
- * @author lenovo
- */
-public class TimeSpeed {
-    
+public enum TimeSpeed {
+    PAUSE,
+    NORMAL,
+    FAST,
+    VERY_FAST
 }
