@@ -10,15 +10,13 @@ package view;
  */
 import common.Money;
 import controller.ActionResult;
+import controller.TimeController;
+import controller.TimeSpeed;
 import javafx.scene.layout.HBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.Button;
-import model.Economy;
 
 import javafx.scene.paint.Color;
-
-import static javafx.scene.paint.Color.GREEN;
-import static javafx.scene.paint.Color.RED;
 
 public class HUDView extends HBox {
 
@@ -31,10 +29,14 @@ public class HUDView extends HBox {
     private Button stopBtn;
     private Button garageBtn;
     private Button routeBtn;
+    private Button pauseBtn;
+    private Button normalSpeedBtn;
+    private Button fastSpeedBtn;
+    private Button veryFastSpeedBtn;
     private Label buildResultLabel;
     String lastMessage;
 
-    public HUDView(UIState uiState) {
+    public HUDView(UIState uiState, TimeController timeController) {
         moneyLabel = new Label("Money: 0");
         timeLabel = new Label("Time: 0");
         speedLabel = new Label("Speed: NORMAL");
@@ -43,12 +45,20 @@ public class HUDView extends HBox {
         stopBtn = new Button("Stop");
         garageBtn = new Button("Garage");
         routeBtn = new Button("Place Route");
+        pauseBtn = new Button("Pause");
+        normalSpeedBtn = new Button("1x");
+        fastSpeedBtn = new Button("2x");
+        veryFastSpeedBtn = new Button("4x");
         uiStateLabel = new Label("UI State");
         buildResultLabel = new Label();
         // Bind actions
         roadBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.ROAD));
         stopBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.STOP));
         garageBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.GARAGE));
+        pauseBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.PAUSE));
+        normalSpeedBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.NORMAL));
+        fastSpeedBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.FAST));
+        veryFastSpeedBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.VERY_FAST));
         routeBtn.setOnAction(e -> {
             if (uiState.getBuildMode() == BuildMode.ROUTE) {
                 uiState.requestRoutePlacement();
@@ -66,6 +76,10 @@ public class HUDView extends HBox {
                 garageBtn,
                 roadBtn,
                 routeBtn,
+                pauseBtn,
+                normalSpeedBtn,
+                fastSpeedBtn,
+                veryFastSpeedBtn,
                 buildResultLabel
         );
 
@@ -81,7 +95,7 @@ public class HUDView extends HBox {
         buildResultLabel.setText(lastMessage);
     }
 
-    public void render(Money cash, String time, double speed) {
+    public void render(Money cash, String time, TimeSpeed speed) {
 
             speedLabel.setText(" / Speed: " + speed);
             moneyLabel.setText(" / Money: " + (cash));
