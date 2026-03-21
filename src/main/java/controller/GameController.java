@@ -108,6 +108,7 @@ public class GameController {
     }
 
     private void handleMouseClick(InputEvent e) {
+        ActionResult result;
 
         // Convert screen → tile
         var tile = window.getMapView()
@@ -120,13 +121,15 @@ public class GameController {
             case ROAD:
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
-                    build.buildRoad(pos);
+                    result = build.buildRoad(pos);
+                    window.getHudView().displayBuildResult(result);
                 }
                 break;
             case STOP:
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
-                    build.buildStop(pos);
+                     result = build.buildStop(pos);
+                     window.getHudView().displayBuildResult(result);
                 }
                 break;
             case GARAGE:

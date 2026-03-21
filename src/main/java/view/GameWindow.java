@@ -141,4 +141,6 @@ public class GameWindow extends BorderPane {
     }
 
     public AnimationEngine getAnimationEngine(){return animationEngine;}
+
+    public HUDView getHudView(){return hudView;}
 }

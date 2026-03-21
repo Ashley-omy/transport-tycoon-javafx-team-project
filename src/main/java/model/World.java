@@ -15,7 +15,9 @@ public class World {
 
     // later need to modify (bridge + rngspeed)
     public World(int width, int height){
+
         this.map = new GameMap(width, height);
+        roads = new RoadNetwork();
     }
 
     public static final Money ROAD_BUILD_COST = Money.of(150);
