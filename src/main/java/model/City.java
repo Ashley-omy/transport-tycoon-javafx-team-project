@@ -22,7 +22,7 @@ public class City extends MapEntity {
     private double passengerDemand;  // Current demand for passengers
 
     public City(Id id) {
-        super(id);
+        super(id, 3);
         this.population = STANDARD_POPULATION;
         this.receivedGoods = new HashMap<>();
         this.receivedPassengers = 0;

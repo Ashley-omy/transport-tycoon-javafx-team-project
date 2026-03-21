@@ -24,6 +24,10 @@ public class GameMap {
         return this.height;
     }
 
+    public Tile[][] getTiles() {
+        return tiles;
+    }
+
     private void initializeTiles() {
         for (int x = 0; x < width; ++x) {
             for (int y = 0; y < height; ++y) {

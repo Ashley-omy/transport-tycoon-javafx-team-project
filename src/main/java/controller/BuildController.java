@@ -185,9 +185,7 @@ public class BuildController {
         s.getServedPlace().detachStop(s);
         tile.setStop(null);
     }
-
-     */
-
+*/
 
     /* milestone3
 
