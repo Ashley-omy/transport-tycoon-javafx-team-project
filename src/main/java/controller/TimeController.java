@@ -18,6 +18,7 @@ public class TimeController {
             speed = s;
         }
     }
+    public TimeSpeed getSpeed(){return speed;}
 
     public double getSpeedMultiplier() {
         if (paused) return 0.0;

@@ -25,9 +25,9 @@ public class GameController {
 
     private InputController input;
     private SelectionController selection;
-    private TimeController time; // assuming teammate implements
-    private BuildController build; // teammate
-    private FleetController fleet; // teammate
+    private TimeController time;
+    private BuildController build;
+    private FleetController fleet;
 
     private long lastTime = 0;
 
@@ -69,7 +69,7 @@ public class GameController {
     // Main update loop
     public void update(double deltaTime) {
         // Apply time speed multiplier (Uncomment when TimeController is implemented)
-        //double scaledDelta = deltaTime * time.getSpeedMultiplier();
+        double scaledDelta = deltaTime * time.getSpeedMultiplier();
 
         // 1. Handle input
         List<InputEvent> events = input.poll();
@@ -77,16 +77,18 @@ public class GameController {
 
         // 2. Update game logic
         game.update(deltaTime);
-        /*
-        if (!time.isPaused()) {
+
+        if (time.getSpeed() != TimeSpeed.PAUSE) {
             game.update(scaledDelta);
         }
-        */
+
         // 3. Sync UI state
         window.getUIState().syncFromSelection(selection);
 
         // 4. Trigger render
         window.render();
+        window.getAnimationEngine().update(game.getSimDelta(),time);
+
     }
 
     private void handleInput(List<InputEvent> events) {

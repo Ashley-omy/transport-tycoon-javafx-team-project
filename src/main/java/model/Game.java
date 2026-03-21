@@ -8,6 +8,7 @@ public class Game {
     private boolean paused = false;
     private double speedMultiplier = 1.0;
     private boolean gameOver = false;
+    private double simDelta;
 
     public static final double SPEED_NORMAL = 1.0;
     public static final double SPEED_FAST = 2.0;
@@ -24,7 +25,7 @@ public class Game {
         if (gameOver) return;
         if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
 
-        double simDelta = paused ? 0.0 : deltaTime * speedMultiplier;
+        simDelta = paused ? 0.0 : deltaTime * speedMultiplier;
         if (simDelta <= 0.0) return;
 
         tick++;
@@ -46,6 +47,7 @@ public class Game {
 
     public boolean isGameOver() { return gameOver; }
     public long getTick() { return tick; }
+    public double getSimDelta() { return simDelta; }
     public void setPaused(boolean paused) { this.paused = paused; }
     public boolean isPaused() { return paused; }
     public void setSpeedMultiplier(double speedMultiplier) {
