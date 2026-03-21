@@ -40,6 +40,9 @@ public class Game {
     public World getWorld() {
         return world;
     }
+    public Company getCompany() {
+        return company;
+    }
 
     public boolean isGameOver() { return gameOver; }
     public long getTick() { return tick; }

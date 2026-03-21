@@ -73,7 +73,22 @@ public class BuildController {
     }
 
     // step 4: now its ok to build the road
-    public void buildRoad(Tile tile) {
+    public ActionResult buildRoad(GridPos pos) {
+        Tile tile = world.getMap().getTile(pos);
+
+        if (!canPlaceRoad(tile))
+            return ActionResult.fail("Cannot place road here");
+
+        if (!company.getEconomy().spend(
+                World.ROAD_BUILD_COST,
+                TransactionType.ROAD_CONSTRUCTION,
+                "Built road at " + pos))
+            return ActionResult.fail("Not enough money");
+
+        world.buildRoad(pos);
+        return ActionResult.success("Build road sucessfully");
+
+        /* wrong codes
         if (!canPlaceRoad(tile)) return;
 
         RoadPiece piece = new RoadPiece(RoadKind.ROAD, null);
@@ -81,13 +96,18 @@ public class BuildController {
         tile.setRoadPiece(piece);
 
         world.getRoadNetwork().rebuild(world.getMap());
+
+         */
     }
 
+    /*
     // road removal
     public void removeRoad(Tile tile) {
         tile.setRoadPiece(null);
         world.getRoadNetwork().rebuild(world.getMap());
     }
+
+     */
     //-------------------------------
 
     //--------- Stop placement rules ----------------
@@ -121,27 +141,40 @@ public class BuildController {
         return null;
     }
 
-    // step 4: Can we place a stop here? combine previous 3 conditions
-    public boolean canPlaceStop(Tile tile) {
-        if (!isTileEmptyForStop(tile)) return false;
-        if (!hasAdjacentRoad(tile)) return false;
-        if (findNearbyServedPlace(tile) == null) return false;
-        return true;
-    }
 
-    // step 5: place the stop
-    public Stop placeStop(Tile tile) {
-        if (!canPlaceStop(tile)) return null;
+    // step 4: place the stop
+    public ActionResult buildStop(GridPos pos) {
+        Tile tile = world.getMap().getTile(pos);
+
+        if (!isTileEmptyForStop(tile))
+            return ActionResult.fail("Tile not empty");
+
+        if (!hasAdjacentRoad(tile))
+            return ActionResult.fail("Stop must be next to a road");
 
         MapEntity served = findNearbyServedPlace(tile);
+        if (served == null)
+            return ActionResult.fail("Stop must serve a city or facility");
+
+        // Stop built logic in controller is cuz we need servedPlace
+        Stop stop = new Stop(Id.genNew(), tile, served);
+        tile.setStop(stop);
+        served.attachStop(stop);
+
+        return ActionResult.success("Build stop sucessfully");
+
+        /* Wrong codes
         Stop stop = new Stop(Id.genNew(), tile, served);
 
         tile.setStop(stop);
         served.attachStop(stop);
 
         return stop;
+
+         */
     }
 
+    /*
     // stop removal
     public void removeStop(Tile tile) {
         Stop s = tile.getStop();
@@ -151,61 +184,39 @@ public class BuildController {
         tile.setStop(null);
     }
 
+     */
+
 
     /* milestone3
-    // -------- Garage placement rules ------------
 
-    // step 1: tile must be empty
-    private boolean isTileEmptyForGarage(Tile tile) {
-        if (!tile.getTerrain().isPassable()) return false;
-        if (tile.getEntity() != null) return false;
-        if (tile.getRoadPiece() != null) return false;
-        if (tile.getStop() != null) return false;
-        if (tile.getGarage() != null) return false;
-        return true;
+    // garage
+        private boolean isTileEmptyForGarage(Tile tile) {
+        return tile.getTerrain().isPassable()
+                && tile.getEntity() == null
+                && tile.getRoadPiece() == null
+                && tile.getStop() == null
+                && tile.getGarage() == null;
     }
 
-    // step 2: garage must be next to a road
-    private boolean hasAdjacentRoadForGarage(Tile tile) {
-        for (Tile n : getNeighbors(tile)) {
-            if (n.getRoadPiece() != null) return true;
-        }
-        return false;
-    }
+    public ActionResult buildGarage(GridPos pos) {
+        Tile tile = world.getMap().getTile(pos);
 
-    // step 3: can place garage?
-    public boolean canPlaceGarage(Tile tile) {
-        if (!isTileEmptyForGarage(tile)) return false;
-        if (!hasAdjacentRoadForGarage(tile)) return false;
-        return true;
-    }
+        if (!isTileEmptyForGarage(tile))
+            return ActionResult.failure("Cannot place garage here");
 
-    // step 4: place garage
-    public Garage buildGarage(Tile tile) {
-        if (!canPlaceGarage(tile)) return null;
+        if (!hasAdjacentRoad(tile))
+            return ActionResult.failure("Garage must be next to a road");
 
-        // Garage(id, capacity, serviceBayCount, occupiedTiles)
-        List<Tile> occupied = List.of(tile);
-
-        Garage g = new Garage(
-                Id.genNew(),
-                10,          // capacity
-                2,           // serviceBayCount
-                occupied
-        );
-
-        tile.setGarage(g);
-        return g;
-    }
-
-    // garage removal
-    public void removeGarage(Tile tile) {
-        Garage g = tile.getGarage();
-        if (g == null) return;
-
-        tile.setGarage(null);
+        world.buildGarage(pos);
+        return ActionResult.success();
     }
 
 
-     */
+    // Bridge
+    public ActionResult buildBridge(List<GridPos> line, BridgeType type) {
+        // implement build rules
+        world.buildBridge(line, type);
+        return ActionResult.success();
+    }
+    */
 }

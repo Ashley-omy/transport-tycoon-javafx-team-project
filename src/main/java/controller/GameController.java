@@ -118,19 +118,16 @@ public class GameController {
             case ROAD:
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
-                    Tile tile1 = game.getWorld().getMap().getTile(pos);
-                    build.buildRoad(tile1);
+                    build.buildRoad(pos);
                 }
                 break;
             case STOP:
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
-                    Tile tile1 = game.getWorld().getMap().getTile(pos);
-                    build.placeStop(tile1);
+                    build.buildStop(pos);
                 }
                 break;
             case GARAGE:
-
                 break;
             default:
                 break;
