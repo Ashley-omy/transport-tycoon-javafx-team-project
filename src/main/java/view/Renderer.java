@@ -5,6 +5,9 @@
 package view;
 import javafx.scene.canvas.GraphicsContext;
 import model.GameMap;
+import model.Vehicle;
+
+import java.util.List;
 /**
  *
  * @author asuna
@@ -22,7 +25,7 @@ public class Renderer {
         this.anim = new AnimationEngine();
     }
 
-    public void render(GraphicsContext gc, GameMap map, Camera camera, UIState uiState) {
+    public void render(GraphicsContext gc, GameMap map, Camera camera, UIState uiState, List<Vehicle> vehicles) {
 
         int tileSize = camera.getTileSize();
 
@@ -51,6 +54,6 @@ public class Renderer {
         }
 
         // Vehicles (draw after tiles)
-        vehicleRenderer.draw(gc, map, camera, anim);
+        vehicleRenderer.draw(gc, vehicles, camera);
     }
 }

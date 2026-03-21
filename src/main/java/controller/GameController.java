@@ -81,8 +81,6 @@ public class GameController {
         handlePendingRoutePlacement();
 
         // 2. Update game logic
-        game.update(deltaTime);
-
         if (time.getSpeed() != TimeSpeed.PAUSE) {
             game.update(scaledDelta);
         }
@@ -157,6 +155,7 @@ public class GameController {
             return;
         }
 
+        // In route mode, each clicked stop is appended to the pending route list.
         Tile tile = game.getWorld().getMap().getTile(pos);
         Stop selectedStop = tile.getStop();
         if (selectedStop == null) {
@@ -179,6 +178,7 @@ public class GameController {
         if (!window.getUIState().consumeRoutePlacementRequest()) {
             return;
         }
+        // Finalize the route only after the Place Route button is pressed again.
         ActionResult result = fleet.createRouteWithVehicle(pendingRouteStops);
         if (result.isSuccess()) {
             pendingRouteStops.clear();

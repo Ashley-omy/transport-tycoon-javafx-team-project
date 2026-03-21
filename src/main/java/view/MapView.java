@@ -13,8 +13,8 @@ import common.Vec2;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.layout.Pane;
+import model.Company;
 import model.GameMap;
-import model.Tile;
 
 public class MapView extends Pane {
 
@@ -26,6 +26,7 @@ public class MapView extends Pane {
     private Renderer renderer;
 
     private GameMap map; // injected later
+    private Company company;
 
     public MapView(int width, int height) {
         this.canvas = new Canvas(width, height);
@@ -41,6 +42,10 @@ public class MapView extends Pane {
 
     public void setMap(GameMap map) {
         this.map = map;
+    }
+
+    public void setCompany(Company company) {
+        this.company = company;
     }
 
     public Camera getCamera() {
@@ -61,6 +66,6 @@ public class MapView extends Pane {
         // Clear screen
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
 
-        renderer.render(gc, map, camera, uiState);
+        renderer.render(gc, map, camera, uiState, company == null ? null : company.getFleet());
     }
 }
