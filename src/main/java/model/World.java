@@ -4,18 +4,60 @@ import common.GridPos;
 import common.Money;
 import common.Id;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class World {
 
     private GameMap map;
     private RoadNetwork roads;
-    private List<BridgeSpec> bridgeCatalog;
+    private List<BridgeSpec> bridgeCatalog = new ArrayList<>();
     long rngSeed;
 
     // later need to modify (bridge + rngspeed)
     public World(int width, int height){
         this.map = new GameMap(width, height);
+        this.roads = new RoadNetwork();
+
+        placeInitialEntities();
+    }
+
+    // place city(3*3) / facility(2*2) FOOTPRINT logic
+    public void placeEntity(MapEntity entity, GridPos center) {
+        int w = entity.getFootprintW();
+        int half = w / 2;
+
+        for (int dx = -half; dx <= half; dx++) {
+            for (int dy = -half; dy <= half; dy++) {
+
+                GridPos p = new GridPos(center.x + dx, center.y + dy);
+
+                if (!map.inBounds(p)) {
+                    throw new IllegalArgumentException("Entity footprint out of bounds: " + p);
+                }
+
+                Tile t = map.getTile(p);
+
+                if (t.getEntity() != null) {
+                    throw new IllegalStateException("Tile already occupied at: " + p);
+                }
+
+                t.setEntity(entity);
+                entity.getOccupiedTiles().add(t);
+            }
+        }
+    }
+
+    // for place some cities and facilities for MS2
+    private void placeInitialEntities() {
+        City c1 = new City(Id.genNew());
+        placeEntity(c1, new GridPos(5, 5));
+
+        Facility steelMill = Factory.createSteelMill(Id.genNew());
+        placeEntity(steelMill, new GridPos(10, 10));
+
+        Facility ironMine = Mine.createIronMine(Id.genNew());
+        placeEntity(ironMine, new GridPos(15, 15));
     }
 
     public static final Money ROAD_BUILD_COST = Money.of(150);

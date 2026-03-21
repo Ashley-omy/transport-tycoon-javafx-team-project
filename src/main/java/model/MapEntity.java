@@ -7,16 +7,39 @@ import common.*;
 import java.util.*;
 
 public abstract class MapEntity {
-    protected final Id id;
-    protected final List<Stop> servedStops = new ArrayList<>();
-    protected final List<Tile> occupiedTiles = new ArrayList<>();
+    protected Id id;
+    protected int footprintW;
+    protected List<Stop> servedStops = new ArrayList<>();
+    protected List<Tile> occupiedTiles = new ArrayList<>();
 
-    public MapEntity(Id id) {
+    public MapEntity(Id id, int footprintW) {
         this.id = id;
+        this.footprintW = footprintW;
+        this.servedStops = new ArrayList<>();
+        this.occupiedTiles = new ArrayList<>();
+    }
+
+    public int getFootprintW() {
+        return footprintW;
+    }
+
+    public List<Tile> getOccupiedTiles() {
+        return occupiedTiles;
+    }
+
+    public boolean occupies(GridPos pos) {
+        for (Tile t : occupiedTiles) {
+            if (t.getPos().equals(pos)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public void attachStop(Stop s) {
-        servedStops.add(s);
+        if (!servedStops.contains(s)) {
+            servedStops.add(s);
+        }
     }
 
     public void detachStop(Stop s) {
@@ -25,11 +48,7 @@ public abstract class MapEntity {
 
     public abstract void tick(double deltaTime);
 
-    public void emitSupplyToStops() {
-        // do later
-    }
+    public void emitSupplyToStops() { }
 
-    public void acceptDelivery(Shipment s) {
-        // do later
-    }
+    public void acceptDelivery(Shipment s) { }
 }

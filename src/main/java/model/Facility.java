@@ -15,7 +15,7 @@ public abstract class Facility extends MapEntity {
     protected double productionProgress;
 
     public Facility(Id id, GoodsType inputType, GoodsType outputType, int maxStockCapacity, int productionRate, double productionTime) {
-        super(id);
+        super(id, 2);
         if (outputType == null) {
             throw new IllegalArgumentException("outputType cannot be null");
         }
