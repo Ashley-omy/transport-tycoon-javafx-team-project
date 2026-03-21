@@ -30,6 +30,7 @@ public class HUDView extends HBox {
     private Button roadBtn;
     private Button stopBtn;
     private Button garageBtn;
+    private Button routeBtn;
     private Label buildResultLabel;
     String lastMessage;
 
@@ -40,15 +41,33 @@ public class HUDView extends HBox {
         this.uiState = uiState;
         roadBtn = new Button("Road");
         stopBtn = new Button("Stop");
-        garageBtn = new Button("Garage");;
+        garageBtn = new Button("Garage");
+        routeBtn = new Button("Place Route");
         uiStateLabel = new Label("UI State");
         buildResultLabel = new Label();
         // Bind actions
         roadBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.ROAD));
         stopBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.STOP));
         garageBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.GARAGE));
+        routeBtn.setOnAction(e -> {
+            if (uiState.getBuildMode() == BuildMode.ROUTE) {
+                uiState.requestRoutePlacement();
+            } else {
+                uiState.setBuildMode(BuildMode.ROUTE);
+            }
+        });
 
-        this.getChildren().addAll(moneyLabel, timeLabel,speedLabel, uiStateLabel, stopBtn, garageBtn,roadBtn, buildResultLabel);
+        this.getChildren().addAll(
+                moneyLabel,
+                timeLabel,
+                speedLabel,
+                uiStateLabel,
+                stopBtn,
+                garageBtn,
+                roadBtn,
+                routeBtn,
+                buildResultLabel
+        );
 
     }
     public void displayBuildResult(ActionResult result){

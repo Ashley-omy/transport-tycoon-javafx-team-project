@@ -7,8 +7,8 @@ package controller;
 import common.*;
 import model.*;
 
-import javax.swing.*;
 import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -22,6 +22,7 @@ import java.util.Map;
 public class FleetController {
     private final Company company;
     private final World world;
+
 
     // not sure how to deal with routeId
     // for now i store here
@@ -53,6 +54,45 @@ public class FleetController {
         routes.put(route.getId().toString(), route);
     }
 
+    public ActionResult createRouteWithVehicle(List<Stop> selectedStops) {
+        if (selectedStops == null || selectedStops.size() < 2) {
+            return ActionResult.fail("Select at least two stops");
+        }
+
+        List<Stop> routeStops = new ArrayList<>();
+        for (Stop stop : selectedStops) {
+            if (stop == null) {
+                return ActionResult.fail("Selected stops contain an invalid stop");
+            }
+            if (routeStops.contains(stop)) {
+                continue;
+            }
+            routeStops.add(stop);
+        }
+
+        if (routeStops.size() < 2) {
+            return ActionResult.fail("Select at least two different stops");
+        }
+
+        Route route = new Route(Id.genNew(), routeStops);
+        if (!isRouteValid(route)) {
+            return ActionResult.fail("Selected stops are not connected by road");
+        }
+
+        Vehicle vehicle = createVehicleFor(route);
+        if (!company.buyVehicle(vehicle)) {
+            return ActionResult.fail("Not enough money to create vehicle for route");
+        }
+
+        registerRoute(route);
+        vehicle.assignRoute(route);
+        vehicle.setState(VehicleState.ON_ROUTE);
+
+        return ActionResult.success(
+                "Route created with " + routeStops.size() + " stops and vehicle " + vehicle.getId()
+        );
+    }
+
     // for UI
     public ActionResult assignRoute(String vehicleId, String routeId) {
         Route r = routes.get(routeId);
@@ -77,10 +117,7 @@ public class FleetController {
         List<Stop> stops = route.getStops();
 
         for (int i = 0; i < stops.size()-1; ++i) {
-            Tile a = stops.get(i).getOccupiedTile();
-            Tile b = stops.get(i + 1).getOccupiedTile();
-
-            if (!world.getRoadNetwork().isConnected(a, b)) {
+            if (!areStopsConnected(stops.get(i), stops.get(i + 1))) {
                 return false;
             }
         }
@@ -88,6 +125,52 @@ public class FleetController {
 
     }
 
+    private boolean areStopsConnected(Stop firstStop, Stop secondStop) {
+        List<Tile> firstRoadTiles = getAdjacentRoadTiles(firstStop);
+        List<Tile> secondRoadTiles = getAdjacentRoadTiles(secondStop);
+
+        for (Tile firstRoadTile : firstRoadTiles) {
+            for (Tile secondRoadTile : secondRoadTiles) {
+                if (world.getRoadNetwork().isConnected(firstRoadTile, secondRoadTile)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private List<Tile> getAdjacentRoadTiles(Stop stop) {
+        List<Tile> roadTiles = new ArrayList<>();
+        GridPos pos = stop.getOccupiedTile().getPos();
+
+        for (GridPos neighborPos : List.of(
+                pos.add(1, 0),
+                pos.add(-1, 0),
+                pos.add(0, 1),
+                pos.add(0, -1)
+        )) {
+            if (!world.getMap().inBounds(neighborPos)) {
+                continue;
+            }
+
+            Tile neighbor = world.getMap().getTile(neighborPos);
+            if (neighbor.getRoadPiece() != null) {
+                roadTiles.add(neighbor);
+            }
+        }
+
+        return roadTiles;
+    }
+
+    private Vehicle createVehicleFor(Route route) {
+        boolean passengerRoute = route.getStops().stream()
+                .allMatch(stop -> stop.getServedPlace() instanceof City);
+
+        if (passengerRoute) {
+            return VehicleFactory.createSmallBus(Id.genNew());
+        }
+        return VehicleFactory.createSmallTruck(Id.genNew());
+    }
 
     // will implement during MS 3
     public ActionResult buyTruck(Garage garage, String specName) {
