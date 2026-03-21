@@ -12,9 +12,7 @@ import controller.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.input.KeyEvent;
-import model.Game;
-import model.GameMap;
-import model.RoadNetwork;
+import model.*;
 
 public class GameWindow extends BorderPane {
 
@@ -28,7 +26,7 @@ public class GameWindow extends BorderPane {
     private final SelectionController selectionController;
     private final GameController gameController;
 
-    public GameWindow(Game game) {
+    public GameWindow(Game game, World world, Company company) {
 
         // -----------------------------
         // UI State
