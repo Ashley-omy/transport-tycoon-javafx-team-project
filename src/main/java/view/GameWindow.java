@@ -25,9 +25,15 @@ public class GameWindow extends BorderPane {
     private final InputController inputController;
     private final SelectionController selectionController;
     private final GameController gameController;
+    private final World world;
+    private final Company company;
+    private final TimeController timeController;
+    private final AnimationEngine animationEngine;
 
     public GameWindow(Game game, World world, Company company) {
-
+        this.world = world;
+        this.company = company;
+        this.animationEngine = new AnimationEngine();
         // -----------------------------
         // UI State
         // -----------------------------
@@ -59,7 +65,7 @@ public class GameWindow extends BorderPane {
         this.selectionController = new SelectionController();
 
         // Other controllers
-        TimeController timeController = new TimeController();
+        timeController = new TimeController();
         BuildController buildController = new BuildController(game.getWorld(), game.getCompany());
         FleetController fleetController = new FleetController(game.getCompany(), game.getWorld());
 
@@ -114,8 +120,13 @@ public class GameWindow extends BorderPane {
     // Called by GameController every frame
     // -----------------------------
     public void render() {
+
         mapView.render();
-        hudView.render();
+        hudView.render(
+                company.getEconomy().getCash(),
+                animationEngine.getFormattedTime(),
+                timeController.getSpeedMultiplier()
+        );
     }
 
     // -----------------------------
@@ -128,4 +139,8 @@ public class GameWindow extends BorderPane {
     public UIState getUIState() {
         return uiState;
     }
+
+    public AnimationEngine getAnimationEngine(){return animationEngine;}
+
+    public HUDView getHudView(){return hudView;}
 }

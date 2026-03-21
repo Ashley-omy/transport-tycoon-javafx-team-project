@@ -16,6 +16,7 @@ public class World {
 
     // later need to modify (bridge + rngspeed)
     public World(int width, int height){
+
         this.map = new GameMap(width, height);
         this.roads = new RoadNetwork();
 

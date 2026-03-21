@@ -85,8 +85,10 @@ public class BuildController {
                 "Built road at " + pos))
             return ActionResult.fail("Not enough money");
 
+        //world.buildRoad(pos);
         world.buildRoad(pos);
-        return ActionResult.success("Build road sucessfully");
+        return ActionResult.success("Build road successfully");
+
 
         /* wrong codes
         if (!canPlaceRoad(tile)) return;
