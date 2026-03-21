@@ -17,7 +17,7 @@ import model.Tile;
 public class TileRenderer {
 
     public void drawTile(GraphicsContext gc, Tile t, Vec2 pos, int size) {
-/*
+
         // Simple color by terrain
         if (t.isWater()) {
             gc.setFill(Color.LIGHTBLUE);
@@ -26,7 +26,7 @@ public class TileRenderer {
         } else {
             gc.setFill(Color.BEIGE);
         }
-*/
+
         //Temp color setting
         gc.setFill(Color.GREEN);
 
