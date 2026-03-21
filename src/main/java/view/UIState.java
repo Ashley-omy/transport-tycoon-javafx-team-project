@@ -17,9 +17,13 @@ public class UIState {
     private BuildMode buildMode = BuildMode.NONE;
     private GridPos selectedTile;
     private String selectedVehicleId;
+    private boolean routePlacementRequested;
 
     public void setBuildMode(BuildMode m) {
         this.buildMode = m;
+        if (m != BuildMode.ROUTE) {
+            this.routePlacementRequested = false;
+        }
     }
 
     public BuildMode getBuildMode() {
@@ -38,5 +42,15 @@ public class UIState {
 
     public String getSelectedVehicleId() {
         return selectedVehicleId;
+    }
+
+    public void requestRoutePlacement() {
+        routePlacementRequested = true;
+    }
+
+    public boolean consumeRoutePlacementRequest() {
+        boolean requested = routePlacementRequested;
+        routePlacementRequested = false;
+        return requested;
     }
 }

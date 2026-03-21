@@ -1,7 +1,9 @@
 package model;
 
+import common.GridPos;
 import common.Id;
 import common.Money;
+import common.Vec2;
 
 public abstract class Vehicle {
     protected final Id id;
@@ -13,6 +15,9 @@ public abstract class Vehicle {
     protected Company owner;
     protected VehicleState state;
     protected Route assignedRoute;
+    private GridPos tilePost;
+    private Vec2 worldPos;
+    private Route route;
 
     protected Vehicle(Id id, int capacityUnits, Money purchaseCost, Money maintenanceCost, double speed) {
         if (id == null) throw new IllegalArgumentException("id cannot be null");

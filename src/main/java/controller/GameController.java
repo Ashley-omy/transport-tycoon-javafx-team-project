@@ -13,9 +13,12 @@ package controller;
 import common.GridPos;
 import javafx.animation.AnimationTimer;
 import model.Game;
+import view.BuildMode;
 import view.GameWindow;
 import model.*;
+import view.BuildMode.*;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class GameController {
@@ -28,6 +31,7 @@ public class GameController {
     private TimeController time;
     private BuildController build;
     private FleetController fleet;
+    private final List<Stop> pendingRouteStops = new ArrayList<>();
 
     private long lastTime = 0;
 
@@ -74,6 +78,7 @@ public class GameController {
         // 1. Handle input
         List<InputEvent> events = input.poll();
         handleInput(events);
+        handlePendingRoutePlacement();
 
         // 2. Update game logic
         game.update(deltaTime);
@@ -119,6 +124,7 @@ public class GameController {
         /* Build Controller and Fleet Controller triggering logic here */
         switch (window.getUIState().getBuildMode()) {
             case ROAD:
+                pendingRouteStops.clear();
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
                     result = build.buildRoad(pos);
@@ -126,6 +132,7 @@ public class GameController {
                 }
                 break;
             case STOP:
+                pendingRouteStops.clear();
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
                      result = build.buildStop(pos);
@@ -133,10 +140,51 @@ public class GameController {
                 }
                 break;
             case GARAGE:
+                pendingRouteStops.clear();
+                break;
+            case ROUTE:
+                collectRouteStop();
                 break;
             default:
+                pendingRouteStops.clear();
                 break;
         }
+    }
+
+    private void collectRouteStop() {
+        GridPos pos = selection.getSelectedTile();
+        if (pos == null) {
+            return;
+        }
+
+        Tile tile = game.getWorld().getMap().getTile(pos);
+        Stop selectedStop = tile.getStop();
+        if (selectedStop == null) {
+            window.getHudView().displayBuildResult(ActionResult.fail("Select a stop to add it to the route"));
+            return;
+        }
+
+        if (pendingRouteStops.contains(selectedStop)) {
+            window.getHudView().displayBuildResult(ActionResult.fail("That stop is already selected"));
+            return;
+        }
+
+        pendingRouteStops.add(selectedStop);
+        window.getHudView().displayBuildResult(
+                ActionResult.success("Selected " + pendingRouteStops.size() + " stop(s). Press Place Route to create the route.")
+        );
+    }
+
+    private void handlePendingRoutePlacement() {
+        if (!window.getUIState().consumeRoutePlacementRequest()) {
+            return;
+        }
+        ActionResult result = fleet.createRouteWithVehicle(pendingRouteStops);
+        if (result.isSuccess()) {
+            pendingRouteStops.clear();
+            window.getUIState().setBuildMode(BuildMode.NONE);
+        }
+        window.getHudView().displayBuildResult(result);
     }
 
     private void handleKey(InputEvent e) {
