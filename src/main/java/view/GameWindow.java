@@ -56,6 +56,7 @@ public class GameWindow extends BorderPane {
         GameMap map = game.getWorld().getMap();
         RoadNetwork roadNetwork = game.getWorld().getRoadNetwork();
         mapView.setMap(map);
+        mapView.setCompany(company);
         mapView.setUIState(uiState);
 
         // -----------------------------

@@ -89,6 +89,10 @@ public class Company {
     public void tick(double deltaTime) {
         if (Double.isNaN(deltaTime) || deltaTime <= 0.0) return;
 
+        for (Vehicle v : fleet) {
+            v.tick(deltaTime);
+        }
+
         // charge maintenance every tick per vehicle (vehicle-specific cost)
         for (Vehicle v : fleet) {
             Money cost = v.getMaintenanceCost();

@@ -43,6 +43,7 @@ public class FleetController {
         // step2: find if the route legal(route has 2 stops -> stops are connected in roadNetwork??)
         if (!isRouteValid(route)) return ActionResult.fail("Route is not connected");
 
+        v.setWorld(world);
         v.assignRoute(route);
         v.setState(VehicleState.ON_ROUTE);
 
@@ -59,6 +60,7 @@ public class FleetController {
             return ActionResult.fail("Select at least two stops");
         }
 
+        // Deduplicate the UI selection before creating the route instance.
         List<Stop> routeStops = new ArrayList<>();
         for (Stop stop : selectedStops) {
             if (stop == null) {
@@ -85,6 +87,7 @@ public class FleetController {
         }
 
         registerRoute(route);
+        vehicle.setWorld(world);
         vehicle.assignRoute(route);
         vehicle.setState(VehicleState.ON_ROUTE);
 
@@ -126,6 +129,7 @@ public class FleetController {
     }
 
     private boolean areStopsConnected(Stop firstStop, Stop secondStop) {
+        // Route validation must work through the roads next to each stop.
         List<Tile> firstRoadTiles = getAdjacentRoadTiles(firstStop);
         List<Tile> secondRoadTiles = getAdjacentRoadTiles(secondStop);
 
@@ -140,6 +144,7 @@ public class FleetController {
     }
 
     private List<Tile> getAdjacentRoadTiles(Stop stop) {
+        // Stops themselves are not road tiles, so inspect their 4-neighbors instead.
         List<Tile> roadTiles = new ArrayList<>();
         GridPos pos = stop.getOccupiedTile().getPos();
 
@@ -161,8 +166,9 @@ public class FleetController {
 
         return roadTiles;
     }
-
+    //This is a temporary function used instead of Garage.
     private Vehicle createVehicleFor(Route route) {
+        // Use a bus only when every stop serves a city; otherwise use a truck.
         boolean passengerRoute = route.getStops().stream()
                 .allMatch(stop -> stop.getServedPlace() instanceof City);
 
