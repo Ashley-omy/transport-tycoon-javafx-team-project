@@ -48,7 +48,7 @@ public class GameWindow extends BorderPane {
         // Connect Model → View
         // -----------------------------
         GameMap map = game.getWorld().getMap();
-        RoadNetwork roadNetwork = new RoadNetwork();
+        RoadNetwork roadNetwork = game.getWorld().getRoadNetwork();
         mapView.setMap(map);
         mapView.setUIState(uiState);
 
@@ -60,8 +60,8 @@ public class GameWindow extends BorderPane {
 
         // Other controllers
         TimeController timeController = new TimeController();
-        BuildController buildController = new BuildController(world, company);
-        FleetController fleetController = new FleetController(company, world);
+        BuildController buildController = new BuildController(game.getWorld(), game.getCompany());
+        FleetController fleetController = new FleetController(game.getCompany(), game.getWorld());
 
         // Main controller
         this.gameController = new GameController(
