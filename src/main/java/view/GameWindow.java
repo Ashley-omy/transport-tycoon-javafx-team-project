@@ -43,7 +43,8 @@ public class GameWindow extends BorderPane {
         // Views
         // -----------------------------
         this.mapView = new MapView(1000, 700);
-        this.hudView = new HUDView(uiState);
+        timeController = new TimeController();
+        this.hudView = new HUDView(uiState, timeController);
 
         // Layout
         StackPane center = new StackPane(mapView);
@@ -66,7 +67,6 @@ public class GameWindow extends BorderPane {
         this.selectionController = new SelectionController();
 
         // Other controllers
-        timeController = new TimeController();
         BuildController buildController = new BuildController(game.getWorld(), game.getCompany());
         FleetController fleetController = new FleetController(game.getCompany(), game.getWorld());
 
@@ -126,7 +126,7 @@ public class GameWindow extends BorderPane {
         hudView.render(
                 company.getEconomy().getCash(),
                 animationEngine.getFormattedTime(),
-                timeController.getSpeedMultiplier()
+                timeController.getSpeed()
         );
     }
 

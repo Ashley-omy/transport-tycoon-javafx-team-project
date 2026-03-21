@@ -6,11 +6,10 @@ package controller;
 
 public class TimeController {
 
-    private boolean paused = false;
     private TimeSpeed speed = TimeSpeed.NORMAL;
 
     public void togglePause() {
-        paused = !paused;
+        speed = (speed == TimeSpeed.PAUSE) ? TimeSpeed.NORMAL : TimeSpeed.PAUSE;
     }
 
     public void setSpeed(TimeSpeed s) {
@@ -21,13 +20,11 @@ public class TimeController {
     public TimeSpeed getSpeed(){return speed;}
 
     public double getSpeedMultiplier() {
-        if (paused) return 0.0;
-
         return switch (speed) {
+            case PAUSE -> 0.0;
             case NORMAL -> 1.0;
             case FAST -> 2.0;
             case VERY_FAST -> 4.0;
-            default -> 1.0;
         };
     }
 }
