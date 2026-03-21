@@ -26,10 +26,11 @@ public class World {
     // place city(3*3) / facility(2*2) FOOTPRINT logic
     public void placeEntity(MapEntity entity, GridPos center) {
         int w = entity.getFootprintW();
-        int half = w / 2;
+        int startOffset = -(w / 2);
+        int endOffset = startOffset + w - 1;
 
-        for (int dx = -half; dx <= half; dx++) {
-            for (int dy = -half; dy <= half; dy++) {
+        for (int dx = startOffset; dx <= endOffset; dx++) {
+            for (int dy = startOffset; dy <= endOffset; dy++) {
 
                 GridPos p = new GridPos(center.x + dx, center.y + dy);
 
