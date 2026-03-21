@@ -12,9 +12,7 @@ import controller.*;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.input.KeyEvent;
-import model.Game;
-import model.GameMap;
-import model.RoadNetwork;
+import model.*;
 
 public class GameWindow extends BorderPane {
 
@@ -28,7 +26,7 @@ public class GameWindow extends BorderPane {
     private final SelectionController selectionController;
     private final GameController gameController;
 
-    public GameWindow(Game game) {
+    public GameWindow(Game game, World world, Company company) {
 
         // -----------------------------
         // UI State
@@ -50,7 +48,7 @@ public class GameWindow extends BorderPane {
         // Connect Model → View
         // -----------------------------
         GameMap map = game.getWorld().getMap();
-        RoadNetwork roadNetwork = new RoadNetwork(map);
+        RoadNetwork roadNetwork = new RoadNetwork();
         mapView.setMap(map);
         mapView.setUIState(uiState);
 
@@ -62,8 +60,8 @@ public class GameWindow extends BorderPane {
 
         // Other controllers
         TimeController timeController = new TimeController();
-        BuildController buildController = new BuildController(map,roadNetwork);
-        FleetController fleetController = new FleetController();
+        BuildController buildController = new BuildController(world, company);
+        FleetController fleetController = new FleetController(company, world);
 
         // Main controller
         this.gameController = new GameController(
