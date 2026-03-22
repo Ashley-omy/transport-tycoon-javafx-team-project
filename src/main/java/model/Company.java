@@ -8,11 +8,13 @@ import java.util.List;
 public class Company {
     private final Economy economy;
     private final List<Vehicle> fleet = new ArrayList<>();
+    private double maintenanceTimer = 0.0; // Timer for 30-second maintenance intervals
 
     public static final Money DEFAULT_STARTING_CAPITAL = Money.of(100_000);
 
     private static final Money DEFAULT_VEHICLE_RESALE_VALUE = Money.of(2_500);
     private static final Money DEFAULT_DELIVERY_INCOME = Money.of(300);
+    private static final double MAINTENANCE_INTERVAL = 30.0; // Deduct maintenance every 30 seconds
 
     // getters for cost constants
     public static Money getVehicleResaleValue() {
@@ -93,17 +95,27 @@ public class Company {
             v.tick(deltaTime);
         }
 
-        // charge maintenance every tick per vehicle (vehicle-specific cost)
-        for (Vehicle v : fleet) {
-            Money cost = v.getMaintenanceCost();
-            boolean paid = economy.spend(cost, 
-                                        TransactionType.VEHICLE_MAINTENANCE, 
-                                        "Maintenance for vehicle " + v.getId());
-            if (!paid) {
-                // force negative balance to trigger bankruptcy
-                economy.forceSubtract(cost, 
-                                     TransactionType.VEHICLE_MAINTENANCE, 
-                                     "Forced maintenance for vehicle " + v.getId());
+        // Deduct maintenance every 30 seconds
+        maintenanceTimer += deltaTime;
+        if (maintenanceTimer >= MAINTENANCE_INTERVAL) {
+            maintenanceTimer -= MAINTENANCE_INTERVAL;
+            
+            // Calculate total maintenance cost for all vehicles
+            long totalCost = 0;
+            for (Vehicle v : fleet) {
+                totalCost += v.getMaintenanceCost().amount();
+            }
+            
+            if (totalCost > 0) {
+                Money cost = Money.of(totalCost);
+                boolean paid = economy.spend(cost, 
+                                            TransactionType.VEHICLE_MAINTENANCE, 
+                                            "Maintenance for " + fleet.size() + " vehicle(s)");
+                if (!paid) {
+                    economy.forceSubtract(cost, 
+                                         TransactionType.VEHICLE_MAINTENANCE, 
+                                         "Forced maintenance for " + fleet.size() + " vehicle(s)");
+                }
             }
         }
     }
