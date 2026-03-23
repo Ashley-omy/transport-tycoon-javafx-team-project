@@ -12,6 +12,7 @@ import controller.*;
 import javafx.geometry.Insets;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.control.ScrollPane.ScrollBarPolicy;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
@@ -23,12 +24,13 @@ import java.util.List;
 
 public class GameWindow extends BorderPane {
     // Temporary debug UI limit for the right-side event list.
-    private static final int MAX_DEBUG_LINES = 14;
+    private static final int MAX_DEBUG_LINES = 40;
 
     // --- View ---
     private final MapView mapView;
     private final HUDView hudView;
     // Temporary debug UI shown on the right side.
+    private final Label latestDebugLabel;
     private final VBox debugEventList;
     // Temporary debug UI cache for recent event labels.
     private final List<Label> debugLabels;
@@ -58,19 +60,25 @@ public class GameWindow extends BorderPane {
         this.mapView = new MapView(1000, 700);
         timeController = new TimeController();
         this.hudView = new HUDView(uiState, timeController);
+        this.latestDebugLabel = new Label("Waiting for debug events...");
         this.debugEventList = new VBox(6);
         this.debugLabels = new ArrayList<>();
 
         // Temporary debug panel for transport events and revenue checks.
         Label debugTitle = new Label("Debug Events");
         debugTitle.setTextFill(Color.WHITE);
+        latestDebugLabel.setWrapText(true);
+        latestDebugLabel.setTextFill(Color.LIGHTGOLDENRODYELLOW);
+        latestDebugLabel.setStyle("-fx-font-weight: bold; -fx-padding: 8; -fx-background-color: #2a2d34;");
         ScrollPane debugPane = new ScrollPane(debugEventList);
         debugPane.setFitToWidth(true);
-        debugPane.setPrefHeight(700);
-        VBox debugContainer = new VBox(8, debugTitle, debugPane);
+        debugPane.setHbarPolicy(ScrollBarPolicy.NEVER);
+        debugPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
+        debugPane.setPrefHeight(720);
+        VBox debugContainer = new VBox(8, debugTitle, latestDebugLabel, debugPane);
         debugContainer.setPadding(new Insets(12));
-        debugContainer.setPrefWidth(320);
-        debugContainer.setMinWidth(260);
+        debugContainer.setPrefWidth(380);
+        debugContainer.setMinWidth(320);
         debugContainer.setStyle("-fx-background-color: #1d1f24;");
 
         // Layout
@@ -78,6 +86,7 @@ public class GameWindow extends BorderPane {
         this.setCenter(center);
         this.setTop(hudView);
         this.setRight(debugContainer);
+        appendDebugMessage("Temporary debug window active");
 
         // -----------------------------
         // Connect Model → View
@@ -168,8 +177,10 @@ public class GameWindow extends BorderPane {
             return;
         }
 
-        Label label = new Label(world.stripDebugPrefix(message));
+        String visibleMessage = world.stripDebugPrefix(message);
+        Label label = new Label(visibleMessage);
         label.setWrapText(true);
+        label.setStyle("-fx-padding: 6 8; -fx-background-color: #2a2d34;");
         if (world.isRevenueMessage(message)) {
             label.setTextFill(Color.LIMEGREEN);
         } else if (world.isCostMessage(message)) {
@@ -178,6 +189,8 @@ public class GameWindow extends BorderPane {
             label.setTextFill(Color.WHITESMOKE);
         }
 
+        latestDebugLabel.setText(visibleMessage);
+        latestDebugLabel.setTextFill(label.getTextFill());
         debugLabels.add(0, label);
         while (debugLabels.size() > MAX_DEBUG_LINES) {
             debugLabels.remove(debugLabels.size() - 1);

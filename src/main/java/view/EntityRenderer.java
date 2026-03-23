@@ -11,6 +11,8 @@ package view;
 import common.Vec2;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import model.Factory;
+import model.Mine;
 import model.Tile;
 
 public class EntityRenderer {
@@ -30,7 +32,13 @@ public class EntityRenderer {
         }
 
         if (t.getEntity() != null) {
-            gc.setFill(Color.DARKRED);
+            if (t.getEntity() instanceof Factory) {
+                gc.setFill(Color.MEDIUMPURPLE);
+            } else if (t.getEntity() instanceof Mine) {
+                gc.setFill(Color.SADDLEBROWN);
+            } else {
+                gc.setFill(Color.DARKRED);
+            }
             gc.fillRect(pos.x + size * 0.1, pos.y + size * 0.1,
                     size * 0.8, size * 0.8);
         }
