@@ -23,6 +23,10 @@ public abstract class MapEntity {
         return footprintW;
     }
 
+    public Id getId() {
+        return id;
+    }
+
     public List<Tile> getOccupiedTiles() {
         return occupiedTiles;
     }

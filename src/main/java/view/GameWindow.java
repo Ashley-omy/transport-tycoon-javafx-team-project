@@ -9,16 +9,29 @@ package view;
  * @author asuna
  */
 import controller.*;
+import javafx.geometry.Insets;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
-import javafx.scene.input.KeyEvent;
+import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import model.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GameWindow extends BorderPane {
+    // Temporary debug UI limit for the right-side event list.
+    private static final int MAX_DEBUG_LINES = 14;
 
     // --- View ---
     private final MapView mapView;
     private final HUDView hudView;
+    // Temporary debug UI shown on the right side.
+    private final VBox debugEventList;
+    // Temporary debug UI cache for recent event labels.
+    private final List<Label> debugLabels;
     private final UIState uiState;
 
     // --- Controllers ---
@@ -45,11 +58,26 @@ public class GameWindow extends BorderPane {
         this.mapView = new MapView(1000, 700);
         timeController = new TimeController();
         this.hudView = new HUDView(uiState, timeController);
+        this.debugEventList = new VBox(6);
+        this.debugLabels = new ArrayList<>();
+
+        // Temporary debug panel for transport events and revenue checks.
+        Label debugTitle = new Label("Debug Events");
+        debugTitle.setTextFill(Color.WHITE);
+        ScrollPane debugPane = new ScrollPane(debugEventList);
+        debugPane.setFitToWidth(true);
+        debugPane.setPrefHeight(700);
+        VBox debugContainer = new VBox(8, debugTitle, debugPane);
+        debugContainer.setPadding(new Insets(12));
+        debugContainer.setPrefWidth(320);
+        debugContainer.setMinWidth(260);
+        debugContainer.setStyle("-fx-background-color: #1d1f24;");
 
         // Layout
         StackPane center = new StackPane(mapView);
         this.setCenter(center);
         this.setTop(hudView);
+        this.setRight(debugContainer);
 
         // -----------------------------
         // Connect Model → View
@@ -123,11 +151,39 @@ public class GameWindow extends BorderPane {
     public void render() {
 
         mapView.render();
+        // Temporary debug rendering path for event messages.
+        for (String event : world.drainDebugMessages()) {
+            appendDebugMessage(event);
+        }
         hudView.render(
                 company.getEconomy().getCash(),
                 animationEngine.getFormattedTime(),
                 timeController.getSpeed()
         );
+    }
+
+    // Temporary debug UI helper. Safe to remove with the rest of the debug panel.
+    private void appendDebugMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return;
+        }
+
+        Label label = new Label(world.stripDebugPrefix(message));
+        label.setWrapText(true);
+        if (world.isRevenueMessage(message)) {
+            label.setTextFill(Color.LIMEGREEN);
+        } else if (world.isCostMessage(message)) {
+            label.setTextFill(Color.INDIANRED);
+        } else {
+            label.setTextFill(Color.WHITESMOKE);
+        }
+
+        debugLabels.add(0, label);
+        while (debugLabels.size() > MAX_DEBUG_LINES) {
+            debugLabels.remove(debugLabels.size() - 1);
+        }
+
+        debugEventList.getChildren().setAll(debugLabels);
     }
 
     // -----------------------------

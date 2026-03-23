@@ -5,14 +5,26 @@ import common.Money;
 import common.Id;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 public class World {
+    // Emit supply in chunks instead of every frame.
+    private static final double SUPPLY_EMIT_INTERVAL = 5.0;
+    // Temporary debug marker for revenue lines in the UI.
+    private static final String REVENUE_PREFIX = "[REV] ";
+    // Temporary debug marker for maintenance/cost lines in the UI.
+    private static final String COST_PREFIX = "[COST] ";
 
     private GameMap map;
     private RoadNetwork roads;
     private List<BridgeSpec> bridgeCatalog = new ArrayList<>();
     long rngSeed;
+    private double supplyEmitTimer = 0.0;
+    // Temporary debug buffer. Safe to remove when the debug UI is no longer needed.
+    private final List<String> debugMessages = new ArrayList<>();
 
     // later need to modify (bridge + rngspeed)
     public World(int width, int height){
@@ -80,6 +92,55 @@ public class World {
 
     public List<BridgeSpec> getBridgeCatalog() { return bridgeCatalog; }
 
+    // Temporary debug helper for transport event messages.
+    public void pushDebugMessage(String message) {
+        if (message == null || message.isBlank()) return;
+        debugMessages.add(message);
+    }
+
+    // Temporary debug helper for revenue messages.
+    public void pushRevenueMessage(String message) {
+        if (message == null || message.isBlank()) return;
+        debugMessages.add(REVENUE_PREFIX + message);
+    }
+
+    // Temporary debug helper for maintenance and other cost messages.
+    public void pushCostMessage(String message) {
+        if (message == null || message.isBlank()) return;
+        debugMessages.add(COST_PREFIX + message);
+    }
+
+    // Temporary debug helper consumed by the right-side debug panel.
+    public List<String> drainDebugMessages() {
+        if (debugMessages.isEmpty()) {
+            return List.of();
+        }
+        List<String> drained = new ArrayList<>(debugMessages);
+        debugMessages.clear();
+        return Collections.unmodifiableList(drained);
+    }
+
+    // Temporary debug helper for coloring revenue lines.
+    public boolean isRevenueMessage(String message) {
+        return message != null && message.startsWith(REVENUE_PREFIX);
+    }
+
+    // Temporary debug helper for coloring maintenance/cost lines.
+    public boolean isCostMessage(String message) {
+        return message != null && message.startsWith(COST_PREFIX);
+    }
+
+    // Temporary debug helper for hiding the internal revenue prefix from the UI text.
+    public String stripDebugPrefix(String message) {
+        if (isRevenueMessage(message)) {
+            return message.substring(REVENUE_PREFIX.length());
+        }
+        if (isCostMessage(message)) {
+            return message.substring(COST_PREFIX.length());
+        }
+        return message;
+    }
+
     public void buildRoad(GridPos pos) {
         Tile tile = map.getTile(pos);
 
@@ -100,5 +161,49 @@ public class World {
 
     public void tick(double deltaTime) {
         if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
+
+        // Each entity may occupy multiple tiles, so collect unique instances first.
+        Set<MapEntity> entities = collectEntities();
+        for (MapEntity entity : entities) {
+            entity.tick(deltaTime);
+        }
+
+        // Stops get their own updates after the entities they serve.
+        for (Stop stop : collectStops()) {
+            stop.tick(deltaTime);
+        }
+
+        supplyEmitTimer += deltaTime; //using deltaTime to prevent supply from exploding on a fast PC.
+        while (supplyEmitTimer >= SUPPLY_EMIT_INTERVAL) {
+            supplyEmitTimer -= SUPPLY_EMIT_INTERVAL;
+            // Periodically push newly produced cargo/passengers into attached stops.
+            for (MapEntity entity : entities) {
+                entity.emitSupplyToStops();
+            }
+        }
+    }
+    //using LinkedHashSet in order to avoid entity duplication
+    private Set<MapEntity> collectEntities() {
+        Set<MapEntity> entities = new LinkedHashSet<>();
+        for (Tile[] column : map.getTiles()) {
+            for (Tile tile : column) {
+                if (tile.getEntity() != null) {
+                    entities.add(tile.getEntity());
+                }
+            }
+        }
+        return entities;
+    }
+
+    private List<Stop> collectStops() {
+        List<Stop> stops = new ArrayList<>();
+        for (Tile[] column : map.getTiles()) {
+            for (Tile tile : column) {
+                if (tile.getStop() != null) {
+                    stops.add(tile.getStop());
+                }
+            }
+        }
+        return stops;
     }
 }

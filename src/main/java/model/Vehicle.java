@@ -57,6 +57,9 @@ public abstract class Vehicle {
 
     public void setWorld(World world) { this.world = world; }
 
+    // Temporary debug access so stops can publish transport event messages.
+    public World getWorld() { return world; }
+
     // Route assignment methods
     public void assignRoute(Route route) {
         if (route == null) throw new IllegalArgumentException("route cannot be null");
@@ -156,6 +159,10 @@ public abstract class Vehicle {
                     cargo.getValuePerTile()
             );
         }
+        if (world != null) {
+            // Temporary debug message for verifying load completion.
+            world.pushDebugMessage("Load complete: " + id + " <- " + describeEntity(stop.getServedPlace()));
+        }
         return true;
     }
 
@@ -166,6 +173,10 @@ public abstract class Vehicle {
         // Pay the company for successful delivery
         if (owner != null && payout.isPositive()) {
             owner.completeShipmentWithPayout(payout);
+            if (world != null) {
+                // Temporary debug message for verifying delivery revenue.
+                world.pushRevenueMessage("Revenue earned: +" + payout + " at " + describeEntity(stop.getServedPlace()));
+            }
         }
         
         return payout;
@@ -426,6 +437,11 @@ public abstract class Vehicle {
         double dx = a.x - b.x;
         double dy = a.y - b.y;
         return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // Temporary debug formatter for transport event messages.
+    private String describeEntity(MapEntity entity) {
+        return entity.getClass().getSimpleName() + " (" + entity.getId() + ")";
     }
 
     public abstract boolean acceptsKind(ShipmentKind kind);

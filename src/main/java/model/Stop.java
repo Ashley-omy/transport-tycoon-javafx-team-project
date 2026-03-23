@@ -94,8 +94,20 @@ public class Stop {
         if (cargo == null) return Money.ZERO;
         if (!id.equals(cargo.getToStopId())) return Money.ZERO;
 
+        World vehicleWorld = vehicle.getWorld();
+        if (vehicleWorld != null) {
+            // Temporary debug messages for verifying unload flow and demand target.
+            vehicleWorld.pushDebugMessage("Demanded MapEntity: " + describeEntity(servedPlace));
+            vehicleWorld.pushDebugMessage("Unload complete: " + vehicle.getId() + " -> " + describeEntity(servedPlace));
+        }
+        servedPlace.acceptDelivery(cargo);
         Money payout = cargo.getValuePerTile().multiply(cargo.getUnits());
         vehicle.clearCargo();
         return payout;
+    }
+
+    // Temporary debug formatter for the right-side event panel.
+    private String describeEntity(MapEntity entity) {
+        return entity.getClass().getSimpleName() + " (" + entity.getId() + ")";
     }
 }

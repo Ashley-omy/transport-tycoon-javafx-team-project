@@ -9,6 +9,8 @@ public class Company {
     private final Economy economy;
     private final List<Vehicle> fleet = new ArrayList<>();
     private double maintenanceTimer = 0.0; // Timer for 30-second maintenance intervals
+    // Temporary debug hook so maintenance deductions can be shown in the debug window.
+    private World world;
 
     public static final Money DEFAULT_STARTING_CAPITAL = Money.of(100_000);
 
@@ -32,6 +34,10 @@ public class Company {
 
     public Economy getEconomy() {
         return economy;
+    }
+
+    public void setWorld(World world) {
+        this.world = world;
     }
 
     public List<Vehicle> getFleet() {
@@ -111,6 +117,10 @@ public class Company {
                 boolean paid = economy.spend(cost, 
                                             TransactionType.VEHICLE_MAINTENANCE, 
                                             "Maintenance for " + fleet.size() + " vehicle(s)");
+                if (world != null) {
+                    // Temporary debug message for verifying maintenance deductions.
+                    world.pushCostMessage("Maintenance fee: -" + cost + " for " + fleet.size() + " vehicle(s)");
+                }
                 if (!paid) {
                     economy.forceSubtract(cost, 
                                          TransactionType.VEHICLE_MAINTENANCE, 

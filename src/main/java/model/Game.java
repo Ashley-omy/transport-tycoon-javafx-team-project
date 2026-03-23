@@ -19,6 +19,7 @@ public class Game {
         if (company == null) throw new IllegalArgumentException("company cannot be null");
         this.world = world;
         this.company = company;
+        company.setWorld(world);
     }
 
     public void update(double deltaTime) {
