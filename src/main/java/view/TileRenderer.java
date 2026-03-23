@@ -12,7 +12,8 @@ package view;
 import common.Vec2;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
-import model.Facility;
+import model.Factory;
+import model.Mine;
 import model.Tile;
 
 public class TileRenderer {
@@ -25,11 +26,8 @@ public class TileRenderer {
         } else if (t.isForest()) {
             gc.setFill(Color.FORESTGREEN);
         } else {
-            gc.setFill(Color.BEIGE);
+            gc.setFill(Color.GREEN);
         }
-
-        //Temp color setting
-        gc.setFill(Color.GREEN);
 
         gc.fillRect(pos.x, pos.y, size, size);
 
@@ -44,15 +42,15 @@ public class TileRenderer {
                     size * 0.6, size * 0.6);
         }
         if (t.getEntity() != null) {
-            if(t.getEntity() instanceof Facility){
-                gc.setFill(Color.PURPLE);
-                gc.fillRect(pos.x + size * 0.2, pos.y + size * 0.2,
-                        size * 0.6, size * 0.6);
-            }else {
+            if (t.getEntity() instanceof Factory) {
+                gc.setFill(Color.MEDIUMPURPLE);
+            } else if (t.getEntity() instanceof Mine) {
+                gc.setFill(Color.SADDLEBROWN);
+            } else {
                 gc.setFill(Color.ORANGE);
-                gc.fillRect(pos.x + size * 0.2, pos.y + size * 0.2,
-                        size * 0.6, size * 0.6);
             }
+            gc.fillRect(pos.x + size * 0.2, pos.y + size * 0.2,
+                    size * 0.6, size * 0.6);
         }
         if (t.getStop() != null) {
             gc.setFill(Color.RED);
