@@ -144,24 +144,30 @@ public abstract class Vehicle {
 
         Shipment loaded = stop.dequeueFor(this);
         if (loaded == null) return false;
+        Shipment routedShipment = routeShipmentToNextStop(loaded);
 
         if (cargo == null) {
-            cargo = loaded;
+            cargo = routedShipment;
         } else {
             // merge units into existing cargo
-            int mergedUnits = cargo.getUnits() + loaded.getUnits();
+            int mergedUnits = cargo.getUnits() + routedShipment.getUnits();
             cargo = new Shipment(
                     cargo.getKind(),
                     cargo.getGoodsType(),
                     mergedUnits,
                     cargo.getFromStopId(),
-                    cargo.getToStopId(),
+                    routedShipment.getToStopId(),
                     cargo.getValuePerTile()
             );
         }
         if (world != null) {
             // Temporary debug message for verifying load completion.
-            world.pushDebugMessage("Load complete: " + id + " <- " + describeEntity(stop.getServedPlace()));
+            world.pushDebugMessage(
+                    "Load complete: " + id
+                            + " <- " + describeEntity(stop.getServedPlace())
+                            + " / Shipment[kind=" + routedShipment.getKind()
+                            + ", units=" + routedShipment.getUnits() + "]"
+            );
         }
         return true;
     }
@@ -437,6 +443,23 @@ public abstract class Vehicle {
         double dx = a.x - b.x;
         double dy = a.y - b.y;
         return Math.sqrt(dx * dx + dy * dy);
+    }
+
+    // Temporary routing fix: cargo generated at a stop should be delivered to the next stop on the route.
+    private Shipment routeShipmentToNextStop(Shipment shipment) {
+        if (shipment == null || assignedRoute == null || currentStopIndex < 0) {
+            return shipment;
+        }
+
+        Stop nextStop = assignedRoute.getNextStop(currentStopIndex);
+        return new Shipment(
+                shipment.getKind(),
+                shipment.getGoodsType(),
+                shipment.getUnits(),
+                shipment.getFromStopId(),
+                nextStop.getId(),
+                shipment.getValuePerTile()
+        );
     }
 
     // Temporary debug formatter for transport event messages.
