@@ -101,7 +101,10 @@ public class Stop {
             vehicleWorld.pushDebugMessage("Unload complete: " + vehicle.getId() + " -> " + describeEntity(servedPlace));
         }
         servedPlace.acceptDelivery(cargo);
-        Money payout = cargo.getValuePerTile().multiply(cargo.getUnits());
+        Money payout = Money.ZERO;
+        if (servedPlace instanceof City) {
+            payout = cargo.getValuePerTile().multiply(cargo.getUnits());
+        }
         vehicle.clearCargo();
         return payout;
     }
