@@ -445,26 +445,68 @@ public abstract class Vehicle {
         return Math.sqrt(dx * dx + dy * dy);
     }
 
-    // Temporary routing fix: cargo generated at a stop should be delivered to the next stop on the route.
+    // mine -> factory -> city.
     private Shipment routeShipmentToNextStop(Shipment shipment) {
         if (shipment == null || assignedRoute == null || currentStopIndex < 0) {
             return shipment;
         }
 
-        Stop nextStop = assignedRoute.getNextStop(currentStopIndex);
+        Stop targetStop = resolveTargetStopFor(shipment);
         return new Shipment(
                 shipment.getKind(),
                 shipment.getGoodsType(),
                 shipment.getUnits(),
                 shipment.getFromStopId(),
-                nextStop.getId(),
+                targetStop.getId(),
                 shipment.getValuePerTile()
         );
     }
 
+    private Stop resolveTargetStopFor(Shipment shipment) {
+        Stop nextStop = assignedRoute.getNextStop(currentStopIndex);
+        if (!shipment.isGoods()) {
+            return nextStop;
+        }
+
+        GoodsType goodsType = shipment.getGoodsType();
+        Stop currentStop = assignedRoute.getStop(currentStopIndex);
+        MapEntity sourcePlace = currentStop.getServedPlace();
+
+        // Raw materials loaded at mines must go to a matching factory input.
+        if (sourcePlace instanceof Mine) {
+            Stop factoryStop = findNextStopMatching(stop -> {
+                MapEntity served = stop.getServedPlace();
+                return served instanceof Facility facility && facility.getInputType() == goodsType;
+            });
+            if (factoryStop != null) {
+                return factoryStop;
+            }
+        }
+
+        // Goods loaded at factories must go to a city.
+        if (sourcePlace instanceof Factory) {
+            Stop cityStop = findNextStopMatching(stop -> stop.getServedPlace() instanceof City);
+            if (cityStop != null) {
+                return cityStop;
+            }
+        }
+
+        return nextStop;
+    }
+
+    private Stop findNextStopMatching(java.util.function.Predicate<Stop> predicate) {
+        for (int i = 1; i < assignedRoute.getStopCount(); i++) {
+            Stop candidate = assignedRoute.getStop((currentStopIndex + i) % assignedRoute.getStopCount());
+            if (predicate.test(candidate)) {
+                return candidate;
+            }
+        }
+        return null;
+    }
+
     // Temporary debug formatter for transport event messages.
     private String describeEntity(MapEntity entity) {
-        return entity.getClass().getSimpleName() + " (" + entity.getId() + ")";
+        return entity.getClass().getSimpleName();
     }
 
     public abstract boolean acceptsKind(ShipmentKind kind);

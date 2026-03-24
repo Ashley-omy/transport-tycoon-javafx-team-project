@@ -69,6 +69,9 @@ public class City extends MapEntity {
             receivedPassengers += shipment.getUnits();
         } else if (shipment.isGoods()) {
             GoodsType type = shipment.getGoodsType();
+            if (type != GoodsType.STEEL && type != GoodsType.PAPER) {
+                return;
+            }
             int current = receivedGoods.getOrDefault(type, 0);
             receivedGoods.put(type, current + shipment.getUnits());
         }
