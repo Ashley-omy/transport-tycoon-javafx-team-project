@@ -1,13 +1,21 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
 
-/**
- *
- * @author lenovo
- */
-public class Truck {
-    
+import common.Id;
+import common.Money;
+
+public class Truck extends Vehicle {
+
+    public Truck(Id id, int capacityUnits, Money purchaseCost, Money maintenanceCost, double speed) {
+        super(id, capacityUnits, purchaseCost, maintenanceCost, speed);
+    }
+
+    @Override
+    public boolean acceptsKind(ShipmentKind kind) {
+        return kind == ShipmentKind.GOODS;
+    }
+
+    @Override
+    public boolean acceptsGoodsType(GoodsType goodsType) {
+        return goodsType != null; // accepts any goods type
+    }
 }

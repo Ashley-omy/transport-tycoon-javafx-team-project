@@ -6,8 +6,14 @@ package view;
 
 /**
  *
- * @author lenovo
+ * @author asuna
  */
-public class BuildMode {
-    
+
+public enum BuildMode {
+    NONE,
+    ROAD,
+    BRIDGE,
+    STOP,
+    GARAGE,
+    ROUTE
 }
