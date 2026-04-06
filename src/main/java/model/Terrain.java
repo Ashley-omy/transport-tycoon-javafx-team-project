@@ -1,18 +1,39 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package model;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import model.Tile;
 
 public abstract class Terrain {
-    private List<Tile> occupiedTiles;
+    private final List<Tile> occupiedTiles;
+
+    protected Terrain() {
+        this.occupiedTiles = new ArrayList<>();
+    }
+
+    public List<Tile> getOccupiedTiles() {
+        return Collections.unmodifiableList(occupiedTiles);
+    }
+
+    public void addOccupiedTile(Tile tile) {
+        if (tile != null && !occupiedTiles.contains(tile)) {
+            occupiedTiles.add(tile);
+        }
+    }
+
+    public void removeOccupiedTile(Tile tile) {
+        occupiedTiles.remove(tile);
+    }
 
     public abstract boolean isPassable();
+
     public abstract double buildMultiplier();
 
-    public boolean isWater() {return false;}
-    public boolean isForest() {return false;}
+    public boolean isWater() {
+        return false;
+    }
+
+    public boolean isForest() {
+        return false;
+    }
 }
