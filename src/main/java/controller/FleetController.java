@@ -178,16 +178,82 @@ public class FleetController {
         return VehicleFactory.createSmallTruck(Id.genNew());
     }
 
-    // will implement during MS 3
     public ActionResult buyTruck(Garage garage, String specName) {
-        return null;
+        if (garage == null) return ActionResult.fail("Garage cannot be null");
+        if (garage.isFull()) return ActionResult.fail("Garage is full");
+        
+        Vehicle truck;
+        if ("small".equalsIgnoreCase(specName)) {
+            truck = VehicleFactory.createSmallTruck(Id.genNew());
+        } else if ("large".equalsIgnoreCase(specName)) {
+            truck = VehicleFactory.createLargeTruck(Id.genNew());
+        } else {
+            return ActionResult.fail("Unknown truck spec: " + specName);
+        }
+        
+        if (!company.buyVehicle(truck)) {
+            return ActionResult.fail("Not enough money to buy truck");
+        }
+        
+        truck.setHomeGarage(garage);
+        truck.setWorld(world);
+        garage.addVehicle(truck);
+        return ActionResult.success("Truck purchased: " + truck.getId());
     }
 
     public ActionResult buyBus(Garage garage, String specName) {
-        return null;
+        if (garage == null) return ActionResult.fail("Garage cannot be null");
+        if (garage.isFull()) return ActionResult.fail("Garage is full");
+        
+        Vehicle bus;
+        if ("small".equalsIgnoreCase(specName)) {
+            bus = VehicleFactory.createSmallBus(Id.genNew());
+        } else if ("large".equalsIgnoreCase(specName)) {
+            bus = VehicleFactory.createLargeBus(Id.genNew());
+        } else {
+            return ActionResult.fail("Unknown bus spec: " + specName);
+        }
+        
+        if (!company.buyVehicle(bus)) {
+            return ActionResult.fail("Not enough money to buy bus");
+        }
+        
+        bus.setHomeGarage(garage);
+        bus.setWorld(world);
+        garage.addVehicle(bus);
+        return ActionResult.success("Bus purchased: " + bus.getId());
     }
 
-    public ActionResult sellVehicle(String vehicled) {
+    public ActionResult sellVehicle(String vehicleId) {
+        if (vehicleId == null || vehicleId.isEmpty()) {
+            return ActionResult.fail("Vehicle ID cannot be null or empty");
+        }
+        
+        Vehicle vehicle = findVehicleInCompany(vehicleId);
+        if (vehicle == null) {
+            return ActionResult.fail("Vehicle not found");
+        }
+        
+        // Find and remove from garage if it's in one
+        Garage foundGarage = findGarageContainingVehicle(vehicle);
+        if (foundGarage != null) {
+            foundGarage.sellVehicle(vehicle);
+        }
+        
+        company.sellVehicle(vehicle);
+        return ActionResult.success("Vehicle sold: " + vehicleId);
+    }
+    
+    private Garage findGarageContainingVehicle(Vehicle vehicle) {
+        GameMap map = world.getMap();
+        for (Tile[] column : map.getTiles()) {
+            for (Tile tile : column) {
+                Garage garage = tile.getGarage();
+                if (garage != null && garage.hasVehicle(vehicle)) {
+                    return garage;
+                }
+            }
+        }
         return null;
     }
 }
