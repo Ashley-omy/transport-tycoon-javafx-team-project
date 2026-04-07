@@ -189,15 +189,16 @@ public class GameController {
 
     private void handleKey(InputEvent e) {
         var cam = window.getMapView().getCamera();
+        var map = game.getWorld().getMap();
 
         if ("UP".equals(e.key)) {
-            cam.pan(0, -1);
+            cam.panClamped(map, 0, -1);
         } else if ("DOWN".equals(e.key)) {
-            cam.pan(0, 1);
+            cam.panClamped(map, 0, 1);
         } else if ("LEFT".equals(e.key)) {
-            cam.pan(-1, 0);
+            cam.panClamped(map, -1, 0);
         } else if ("RIGHT".equals(e.key)) {
-            cam.pan(1, 0);
+            cam.panClamped(map, 1, 0);
         } else if ("SPACE".equals(e.key)) {
             //time.togglePause();
         }
