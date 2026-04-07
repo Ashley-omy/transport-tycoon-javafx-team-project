@@ -195,6 +195,8 @@ public class FleetController {
             return ActionResult.fail("Not enough money to buy truck");
         }
         
+        truck.setHomeGarage(garage);
+        truck.setWorld(world);
         garage.addVehicle(truck);
         return ActionResult.success("Truck purchased: " + truck.getId());
     }
@@ -216,6 +218,8 @@ public class FleetController {
             return ActionResult.fail("Not enough money to buy bus");
         }
         
+        bus.setHomeGarage(garage);
+        bus.setWorld(world);
         garage.addVehicle(bus);
         return ActionResult.success("Bus purchased: " + bus.getId());
     }
