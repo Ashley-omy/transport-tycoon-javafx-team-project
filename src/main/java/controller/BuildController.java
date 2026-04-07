@@ -56,6 +56,7 @@ public class BuildController {
     // step 3: can we build the road?
     // limitations: not on existing road/ infrastructure/ terrain limit(not on water) / first road is ok
     private boolean canPlaceRoad(Tile tile) {
+        if (tile == null) return false;
         if (tile.getRoadPiece()!=null) return false;
         if(tile.getEntity()!=null) return false;
         if (!tile.getTerrain().isPassable()) return false;
@@ -75,6 +76,10 @@ public class BuildController {
     // step 4: now its ok to build the road
     public ActionResult buildRoad(GridPos pos) {
         Tile tile = world.getMap().getTile(pos);
+
+        if (tile == null) {
+            return ActionResult.fail("Tile out of bounds");
+        }
 
         if (!canPlaceRoad(tile))
             return ActionResult.fail("Cannot place road here");
@@ -116,6 +121,7 @@ public class BuildController {
 
     // step 1: is the tile empty?
     private boolean isTileEmptyForStop(Tile tile) {
+        if (tile == null) return false;
         if (!tile.getTerrain().isPassable()) return false;
         if (tile.getEntity() != null) return false;
         if (tile.getRoadPiece() != null) return false;
@@ -147,6 +153,10 @@ public class BuildController {
     // step 4: place the stop
     public ActionResult buildStop(GridPos pos) {
         Tile tile = world.getMap().getTile(pos);
+
+        if (tile == null) {
+            return ActionResult.fail("Tile out of bounds");
+        }
 
         if (!isTileEmptyForStop(tile))
             return ActionResult.fail("Tile not empty");
