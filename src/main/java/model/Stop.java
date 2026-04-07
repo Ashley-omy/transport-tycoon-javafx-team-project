@@ -5,7 +5,6 @@ import common.Money;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 public class Stop {
@@ -27,18 +26,11 @@ public class Stop {
     public Tile getOccupiedTile() { return occupiedTile; }
     public MapEntity getServedPlace() { return servedPlace; }
 
-    public void tick(double deltaTime) {
-        if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
-    }
-
     public void enqueue(Shipment s) {
         if (s == null) throw new IllegalArgumentException("shipment cannot be null");
         queue.add(s);
     }
 
-    public List<Shipment> getQueueSnapshot() {
-        return List.copyOf(queue);
-    }
 
     public Shipment dequeueFor(Vehicle vehicle) {
         if (vehicle == null || queue.isEmpty()) return null;
@@ -112,5 +104,9 @@ public class Stop {
     // Temporary debug formatter for the right-side event panel.
     private String describeEntity(MapEntity entity) {
         return entity.getClass().getSimpleName() + " (" + entity.getId() + ")";
+    }
+    
+    public void tick(double deltaTime) {
+        if (Double.isNaN(deltaTime) || deltaTime <= 0.0) return;
     }
 }
