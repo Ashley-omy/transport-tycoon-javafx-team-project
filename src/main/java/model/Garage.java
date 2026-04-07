@@ -5,6 +5,7 @@
 package model;
 
 import common.Id;
+import common.Money;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,25 +49,34 @@ public class Garage {
         return vehicles.size() >= capacity;
     }
 
-    public void addVehicle(Vehicle v) {
+    public boolean addVehicle(Vehicle v) {
         if (v != null && !isFull()) {
             vehicles.add(v);
+            return true;
         }
+        return false;
     }
 
     public void removeVehicle(Vehicle v) {
         vehicles.remove(v);
     }
 
-    // tick(deltaTime)
     public void tick(double deltaTime) {
-        // Milestone 2
-        // Milestone 3 maintain and timing
+        if (Double.isNaN(deltaTime) || deltaTime <= 0.0) return;
+        // Garage mainly stores vehicles; actual maintenance is handled by Company
+        // Vehicles in garage are parked and not ticking
     }
 
-    // sellVehicle(v)
     public void sellVehicle(Vehicle v) {
         removeVehicle(v);
-        // Company.sellVehicle(v) call by FleetController but not here
+        // Company.sellVehicle(v) is called by FleetController
+    }
+    
+    public int getAvailableSpace() {
+        return capacity - vehicles.size();
+    }
+    
+    public boolean hasVehicle(Vehicle v) {
+        return vehicles.contains(v);
     }
 }
