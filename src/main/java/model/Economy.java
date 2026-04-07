@@ -2,7 +2,6 @@ package model;
 
 import common.Money;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class Economy {
@@ -23,24 +22,6 @@ public class Economy {
         return cash;
     }
 
-    public Money getTotalEarned() {
-        return totalEarned;
-    }
-
-    public Money getTotalSpent() {
-        return totalSpent;
-    }
-
-    public List<Transaction> getTransactionHistory() {
-        return Collections.unmodifiableList(transactionHistory);
-    }
-
-    public List<Transaction> getRecentTransactions(int count) {
-        if (count <= 0) return Collections.emptyList();
-        int size = transactionHistory.size();
-        int fromIndex = Math.max(0, size - count);
-        return Collections.unmodifiableList(transactionHistory.subList(fromIndex, size));
-    }
 
     public boolean canAfford(Money cost) {
         validateMoney(cost);
@@ -117,11 +98,6 @@ public class Economy {
             this.timestamp = System.currentTimeMillis();
         }
 
-        public TransactionType getType() { return type; }
-        public Money getAmount() { return amount; }
-        public String getDescription() { return description; }
-        public Money getBalanceAfter() { return balanceAfter; }
-        public long getTimestamp() { return timestamp; }
 
         @Override
         public String toString() {

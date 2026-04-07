@@ -43,30 +43,6 @@ public abstract class Facility extends MapEntity {
         return inputType;
     }
 
-    public GoodsType getOutputType() {
-        return outputType;
-    }
-
-    public int getInputStock() {
-        return inputStock;
-    }
-
-    public int getOutputStock() {
-        return outputStock;
-    }
-
-    public int getMaxStockCapacity() {
-        return maxStockCapacity;
-    }
-
-    public boolean needsInput() {
-        return inputType != null && inputStock < maxStockCapacity;
-    }
-
-    public boolean hasOutput() {
-        return outputStock > 0;
-    }
-
 
     @Override
     public void acceptDelivery(Shipment shipment) {
