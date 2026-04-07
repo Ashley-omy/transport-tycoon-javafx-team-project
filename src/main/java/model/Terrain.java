@@ -33,6 +33,10 @@ public abstract class Terrain {
         return false;
     }
 
+    public boolean isLand() {
+        return false;
+    }
+
     public boolean isForest() {
         return false;
     }
