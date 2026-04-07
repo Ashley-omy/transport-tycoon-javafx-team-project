@@ -159,6 +159,28 @@ public class World {
         servedPlace.attachStop(stop);
     }
 
+    public static final Money GARAGE_BUILD_COST = Money.of(5_000);
+
+    public boolean canBuildGarageAt(GridPos pos) {
+        if (!map.inBounds(pos)) return false;
+        
+        Tile t = map.getTile(pos);
+        
+        return t.getRoadPiece() == null &&
+                t.getStop() == null &&
+                t.getGarage() == null &&
+                t.getEntity() == null &&
+                t.getTerrain().isPassable();
+    }
+
+    public void buildGarage(GridPos pos, int capacity, int serviceBayCount) {
+        Tile tile = map.getTile(pos);
+        
+        List<Tile> occupiedTiles = List.of(tile);
+        Garage garage = new Garage(Id.genNew(), capacity, serviceBayCount, occupiedTiles);
+        tile.setGarage(garage);
+    }
+
     public void tick(double deltaTime) {
         if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
 
@@ -171,6 +193,11 @@ public class World {
         // Stops get their own updates after the entities they serve.
         for (Stop stop : collectStops()) {
             stop.tick(deltaTime);
+        }
+        
+        // Garages also tick (mainly for future maintenance features)
+        for (Garage garage : collectGarages()) {
+            garage.tick(deltaTime);
         }
 
         supplyEmitTimer += deltaTime; //using deltaTime to prevent supply from exploding on a fast PC.
@@ -205,5 +232,17 @@ public class World {
             }
         }
         return stops;
+    }
+    
+    private List<Garage> collectGarages() {
+        List<Garage> garages = new ArrayList<>();
+        for (Tile[] column : map.getTiles()) {
+            for (Tile tile : column) {
+                if (tile.getGarage() != null) {
+                    garages.add(tile.getGarage());
+                }
+            }
+        }
+        return garages;
     }
 }
