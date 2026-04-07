@@ -38,9 +38,6 @@ public class MinimapView extends StackPane {
                 + "-fx-background-radius: 12;"
                 + "-fx-border-color: rgba(255,255,255,0.18);"
                 + "-fx-border-radius: 12;");
-
-        canvas.setOnMousePressed(event -> clickToMoveCamera(new Vec2(event.getX(), event.getY())));
-        canvas.setOnMouseDragged(event -> clickToMoveCamera(new Vec2(event.getX(), event.getY())));
     }
 
     public void setMap(GameMap map) {
@@ -92,9 +89,9 @@ public class MinimapView extends StackPane {
         drawViewport(gc, scaleX, scaleY);
     }
 
-    public void clickToMoveCamera(Vec2 point) {
+    public GridPos minimapToCameraTopLeft(Vec2 point) {
         if (map == null || point == null) {
-            return;
+            return null;
         }
 
         double scaleX = canvas.getWidth() / map.getWidth();
@@ -107,7 +104,11 @@ public class MinimapView extends StackPane {
         int targetX = clickedTileX - (visibleTilesX / 2);
         int targetY = clickedTileY - (visibleTilesY / 2);
 
-        camera.setTopLeftClamped(map, new GridPos(targetX, targetY));
+        return new GridPos(targetX, targetY);
+    }
+
+    public GameMap getMap() {
+        return map;
     }
 
     private void drawViewport(GraphicsContext gc, double scaleX, double scaleY) {

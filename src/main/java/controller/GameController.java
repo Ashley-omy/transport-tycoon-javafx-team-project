@@ -11,6 +11,7 @@ package controller;
  */
 
 import common.GridPos;
+import common.Vec2;
 import javafx.animation.AnimationTimer;
 import model.Game;
 import view.BuildMode;
@@ -202,5 +203,14 @@ public class GameController {
         } else if ("SPACE".equals(e.key)) {
             //time.togglePause();
         }
+    }
+
+    public void handleMinimapInput(double x, double y) {
+        var minimap = window.getMinimapView();
+        GridPos targetTopLeft = minimap.minimapToCameraTopLeft(new Vec2(x, y));
+        if (targetTopLeft == null) {
+            return;
+        }
+        window.getMapView().getCamera().setTopLeftClamped(minimap.getMap(), targetTopLeft);
     }
 }
