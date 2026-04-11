@@ -130,6 +130,14 @@ public class GameController {
                     window.getHudView().displayBuildResult(result);
                 }
                 break;
+            case DECONSTRUCT:
+                pendingRouteStops.clear();
+                if (selection.getSelectedTile() != null) {
+                    GridPos pos = selection.getSelectedTile();
+                    result = build.removeRoad(pos);
+                    window.getHudView().displayBuildResult(result);
+                }
+                break;
             case STOP:
                 pendingRouteStops.clear();
                 if (selection.getSelectedTile() != null) {

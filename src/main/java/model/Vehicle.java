@@ -37,7 +37,7 @@ public abstract class Vehicle {
     private double stopTimerRemaining = 0.0;
     private List<GridPos> currentPath = List.of();
     private int currentPathIndex = 0;
-    
+
     // Maintenance tracking
     private double age = 0.0; // Total time vehicle has existed
     private double timeSinceLastMaintenance = 0.0;
@@ -63,15 +63,15 @@ public abstract class Vehicle {
     public Money getMaintenanceCost() { return maintenanceCost; }
     public double getSpeed() { return speed; }
     public double getAge() { return age; }
-    
+
     public void setOwner(Company owner) { this.owner = owner; }
 
     public void setWorld(World world) { this.world = world; }
-    
+
     public void setHomeGarage(Garage garage) { this.homeGarage = garage; }
-    
+
     public Garage getHomeGarage() { return homeGarage; }
-    
+
     // Calculate maintenance interval. older vehicles need more frequent maintenance
     private double getMaintenanceInterval() {
         // Gradually reduce interval from 300s to 120s over 20 minutes of age
@@ -79,7 +79,7 @@ public abstract class Vehicle {
         double reduction = (age / AGE_FOR_MIN_INTERVAL) * (BASE_MAINTENANCE_INTERVAL - MIN_MAINTENANCE_INTERVAL);
         return Math.max(MIN_MAINTENANCE_INTERVAL, BASE_MAINTENANCE_INTERVAL - reduction);
     }
-    
+
     public boolean needsMaintenance() {
         return homeGarage != null && timeSinceLastMaintenance >= getMaintenanceInterval();
     }
@@ -99,15 +99,15 @@ public abstract class Vehicle {
         this.tilePos = null;
         this.worldPos = null;
     }
-    
+
     public Route getAssignedRoute() {
         return assignedRoute;
     }
-    
+
     public boolean hasRoute() {
         return assignedRoute != null;
     }
-    
+
     public void clearRoute() {
         this.assignedRoute = null;
         this.state = VehicleState.IDLE;
@@ -136,7 +136,7 @@ public abstract class Vehicle {
     public VehicleState getState() {
         return state;
     }
-    
+
     public void setState(VehicleState state) {
         if (state == null) throw new IllegalArgumentException("state cannot be null");
         this.state = state;
@@ -148,6 +148,13 @@ public abstract class Vehicle {
 
     public Vec2 getWorldPos() {
         return worldPos;
+    }
+
+    //for deconstruct
+    public boolean isUsingTile(GridPos pos) {
+        if (pos == null) return false;
+        if (tilePos != null && tilePos.equals(pos)) return true;
+        return currentPath != null && currentPath.contains(pos);
     }
 
     public boolean canLoad(Shipment s) {
@@ -202,7 +209,7 @@ public abstract class Vehicle {
     public Money unloadTo(Stop stop) {
         if (stop == null) return Money.ZERO;
         Money payout = stop.deliverFrom(this);
-        
+
         // Pay the company for successful delivery
         if (owner != null && payout.isPositive()) {
             owner.completeShipmentWithPayout(payout);
@@ -211,17 +218,17 @@ public abstract class Vehicle {
                 world.pushRevenueMessage("Revenue earned: +" + payout + " at " + describeEntity(stop.getServedPlace()));
             }
         }
-        
+
         return payout;
     }
 
     public void tick(double deltaTime) {
         if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
-        
+
         // Track vehicle age
         age += deltaTime;
         timeSinceLastMaintenance += deltaTime;
-        
+
         // Handle maintenance in garage
         if (state == VehicleState.IN_GARAGE) {
             maintenanceTimer += deltaTime;
@@ -236,7 +243,7 @@ public abstract class Vehicle {
             }
             return;
         }
-        
+
         // Check if maintenance is needed
         if (needsMaintenance() && state != VehicleState.BLOCKED) {
             // Return to garage for maintenance
@@ -246,13 +253,13 @@ public abstract class Vehicle {
             currentPath = List.of();
             currentPathIndex = 0;
             if (world != null) {
-                world.pushDebugMessage("Vehicle " + id + " returning to garage (age: " + 
-                    String.format("%.0f", age) + "s, interval: " + 
-                    String.format("%.0f", getMaintenanceInterval()) + "s)");
+                world.pushDebugMessage("Vehicle " + id + " returning to garage (age: " +
+                        String.format("%.0f", age) + "s, interval: " +
+                        String.format("%.0f", getMaintenanceInterval()) + "s)");
             }
             return;
         }
-        
+
         if (!hasRoute() || world == null || assignedRoute.getStopCount() < 2) return;
 
         // Initialize the vehicle on its first assigned stop before movement begins.
@@ -313,6 +320,16 @@ public abstract class Vehicle {
 
         // Rebuild the road path from the current stop to the next stop in the route loop.
         targetStopIndex = assignedRoute.getNextStopIndex(currentStopIndex);
+
+        if (cargo != null) {
+            for (int i = 0; i < assignedRoute.getStopCount(); i++) {
+                if (assignedRoute.getStop(i).getId().equals(cargo.getToStopId())) {
+                    targetStopIndex = i;
+                    break;
+                }
+            }
+        }
+
         Stop currentStop = assignedRoute.getStop(currentStopIndex);
         Stop targetStop = assignedRoute.getStop(targetStopIndex);
         currentPath = buildPathBetweenStops(currentStop, targetStop);

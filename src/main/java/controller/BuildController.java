@@ -90,32 +90,33 @@ public class BuildController {
                 "Built road at " + pos))
             return ActionResult.fail("Not enough money");
 
-        //world.buildRoad(pos);
         world.buildRoad(pos);
         return ActionResult.success("Build road successfully");
-
-
-        /* wrong codes
-        if (!canPlaceRoad(tile)) return;
-
-        RoadPiece piece = new RoadPiece(RoadKind.ROAD, null);
-        piece.addTile(tile);
-        tile.setRoadPiece(piece);
-
-        world.getRoadNetwork().rebuild(world.getMap());
-
-         */
     }
 
-    /*
-    // road removal
-    public void removeRoad(Tile tile) {
-        tile.setRoadPiece(null);
-        world.getRoadNetwork().rebuild(world.getMap());
-    }
+    public ActionResult removeRoad(GridPos pos) {
+        Tile tile = world.getMap().getTile(pos);
+        if (tile == null) {
+            return ActionResult.fail("Tile out of bounds");
+        }
+        if (tile.getRoadPiece() == null) {
+            return ActionResult.fail("No road to remove");
+        }
 
-     */
-    //-------------------------------
+        for (Vehicle v : company.getFleet()) {
+            if (v.isUsingTile(pos)) {
+                return ActionResult.fail("Cannot demolish: Road used in active route!");
+            }
+        }
+
+        world.removeRoad(pos);
+        company.getEconomy().earn(
+                World.ROAD_BUILD_COST,
+                TransactionType.ROAD_CONSTRUCTION,
+                "Refund for deconstructed road at " + pos);
+                
+        return ActionResult.success("Deconstructed road successfully");
+    }
 
     //--------- Stop placement rules ----------------
 
