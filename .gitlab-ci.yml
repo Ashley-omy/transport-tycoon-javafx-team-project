@@ -1,0 +1,22 @@
+image: maven:3-eclipse-temurin-23
+
+variables:
+  MAVEN_OPTS: "-Dmaven.repo.local=.m2/repository"
+
+cache:
+  paths:
+    - .m2/repository
+
+stages:
+  - build
+  - test
+
+build_job:
+  stage: build
+  script:
+    - mvn clean compile
+
+test_job:
+  stage: test
+  script:
+    - mvn test

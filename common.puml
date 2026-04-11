@@ -1,0 +1,65 @@
+@startuml
+class common.Money {
+- long amount
+- String currency
++ {static} String DEFAULT_CURRENCY
++ {static} Money ZERO
++ {static} Money of(long)
++ long amount()
++ String currency()
++ Money add(Money)
++ Money subtract(Money)
++ Money multiply(double)
++ boolean isNegative()
++ boolean isZero()
++ boolean isPositive()
++ Money negate()
++ Money abs()
++ boolean greaterOrEqual(Money)
++ boolean greaterThan(Money)
++ boolean lessThan(Money)
++ boolean lessOrEqual(Money)
++ {static} Money max(Money,Money)
++ {static} Money min(Money,Money)
+- void requireSameCurrency(Money)
++ int compareTo(Money)
++ boolean equals(Object)
++ int hashCode()
++ String toString()
+}
+
+
+class common.Id {
+- String value
++ {static} Id genNew()
++ String toString()
++ boolean equals(Object)
++ int hashCode()
+}
+
+
+class common.GridPos {
++ int x
++ int y
++ GridPos add(int,int)
++ boolean equals(Object)
++ int hashCode()
++ String toString()
+}
+
+
+class common.Vec2 {
++ double x
++ double y
++ Vec2 add(Vec2)
++ Vec2 sub(Vec2)
++ Vec2 mul(double)
++ {static} Vec2 lerp(Vec2,Vec2,double)
++ String toString()
+}
+
+
+
+
+common.Comparable <|.. common.Money
+@enduml
