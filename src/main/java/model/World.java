@@ -151,6 +151,15 @@ public class World {
         roads.rebuild(map);
     }
 
+    public void removeRoad(GridPos pos) {
+        if (!map.inBounds(pos)) return;
+        Tile tile = map.getTile(pos);
+        if (tile != null) {
+            tile.setRoadPiece(null);
+            roads.rebuild(map);
+        }
+    }
+
     public void buildStop(GridPos pos, MapEntity servedPlace) {
         Tile tile = map.getTile(pos);
 

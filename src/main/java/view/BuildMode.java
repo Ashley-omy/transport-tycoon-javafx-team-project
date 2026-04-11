@@ -15,5 +15,6 @@ public enum BuildMode {
     BRIDGE,
     STOP,
     GARAGE,
-    ROUTE
+    ROUTE,
+    DECONSTRUCT
 }
