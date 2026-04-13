@@ -110,13 +110,21 @@ public class BuildController {
             }
         }
 
+        Money refund = getRoadBuildCost(tile);
         world.removeRoad(pos);
         company.getEconomy().earn(
-                World.ROAD_BUILD_COST,
+                refund,
                 TransactionType.ROAD_CONSTRUCTION,
                 "Refund for deconstructed road at " + pos);
                 
         return ActionResult.success("Deconstructed road successfully");
+    }
+
+    private Money getRoadBuildCost(Tile tile) {
+        if (tile == null) {
+            throw new IllegalArgumentException("tile cannot be null");
+        }
+        return World.ROAD_BUILD_COST.multiply(tile.getTerrain().buildMultiplier());
     }
 
     //--------- Stop placement rules ----------------
