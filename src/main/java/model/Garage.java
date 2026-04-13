@@ -5,9 +5,10 @@
 package model;
 
 import common.Id;
-import common.Money;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class Garage {
 
@@ -19,7 +20,16 @@ public class Garage {
     private final List<Tile> occupiedTiles = new ArrayList<>();
 
     public Garage(Id id, int capacity, int serviceBayCount, List<Tile> occupiedTiles) {
-        this.id = id;
+        this.id = Objects.requireNonNull(id, "id cannot be null");
+        if (capacity <= 0) {
+            throw new IllegalArgumentException("capacity must be > 0");
+        }
+        if (serviceBayCount <= 0) {
+            throw new IllegalArgumentException("serviceBayCount must be > 0");
+        }
+        if (occupiedTiles == null || occupiedTiles.isEmpty()) {
+            throw new IllegalArgumentException("occupiedTiles cannot be null or empty");
+        }
         this.capacity = capacity;
         this.serviceBayCount = serviceBayCount;
         this.occupiedTiles.addAll(occupiedTiles);
@@ -38,11 +48,11 @@ public class Garage {
     }
 
     public List<Vehicle> getVehicles() {
-        return vehicles;
+        return Collections.unmodifiableList(vehicles);
     }
 
     public List<Tile> getOccupiedTiles() {
-        return occupiedTiles;
+        return Collections.unmodifiableList(occupiedTiles);
     }
 
     public boolean isFull() {
@@ -50,7 +60,7 @@ public class Garage {
     }
 
     public boolean addVehicle(Vehicle v) {
-        if (v != null && !isFull()) {
+        if (v != null && !isFull() && !vehicles.contains(v)) {
             vehicles.add(v);
             return true;
         }
@@ -62,12 +72,13 @@ public class Garage {
     }
 
     public void tick(double deltaTime) {
-        if (Double.isNaN(deltaTime) || deltaTime <= 0.0) return;
+        if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
         // Garage mainly stores vehicles; actual maintenance is handled by Company
         // Vehicles in garage are parked and not ticking
     }
 
     public void sellVehicle(Vehicle v) {
+        if (v == null) return;
         removeVehicle(v);
         // Company.sellVehicle(v) is called by FleetController
     }
