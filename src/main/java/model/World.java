@@ -217,6 +217,31 @@ public class World {
                 entity.emitSupplyToStops();
             }
         }
+
+        // 1. all trees grow
+        for (Tile tile : map.getAllTiles()) {
+            Terrain t = tile.getTerrain();
+            if (t instanceof Forest forest) {
+                forest.grow(deltaTime);
+            }
+        }
+
+        // 2. record to tick the new spread forest location
+        List<GridPos> newForests = new ArrayList<>();
+
+        for (Tile tile : map.getAllTiles()) {
+            Terrain t = tile.getTerrain();
+
+            // when is full then spread
+            if (t instanceof Forest forest && forest.getTrees() == 4) {
+                spreadForest(tile.getPos(), newForests);
+            }
+        }
+
+        // 3. butch update
+        for (GridPos pos : newForests) {
+            map.setTerrain(pos, new Forest());
+        }
     }
     //using LinkedHashSet in order to avoid entity duplication
     private Set<MapEntity> collectEntities() {
@@ -230,6 +255,39 @@ public class World {
         }
         return entities;
     }
+
+    // Forest tick helper fn
+    private void spreadForest(GridPos origin, List<GridPos> newForests) {
+
+        int[][] dirs = {
+                {1, 0}, {-1, 0}, {0, 1}, {0, -1}
+        };
+
+        for (int[] d : dirs) {
+            GridPos np = new GridPos(origin.x + d[0], origin.y + d[1]);
+
+            if (!map.inBounds(np)) continue;
+
+            Tile neighbor = map.getTile(np);
+
+            // Forest can only spread onto empty land tiles.
+            if (neighbor.getTerrain().isLand() && isEmptyTile(neighbor)) {
+
+                // the probability of spreading
+                if (Math.random() < 0.10) { // 10%
+                    newForests.add(np);
+                }
+            }
+        }
+    }
+
+    private boolean isEmptyTile(Tile tile) {
+        return tile.getRoadPiece() == null &&
+                tile.getStop() == null &&
+                tile.getGarage() == null &&
+                tile.getEntity() == null;
+    }
+
 
     private List<Stop> collectStops() {
         List<Stop> stops = new ArrayList<>();

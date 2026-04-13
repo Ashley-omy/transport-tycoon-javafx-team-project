@@ -84,8 +84,9 @@ public class BuildController {
         if (!canPlaceRoad(tile))
             return ActionResult.fail("Cannot place road here");
 
+        Money roadCost = getRoadBuildCost(tile);
         if (!company.getEconomy().spend(
-                World.ROAD_BUILD_COST,
+                roadCost,
                 TransactionType.ROAD_CONSTRUCTION,
                 "Built road at " + pos))
             return ActionResult.fail("Not enough money");
@@ -109,13 +110,21 @@ public class BuildController {
             }
         }
 
+        Money refund = getRoadBuildCost(tile);
         world.removeRoad(pos);
         company.getEconomy().earn(
-                World.ROAD_BUILD_COST,
+                refund,
                 TransactionType.ROAD_CONSTRUCTION,
                 "Refund for deconstructed road at " + pos);
                 
         return ActionResult.success("Deconstructed road successfully");
+    }
+
+    private Money getRoadBuildCost(Tile tile) {
+        if (tile == null) {
+            throw new IllegalArgumentException("tile cannot be null");
+        }
+        return World.ROAD_BUILD_COST.multiply(tile.getTerrain().buildMultiplier());
     }
 
     //--------- Stop placement rules ----------------
