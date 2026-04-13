@@ -1,0 +1,462 @@
+@startuml
+abstract class model.Facility {
+# GoodsType inputType
+# GoodsType outputType
+# int inputStock
+# int outputStock
+# int maxStockCapacity
+# int productionRate
+# double productionTime
+# double productionProgress
++ GoodsType getInputType()
++ void acceptDelivery(Shipment)
++ void tick(double)
++ void emitSupplyToStops()
+}
+
+
+class model.Route {
+- Id id
+- List<Stop> stops
++ Id getId()
++ List<Stop> getStops()
++ int getStopCount()
++ Stop getStop(int)
++ boolean hasNextStop(int)
++ int getNextStopIndex(int)
++ Stop getNextStop(int)
+}
+
+
+class model.Land {
++ boolean isPassable()
++ double buildMultiplier()
+}
+
+class model.Shipment {
+- ShipmentKind kind
+- GoodsType goodsType
+- int units
+- Id fromStopId
+- Id toStopId
+- Money valuePerTile
++ ShipmentKind getKind()
++ GoodsType getGoodsType()
++ int getUnits()
++ Id getFromStopId()
++ Id getToStopId()
++ Money getValuePerTile()
++ boolean isPassengers()
++ boolean isGoods()
++ void removeUnits(int)
++ Shipment splitOff(int)
+}
+
+
+abstract class model.Terrain {
+- List<Tile> occupiedTiles
++ {abstract}boolean isPassable()
++ {abstract}double buildMultiplier()
++ boolean isWater()
++ boolean isForest()
+}
+
+
+class model.VehicleFactory {
++ {static} Truck createSmallTruck(Id)
++ {static} Truck createLargeTruck(Id)
++ {static} Bus createSmallBus(Id)
++ {static} Bus createLargeBus(Id)
+}
+
+class model.BridgeSpec {
+}
+abstract class model.Vehicle {
+- {static} double STOP_DURATION_SECONDS
+- {static} double EPSILON
+# Id id
+# int capacityUnits
+# Money purchaseCost
+# Money maintenanceCost
+# double speed
+# Shipment cargo
+# Company owner
+# VehicleState state
+# Route assignedRoute
+# World world
+- GridPos tilePos
+- Vec2 worldPos
+- int currentStopIndex
+- int targetStopIndex
+- double stopTimerRemaining
+- List<GridPos> currentPath
+- int currentPathIndex
++ Id getId()
++ Money getPurchaseCost()
++ Money getMaintenanceCost()
++ double getSpeed()
++ void setOwner(Company)
++ void setWorld(World)
++ World getWorld()
++ void assignRoute(Route)
++ Route getAssignedRoute()
++ boolean hasRoute()
++ void clearRoute()
++ Shipment getCargo()
++ void clearCargo()
++ int getFreeCapacityUnits()
++ boolean hasCargo()
++ VehicleState getState()
++ void setState(VehicleState)
++ GridPos getTilePos()
++ Vec2 getWorldPos()
++ boolean canLoad(Shipment)
++ boolean loadFrom(Stop)
++ Money unloadTo(Stop)
++ void tick(double)
+- void ensureInitializedOnRoute()
+- void prepareNextLeg()
+- double moveAlongCurrentPath(double)
+- void arriveAtStop()
+- List<GridPos> buildPathBetweenStops(Stop,Stop)
+- List<GridPos> getAdjacentRoadTiles(GridPos)
+- List<GridPos> findRoadPath(GridPos,GridPos)
+- List<GridPos> reconstructPath(Map<GridPos,GridPos>,GridPos)
+- List<GridPos> getFourNeighbors(GridPos)
+- void appendIfDifferent(List<GridPos>,GridPos)
+- Vec2 toWorldPos(GridPos)
+- double distance(Vec2,Vec2)
+- Shipment routeShipmentToNextStop(Shipment)
+- String describeEntity(MapEntity)
++ {abstract}boolean acceptsKind(ShipmentKind)
++ {abstract}boolean acceptsGoodsType(GoodsType)
+}
+
+
+class model.Truck {
++ boolean acceptsKind(ShipmentKind)
++ boolean acceptsGoodsType(GoodsType)
+}
+
+class model.Garage {
+- Id id
+- int capacity
+- int serviceBayCount
+- List<Vehicle> vehicles
+- List<Tile> occupiedTiles
++ Id getId()
++ int getCapacity()
++ int getServiceBayCount()
++ List<Vehicle> getVehicles()
++ List<Tile> getOccupiedTiles()
++ boolean isFull()
++ void addVehicle(Vehicle)
++ void removeVehicle(Vehicle)
++ void tick(double)
++ void sellVehicle(Vehicle)
+}
+
+
+class model.Economy {
+- Money cash
+- List<Transaction> transactionHistory
+- Money totalEarned
+- Money totalSpent
++ Money getCash()
++ boolean canAfford(Money)
++ boolean spend(Money)
++ boolean spend(Money,TransactionType,String)
++ void earn(Money)
++ void earn(Money,TransactionType,String)
++ void forceSubtract(Money)
++ void forceSubtract(Money,TransactionType,String)
++ boolean isBankrupt()
+- void validateMoney(Money)
+- void recordTransaction(TransactionType,Money,String)
+}
+
+
+class model.Economy$Transaction {
+- TransactionType type
+- Money amount
+- String description
+- Money balanceAfter
+- long timestamp
++ String toString()
+}
+
+
+class model.WaterType {
+}
+class model.Company {
+- Economy economy
+- List<Vehicle> fleet
+- double maintenanceTimer
+- World world
++ {static} Money DEFAULT_STARTING_CAPITAL
+- {static} Money DEFAULT_VEHICLE_RESALE_VALUE
+- {static} Money DEFAULT_DELIVERY_INCOME
+- {static} double MAINTENANCE_INTERVAL
++ {static} Money getVehicleResaleValue()
++ Economy getEconomy()
++ void setWorld(World)
++ List<Vehicle> getFleet()
++ boolean buyVehicle(Vehicle)
++ void sellVehicle(Vehicle)
++ void completeShipment(Shipment)
++ void completeShipmentWithPayout(Money)
++ void earn(Money)
++ boolean spend(Money)
++ boolean isBankrupt()
++ void tick(double)
+}
+
+
+class model.Factory {
++ {static} Factory createSteelMill(Id)
++ {static} Factory createPaperMill(Id)
+}
+
+enum model.VehicleState {
++  IDLE
++  ON_ROUTE
++  LOADING
++  BLOCKED
+}
+
+class model.Bus {
++ boolean acceptsKind(ShipmentKind)
++ boolean acceptsGoodsType(GoodsType)
+}
+
+class model.City {
+- {static} int STANDARD_POPULATION
+- {static} double DEMAND_INCREASE_RATE
+- {static} int INITIAL_DEMAND
+- {static} int MAX_DEMAND
+- int population
+- Map<GoodsType,Integer> receivedGoods
+- int receivedPassengers
+- Map<GoodsType,Double> goodsDemand
+- double passengerDemand
++ int getPopulation()
++ int getReceivedPassengers()
++ int getReceivedGoods(GoodsType)
++ int getGoodsDemand(GoodsType)
++ int getPassengerDemand()
++ void acceptDelivery(Shipment)
++ void emitSupplyToStops()
++ void tick(double)
+}
+
+
+enum model.TransactionType {
++  INITIAL_CAPITAL
++  DELIVERY_INCOME
++  VEHICLE_PURCHASE
++  VEHICLE_SALE
++  VEHICLE_MAINTENANCE
++  ROAD_CONSTRUCTION
++  STOP_CONSTRUCTION
++  OTHER_INCOME
++  OTHER_EXPENSE
+}
+
+class model.Mine {
++ {static} Mine createIronMine(Id)
++ {static} Mine createWoodMine(Id)
+}
+
+class model.GameMap {
+- int width
+- int height
+- Tile[][] tiles
++ int getWidth()
++ int getHeight()
++ Tile[][] getTiles()
+- void initializeTiles()
++ boolean inBounds(GridPos)
++ Tile getTile(GridPos)
+}
+
+
+class model.RoadNetwork {
+- Set<GridPos> roadTiles
+- Map<GridPos,List<GridPos>> adjacency
++ void rebuild(GameMap)
+- List<GridPos> getAll4Directions(GridPos)
++ boolean isConnected(Tile,Tile)
+}
+
+
+class model.Game {
+- World world
+- Company company
+- long tick
+- boolean paused
+- double speedMultiplier
+- boolean gameOver
+- double simDelta
++ {static} double SPEED_NORMAL
++ {static} double SPEED_FAST
++ {static} double SPEED_VERY_FAST
++ void update(double)
++ World getWorld()
++ Company getCompany()
++ boolean isGameOver()
++ long getTick()
++ double getSimDelta()
++ void setPaused(boolean)
++ boolean isPaused()
++ void setSpeedMultiplier(double)
++ double getSpeedMultiplier()
+}
+
+
+class model.RoadPiece {
+- List<Tile> occupiedTiles
+- RoadKind kind
+- BridgeSpec bridgeSpec
++ List<Tile> getOccupiedTiles()
++ RoadKind getKind()
++ BridgeSpec getBridgeSpec()
++ void addTile(Tile)
+}
+
+
+enum model.GoodsType {
++  STEEL
++  IRON
++  WOOD
++  PAPER
+}
+
+class model.World {
+- {static} double SUPPLY_EMIT_INTERVAL
+- {static} String REVENUE_PREFIX
+- {static} String COST_PREFIX
+- GameMap map
+- RoadNetwork roads
+- List<BridgeSpec> bridgeCatalog
+~ long rngSeed
+- double supplyEmitTimer
+- List<String> debugMessages
++ {static} Money ROAD_BUILD_COST
++ void placeEntity(MapEntity,GridPos)
+- void placeInitialEntities()
++ boolean canBuildAt(GridPos)
++ GameMap getMap()
++ RoadNetwork getRoadNetwork()
++ List<BridgeSpec> getBridgeCatalog()
++ void pushDebugMessage(String)
++ void pushRevenueMessage(String)
++ void pushCostMessage(String)
++ List<String> drainDebugMessages()
++ boolean isRevenueMessage(String)
++ boolean isCostMessage(String)
++ String stripDebugPrefix(String)
++ void buildRoad(GridPos)
++ void buildStop(GridPos,MapEntity)
++ void tick(double)
+- Set<MapEntity> collectEntities()
+- List<Stop> collectStops()
+}
+
+
+class model.BridgeType {
+}
+abstract class model.MapEntity {
+# Id id
+# int footprintW
+# List<Stop> servedStops
+# List<Tile> occupiedTiles
++ int getFootprintW()
++ Id getId()
++ List<Tile> getOccupiedTiles()
++ boolean occupies(GridPos)
++ void attachStop(Stop)
++ void detachStop(Stop)
++ {abstract}void tick(double)
++ void emitSupplyToStops()
++ void acceptDelivery(Shipment)
+}
+
+
+enum model.ShipmentKind {
++  GOODS
++  PASSENGERS
+}
+
+class model.Forest {
++ boolean isPassable()
++ double buildMultiplier()
++ boolean isForest()
+}
+
+class model.Tile {
+- GridPos pos
+- Terrain terrain
+- RoadPiece road
+- Stop stop
+- Garage garage
+- MapEntity entity
++ GridPos getPos()
++ Terrain getTerrain()
++ MapEntity getEntity()
++ void setEntity(MapEntity)
++ Stop getStop()
++ void setStop(Stop)
++ Garage getGarage()
++ void setGarage(Garage)
++ RoadPiece getRoadPiece()
++ void setRoadPiece(RoadPiece)
++ boolean hasEntity()
++ boolean hasStop()
++ boolean hasGarage()
++ boolean hasRoad()
++ boolean isPassable()
++ Facility getFacility()
++ boolean isWater()
++ boolean isForest()
+}
+
+
+enum model.RoadKind {
++  ROAD
++  BRIDGE
+}
+
+class model.Water {
++ boolean isPassable()
++ double buildMultiplier()
++ boolean isWater()
+}
+
+class model.Stop {
+- Id id
+- Tile occupiedTile
+- MapEntity servedPlace
+- Queue<Shipment> queue
++ Id getId()
++ Tile getOccupiedTile()
++ MapEntity getServedPlace()
++ void enqueue(Shipment)
++ Shipment dequeueFor(Vehicle)
++ Money deliverFrom(Vehicle)
+- String describeEntity(MapEntity)
+}
+
+
+
+
+model.MapEntity <|-- model.Facility
+model.Terrain <|-- model.Land
+model.Vehicle <|-- model.Truck
+model.Economy +.. model.Economy$Transaction
+model.Facility <|-- model.Factory
+model.Vehicle <|-- model.Bus
+model.MapEntity <|-- model.City
+model.Facility <|-- model.Mine
+model.Terrain <|-- model.Forest
+model.Terrain <|-- model.Water
+@enduml

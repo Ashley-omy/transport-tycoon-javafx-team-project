@@ -91,36 +91,33 @@ public class BuildController {
                 "Built road at " + pos))
             return ActionResult.fail("Not enough money");
 
-        //world.buildRoad(pos);
         world.buildRoad(pos);
         return ActionResult.success("Build road successfully");
-
-
-        /* wrong codes
-        if (!canPlaceRoad(tile)) return;
-
-        RoadPiece piece = new RoadPiece(RoadKind.ROAD, null);
-        piece.addTile(tile);
-        tile.setRoadPiece(piece);
-
-        world.getRoadNetwork().rebuild(world.getMap());
-
-         */
     }
 
-    private Money getRoadBuildCost(Tile tile) {
-        return World.ROAD_BUILD_COST.multiply(tile.getTerrain().buildMultiplier());
-    }
+    public ActionResult removeRoad(GridPos pos) {
+        Tile tile = world.getMap().getTile(pos);
+        if (tile == null) {
+            return ActionResult.fail("Tile out of bounds");
+        }
+        if (tile.getRoadPiece() == null) {
+            return ActionResult.fail("No road to remove");
+        }
 
-    /*
-    // road removal
-    public void removeRoad(Tile tile) {
-        tile.setRoadPiece(null);
-        world.getRoadNetwork().rebuild(world.getMap());
-    }
+        for (Vehicle v : company.getFleet()) {
+            if (v.isUsingTile(pos)) {
+                return ActionResult.fail("Cannot demolish: Road used in active route!");
+            }
+        }
 
-     */
-    //-------------------------------
+        world.removeRoad(pos);
+        company.getEconomy().earn(
+                World.ROAD_BUILD_COST,
+                TransactionType.ROAD_CONSTRUCTION,
+                "Refund for deconstructed road at " + pos);
+                
+        return ActionResult.success("Deconstructed road successfully");
+    }
 
     //--------- Stop placement rules ----------------
 
@@ -179,33 +176,11 @@ public class BuildController {
         served.attachStop(stop);
 
         return ActionResult.success("Build stop sucessfully");
-
-        /* Wrong codes
-        Stop stop = new Stop(Id.genNew(), tile, served);
-
-        tile.setStop(stop);
-        served.attachStop(stop);
-
-        return stop;
-
-         */
     }
 
-    /*
-    // stop removal
-    public void removeStop(Tile tile) {
-        Stop s = tile.getStop();
-        if (s == null) return;
-
-        s.getServedPlace().detachStop(s);
-        tile.setStop(null);
-    }
-*/
-
-    /* milestone3
-
-    // garage
-        private boolean isTileEmptyForGarage(Tile tile) {
+    // Garage building
+    private boolean isTileEmptyForGarage(Tile tile) {
+        if (tile == null) return false;
         return tile.getTerrain().isPassable()
                 && tile.getEntity() == null
                 && tile.getRoadPiece() == null
@@ -216,22 +191,34 @@ public class BuildController {
     public ActionResult buildGarage(GridPos pos) {
         Tile tile = world.getMap().getTile(pos);
 
+        if (tile == null) {
+            return ActionResult.fail("Tile out of bounds");
+        }
+
         if (!isTileEmptyForGarage(tile))
-            return ActionResult.failure("Cannot place garage here");
+            return ActionResult.fail("Cannot place garage here");
 
         if (!hasAdjacentRoad(tile))
-            return ActionResult.failure("Garage must be next to a road");
+            return ActionResult.fail("Garage must be next to a road");
 
-        world.buildGarage(pos);
-        return ActionResult.success();
+        if (!company.getEconomy().spend(
+                World.GARAGE_BUILD_COST,
+                TransactionType.INFRASTRUCTURE,
+                "Built garage at " + pos))
+            return ActionResult.fail("Not enough money");
+
+        world.buildGarage(pos, 10, 2);  // capacity: 10 vehicles, 2 service bays
+        return ActionResult.success("Garage built successfully");
     }
 
+    /*
+    // stop removal
+    public void removeStop(Tile tile) {
+        Stop s = tile.getStop();
+        if (s == null) return;
 
-    // Bridge
-    public ActionResult buildBridge(List<GridPos> line, BridgeType type) {
-        // implement build rules
-        world.buildBridge(line, type);
-        return ActionResult.success();
+        s.getServedPlace().detachStop(s);
+        tile.setStop(null);
     }
     */
 }

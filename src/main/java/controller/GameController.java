@@ -11,6 +11,7 @@ package controller;
  */
 
 import common.GridPos;
+import common.Vec2;
 import javafx.animation.AnimationTimer;
 import model.Game;
 import view.BuildMode;
@@ -129,6 +130,14 @@ public class GameController {
                     window.getHudView().displayBuildResult(result);
                 }
                 break;
+            case DECONSTRUCT:
+                pendingRouteStops.clear();
+                if (selection.getSelectedTile() != null) {
+                    GridPos pos = selection.getSelectedTile();
+                    result = build.removeRoad(pos);
+                    window.getHudView().displayBuildResult(result);
+                }
+                break;
             case STOP:
                 pendingRouteStops.clear();
                 if (selection.getSelectedTile() != null) {
@@ -189,17 +198,27 @@ public class GameController {
 
     private void handleKey(InputEvent e) {
         var cam = window.getMapView().getCamera();
+        var map = game.getWorld().getMap();
 
         if ("UP".equals(e.key)) {
-            cam.pan(0, -1);
+            cam.panClamped(map, 0, -1);
         } else if ("DOWN".equals(e.key)) {
-            cam.pan(0, 1);
+            cam.panClamped(map, 0, 1);
         } else if ("LEFT".equals(e.key)) {
-            cam.pan(-1, 0);
+            cam.panClamped(map, -1, 0);
         } else if ("RIGHT".equals(e.key)) {
-            cam.pan(1, 0);
+            cam.panClamped(map, 1, 0);
         } else if ("SPACE".equals(e.key)) {
             //time.togglePause();
         }
+    }
+
+    public void handleMinimapInput(double x, double y) {
+        var minimap = window.getMinimapView();
+        GridPos targetTopLeft = minimap.minimapToCameraTopLeft(new Vec2(x, y));
+        if (targetTopLeft == null) {
+            return;
+        }
+        window.getMapView().getCamera().setTopLeftClamped(minimap.getMap(), targetTopLeft);
     }
 }

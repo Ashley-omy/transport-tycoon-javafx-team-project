@@ -29,6 +29,7 @@ public class HUDView extends HBox {
     private Button stopBtn;
     private Button garageBtn;
     private Button routeBtn;
+    private Button deconstructBtn;
     private Button pauseBtn;
     private Button normalSpeedBtn;
     private Button fastSpeedBtn;
@@ -44,6 +45,7 @@ public class HUDView extends HBox {
         roadBtn = new Button("Road");
         stopBtn = new Button("Stop");
         garageBtn = new Button("Garage");
+        deconstructBtn = new Button("Deconstruct");
         routeBtn = new Button("Place Route");
         pauseBtn = new Button("Pause");
         normalSpeedBtn = new Button("1x");
@@ -55,6 +57,7 @@ public class HUDView extends HBox {
         roadBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.ROAD));
         stopBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.STOP));
         garageBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.GARAGE));
+        deconstructBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.DECONSTRUCT));
         pauseBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.PAUSE));
         normalSpeedBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.NORMAL));
         fastSpeedBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.FAST));
@@ -75,6 +78,7 @@ public class HUDView extends HBox {
                 stopBtn,
                 garageBtn,
                 roadBtn,
+                deconstructBtn,
                 routeBtn,
                 pauseBtn,
                 normalSpeedBtn,
