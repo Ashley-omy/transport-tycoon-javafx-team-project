@@ -81,8 +81,13 @@ public class FleetController {
             return ActionResult.fail("Selected stops are not connected by road");
         }
 
+        Garage garage = findAvailableGarage();
+        if (garage == null) {
+            return ActionResult.fail("Build a garage with free space before creating a route");
+        }
+
         Vehicle vehicle = createVehicleFor(route);
-        if (!company.buyVehicle(vehicle)) {
+        if (!purchaseVehicleInGarage(vehicle, garage)) {
             return ActionResult.fail("Not enough money to create vehicle for route");
         }
 
@@ -178,6 +183,20 @@ public class FleetController {
         return VehicleFactory.createSmallTruck(Id.genNew());
     }
 
+    private boolean purchaseVehicleInGarage(Vehicle vehicle, Garage garage) {
+        if (vehicle == null || garage == null || garage.isFull()) {
+            return false;
+        }
+
+        if (!company.buyVehicle(vehicle)) {
+            return false;
+        }
+
+        vehicle.setHomeGarage(garage);
+        vehicle.setWorld(world);
+        return garage.addVehicle(vehicle);
+    }
+
     public ActionResult buyTruck(Garage garage, String specName) {
         if (garage == null) return ActionResult.fail("Garage cannot be null");
         if (garage.isFull()) return ActionResult.fail("Garage is full");
@@ -191,13 +210,9 @@ public class FleetController {
             return ActionResult.fail("Unknown truck spec: " + specName);
         }
         
-        if (!company.buyVehicle(truck)) {
+        if (!purchaseVehicleInGarage(truck, garage)) {
             return ActionResult.fail("Not enough money to buy truck");
         }
-        
-        truck.setHomeGarage(garage);
-        truck.setWorld(world);
-        garage.addVehicle(truck);
         return ActionResult.success("Truck purchased: " + truck.getId());
     }
 
@@ -214,13 +229,9 @@ public class FleetController {
             return ActionResult.fail("Unknown bus spec: " + specName);
         }
         
-        if (!company.buyVehicle(bus)) {
+        if (!purchaseVehicleInGarage(bus, garage)) {
             return ActionResult.fail("Not enough money to buy bus");
         }
-        
-        bus.setHomeGarage(garage);
-        bus.setWorld(world);
-        garage.addVehicle(bus);
         return ActionResult.success("Bus purchased: " + bus.getId());
     }
 
@@ -250,6 +261,19 @@ public class FleetController {
             for (Tile tile : column) {
                 Garage garage = tile.getGarage();
                 if (garage != null && garage.hasVehicle(vehicle)) {
+                    return garage;
+                }
+            }
+        }
+        return null;
+    }
+
+    private Garage findAvailableGarage() {
+        GameMap map = world.getMap();
+        for (Tile[] column : map.getTiles()) {
+            for (Tile tile : column) {
+                Garage garage = tile.getGarage();
+                if (garage != null && !garage.isFull()) {
                     return garage;
                 }
             }

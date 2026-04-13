@@ -72,6 +72,10 @@ public class World {
 
         Facility ironMine = Mine.createIronMine(Id.genNew());
         placeEntity(ironMine, new GridPos(15, 15));
+
+        // Start with one garage connected to a short road so garage workflows are usable immediately.
+        buildRoad(new GridPos(7, 5));
+        buildGarage(new GridPos(8, 5), 10, 2);
     }
 
     public static final Money ROAD_BUILD_COST = Money.of(150);
