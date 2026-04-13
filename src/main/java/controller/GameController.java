@@ -148,6 +148,11 @@ public class GameController {
                 break;
             case GARAGE:
                 pendingRouteStops.clear();
+                if (selection.getSelectedTile() != null) {
+                    GridPos pos = selection.getSelectedTile();
+                    result = build.buildGarage(pos);
+                    window.getHudView().displayBuildResult(result);
+                }
                 break;
             case ROUTE:
                 collectRouteStop();

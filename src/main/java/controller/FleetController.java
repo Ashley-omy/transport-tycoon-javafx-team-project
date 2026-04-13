@@ -23,7 +23,6 @@ public class FleetController {
     private final Company company;
     private final World world;
 
-
     // not sure how to deal with routeId
     // for now i store here
     private final Map<String, Route> routes = new HashMap<>();

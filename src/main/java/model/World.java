@@ -75,7 +75,7 @@ public class World {
 
         // Start with one garage connected to a short road so garage workflows are usable immediately.
         buildRoad(new GridPos(7, 5));
-        buildGarage(new GridPos(8, 4), 10, 2);
+        //buildGarage(new GridPos(8, 4), 10, 2);
     }
 
     public static final Money ROAD_BUILD_COST = Money.of(150);
