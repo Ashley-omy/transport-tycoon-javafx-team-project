@@ -209,15 +209,6 @@ public abstract class Vehicle {
                     cargo.getValuePerTile()
             );
         }
-        if (world != null) {
-            // Temporary debug message for verifying load completion.
-            world.pushDebugMessage(
-                    "Load complete: " + id
-                            + " <- " + describeEntity(stop.getServedPlace())
-                            + " / Shipment[kind=" + routedShipment.getKind()
-                            + ", units=" + routedShipment.getUnits() + "]"
-            );
-        }
         return true;
     }
 

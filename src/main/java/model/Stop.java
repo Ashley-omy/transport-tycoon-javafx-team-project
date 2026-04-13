@@ -87,11 +87,6 @@ public class Stop {
         if (!id.equals(cargo.getToStopId())) return Money.ZERO;
 
         World vehicleWorld = vehicle.getWorld();
-        if (vehicleWorld != null) {
-            // Temporary debug messages for verifying unload flow and demand target.
-            vehicleWorld.pushDebugMessage("Demanded MapEntity: " + describeEntity(servedPlace));
-            vehicleWorld.pushDebugMessage("Unload complete: " + vehicle.getId() + " -> " + describeEntity(servedPlace));
-        }
         servedPlace.acceptDelivery(cargo);
         Money payout = Money.ZERO;
         if (servedPlace instanceof City) {
@@ -99,11 +94,6 @@ public class Stop {
         }
         vehicle.clearCargo();
         return payout;
-    }
-
-    // Temporary debug formatter for the right-side event panel.
-    private String describeEntity(MapEntity entity) {
-        return entity.getClass().getSimpleName() + " (" + entity.getId() + ")";
     }
     
     public void tick(double deltaTime) {

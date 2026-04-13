@@ -6,7 +6,7 @@ package view;
 
 /**
  *
- * @author lenovo
+ * @author asuna
  */
 import common.Vec2;
 import controller.TimeController;

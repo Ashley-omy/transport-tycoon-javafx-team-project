@@ -6,7 +6,7 @@ package view;
 
 /**
  *
- * @author lenovo
+ * @author asuna
  */
 import common.Money;
 import controller.ActionResult;

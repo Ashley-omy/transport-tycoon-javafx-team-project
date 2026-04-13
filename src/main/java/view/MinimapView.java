@@ -1,5 +1,8 @@
 package view;
-
+/**
+ *
+ * @author asuna
+ */
 import common.GridPos;
 import common.Vec2;
 import javafx.geometry.Insets;
