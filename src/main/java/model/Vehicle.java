@@ -404,59 +404,12 @@ public abstract class Vehicle {
         );
     }
 
-    private List<GridPos> getRoadAccessTiles(GridPos pos) {
-        // These road tiles are the possible entry and exit points for stops, garages, and roads.
-        List<GridPos> roadTiles = new ArrayList<>();
-        Tile tile = world.getMap().getTile(pos);
-        if (tile != null && tile.getRoadPiece() != null) {
-            roadTiles.add(pos);
-        }
-        for (GridPos neighbor : getFourNeighbors(pos)) {
-            if (!world.getMap().inBounds(neighbor)) {
-                continue;
-            }
-
-            tile = world.getMap().getTile(neighbor);
-            if (tile.getRoadPiece() != null && !roadTiles.contains(neighbor)) {
-                roadTiles.add(neighbor);
-            }
-        }
-        return roadTiles;
-    }
-
     private List<GridPos> buildPathBetweenLocations(GridPos fromPos, GridPos toPos) {
-        if (fromPos == null || toPos == null || world == null) {
+        if (world == null) {
             return List.of();
         }
-
-        List<GridPos> startRoadTiles = getRoadAccessTiles(fromPos);
-        List<GridPos> endRoadTiles = getRoadAccessTiles(toPos);
-
-        List<GridPos> bestRoadPath = List.of();
-        for (GridPos startRoad : startRoadTiles) {
-            for (GridPos endRoad : endRoadTiles) {
-                List<GridPos> roadPath = world.getRoadNetwork().findPath(startRoad, endRoad);
-                if (roadPath.isEmpty()) {
-                    continue;
-                }
-                if (bestRoadPath.isEmpty() || roadPath.size() < bestRoadPath.size()) {
-                    bestRoadPath = roadPath;
-                }
-            }
-        }
-
-        if (bestRoadPath.isEmpty()) {
-            return List.of();
-        }
-
-        List<GridPos> fullPath = new ArrayList<>();
-        fullPath.add(fromPos);
-        appendIfDifferent(fullPath, bestRoadPath.get(0));
-        for (int i = 1; i < bestRoadPath.size(); i++) {
-            appendIfDifferent(fullPath, bestRoadPath.get(i));
-        }
-        appendIfDifferent(fullPath, toPos);
-        return fullPath;
+        // Delegate BFS-related path assembly helpers to RoadNetwork.
+        return world.getRoadNetwork().findPathBetweenLocations(world.getMap(), fromPos, toPos);
     }
 
     private boolean startReturnToGarage() {
@@ -556,21 +509,6 @@ public abstract class Vehicle {
         savedCurrentPathIndex = 0;
         savedTilePos = null;
         savedWorldPos = null;
-    }
-
-    private List<GridPos> getFourNeighbors(GridPos pos) {
-        return List.of(
-                pos.add(1, 0),
-                pos.add(-1, 0),
-                pos.add(0, 1),
-                pos.add(0, -1)
-        );
-    }
-
-    private void appendIfDifferent(List<GridPos> path, GridPos pos) {
-        if (path.isEmpty() || !path.get(path.size() - 1).equals(pos)) {
-            path.add(pos);
-        }
     }
 
     private Vec2 toWorldPos(GridPos pos) {

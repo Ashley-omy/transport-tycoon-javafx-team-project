@@ -120,7 +120,7 @@ public class GameController {
 
         selection.selectTile(tile);
 
-        /* Build Controller and Fleet Controller triggering logic here */
+        /* Logic to trigger Build Controller and Fleet Controller */
         switch (window.getUIState().getBuildMode()) {
             case ROAD:
                 pendingRouteStops.clear();

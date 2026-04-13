@@ -35,7 +35,7 @@ public class RoadNetwork {
         for(GridPos pos : roadTiles) {
             List<GridPos> neighbors = new ArrayList<>();
 
-            for (GridPos p : getAll4Directions(pos)) {
+            for (GridPos p : getFourNeighbors(pos)) {
                 if (roadTiles.contains(p)) {
                     neighbors.add(p);
                 }
@@ -44,7 +44,8 @@ public class RoadNetwork {
         }
     }
 
-    private List<GridPos> getAll4Directions(GridPos pos) {
+    // Shared 4-direction helper used by BFS and road-access lookups.
+    private List<GridPos> getFourNeighbors(GridPos pos) {
         return List.of(pos.add(1,0), pos.add(-1,0), pos.add(0, 1), pos.add(0, -1));
     }
 
@@ -52,10 +53,12 @@ public class RoadNetwork {
         if (a == null || b == null) {
             return false;
         }
+        // Connectivity check is now delegated to the shared pathfinder.
         return !findPath(a.getPos(), b.getPos()).isEmpty();
     }
 
-    // Return shortest road path between two road tiles using BFS.
+    // Shared BFS pathfinder used by route validation and vehicle movement.
+    // This keeps road traversal logic in one place instead of duplicating BFS in Vehicle.
     public List<GridPos> findPath(GridPos start, GridPos target) {
         if (start == null || target == null) {
             return List.of();
@@ -91,7 +94,70 @@ public class RoadNetwork {
         return List.of();
     }
 
+    // Return road tiles that can be used to enter/exit a stop, garage, or road position.
+    public List<GridPos> getRoadAccessTiles(GameMap map, GridPos pos) {
+        if (map == null || pos == null) {
+            return List.of();
+        }
+
+        List<GridPos> accessTiles = new ArrayList<>();
+        if (roadTiles.contains(pos)) {
+            accessTiles.add(pos);
+        }
+
+        for (GridPos neighbor : getFourNeighbors(pos)) {
+            if (!map.inBounds(neighbor) || !roadTiles.contains(neighbor)) {
+                continue;
+            }
+            appendIfDifferent(accessTiles, neighbor);
+        }
+        return accessTiles;
+    }
+
+    // Build full path between two non-road locations via nearest road-access candidates.
+    public List<GridPos> findPathBetweenLocations(GameMap map, GridPos fromPos, GridPos toPos) {
+        if (map == null || fromPos == null || toPos == null) {
+            return List.of();
+        }
+
+        List<GridPos> startRoadTiles = getRoadAccessTiles(map, fromPos);
+        List<GridPos> endRoadTiles = getRoadAccessTiles(map, toPos);
+
+        List<GridPos> bestRoadPath = List.of();
+        for (GridPos startRoad : startRoadTiles) {
+            for (GridPos endRoad : endRoadTiles) {
+                List<GridPos> roadPath = findPath(startRoad, endRoad);
+                if (roadPath.isEmpty()) {
+                    continue;
+                }
+                if (bestRoadPath.isEmpty() || roadPath.size() < bestRoadPath.size()) {
+                    bestRoadPath = roadPath;
+                }
+            }
+        }
+
+        if (bestRoadPath.isEmpty()) {
+            return List.of();
+        }
+
+        List<GridPos> fullPath = new ArrayList<>();
+        fullPath.add(fromPos);
+        for (GridPos roadPos : bestRoadPath) {
+            appendIfDifferent(fullPath, roadPos);
+        }
+        appendIfDifferent(fullPath, toPos);
+        return fullPath;
+    }
+
+    // Keep generated paths clean by skipping duplicate consecutive points.
+    private void appendIfDifferent(List<GridPos> path, GridPos pos) {
+        if (path.isEmpty() || !path.get(path.size() - 1).equals(pos)) {
+            path.add(pos);
+        }
+    }
+
     private List<GridPos> reconstructPath(Map<GridPos, GridPos> previous, GridPos target) {
+        // Walk backward from target to start using the predecessor map built by BFS.
         List<GridPos> path = new ArrayList<>();
         GridPos current = target;
 
