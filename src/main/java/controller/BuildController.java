@@ -84,8 +84,9 @@ public class BuildController {
         if (!canPlaceRoad(tile))
             return ActionResult.fail("Cannot place road here");
 
+        Money roadCost = getRoadBuildCost(tile);
         if (!company.getEconomy().spend(
-                World.ROAD_BUILD_COST,
+                roadCost,
                 TransactionType.ROAD_CONSTRUCTION,
                 "Built road at " + pos))
             return ActionResult.fail("Not enough money");
@@ -105,6 +106,10 @@ public class BuildController {
         world.getRoadNetwork().rebuild(world.getMap());
 
          */
+    }
+
+    private Money getRoadBuildCost(Tile tile) {
+        return World.ROAD_BUILD_COST.multiply(tile.getTerrain().buildMultiplier());
     }
 
     /*
