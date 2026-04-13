@@ -23,7 +23,6 @@ public class FleetController {
     private final Company company;
     private final World world;
 
-
     // not sure how to deal with routeId
     // for now i store here
     private final Map<String, Route> routes = new HashMap<>();
@@ -187,14 +186,14 @@ public class FleetController {
         if (vehicle == null || garage == null || garage.isFull()) {
             return false;
         }
+//        vehicle.setHomeGarage(garage);
+//        vehicle.setWorld(world);
 
         if (!company.buyVehicle(vehicle)) {
             return false;
+        }else{
+            return true;
         }
-
-        vehicle.setHomeGarage(garage);
-        vehicle.setWorld(world);
-        return garage.addVehicle(vehicle);
     }
 
     public ActionResult buyTruck(Garage garage, String specName) {

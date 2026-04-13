@@ -77,10 +77,11 @@ public class Garage {
         // Vehicles in garage are parked and not ticking
     }
 
-    public void sellVehicle(Vehicle v) {
-        if (v == null) return;
+    // Company.buyVehicle(v) is called by FleetController
+    public boolean sellVehicle(Vehicle v) {
+        if (v == null) return false;
         removeVehicle(v);
-        // Company.sellVehicle(v) is called by FleetController
+        return true;
     }
     
     public int getAvailableSpace() {

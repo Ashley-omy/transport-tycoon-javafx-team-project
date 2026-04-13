@@ -120,7 +120,7 @@ public class GameController {
 
         selection.selectTile(tile);
 
-        /* Build Controller and Fleet Controller triggering logic here */
+        /* Logic to trigger Build Controller and Fleet Controller */
         switch (window.getUIState().getBuildMode()) {
             case ROAD:
                 pendingRouteStops.clear();
@@ -148,6 +148,11 @@ public class GameController {
                 break;
             case GARAGE:
                 pendingRouteStops.clear();
+                if (selection.getSelectedTile() != null) {
+                    GridPos pos = selection.getSelectedTile();
+                    result = build.buildGarage(pos);
+                    window.getHudView().displayBuildResult(result);
+                }
                 break;
             case ROUTE:
                 collectRouteStop();
