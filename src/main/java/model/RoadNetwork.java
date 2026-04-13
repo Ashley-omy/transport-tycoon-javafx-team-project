@@ -48,37 +48,58 @@ public class RoadNetwork {
         return List.of(pos.add(1,0), pos.add(-1,0), pos.add(0, 1), pos.add(0, -1));
     }
 
-    // we wonder if two tiles are connected(if its possible from a to b)
     public boolean isConnected(Tile a, Tile b) {
-        GridPos start = a.getPos();
-        GridPos target = b.getPos();
-
-        // if not in road tiles then ofc not connected
-        if (!roadTiles.contains(start) || !roadTiles.contains((target))) {
+        if (a == null || b == null) {
             return false;
         }
+        return !findPath(a.getPos(), b.getPos()).isEmpty();
+    }
 
-        // I use BFS for find the nearest path
-        Queue<GridPos> queue = new LinkedList<>();
-        Set<GridPos> visited = new HashSet<>();
+    // Return shortest road path between two road tiles using BFS.
+    public List<GridPos> findPath(GridPos start, GridPos target) {
+        if (start == null || target == null) {
+            return List.of();
+        }
+        if (!roadTiles.contains(start) || !roadTiles.contains(target)) {
+            return List.of();
+        }
+        if (start.equals(target)) {
+            return List.of(start);
+        }
 
+        Queue<GridPos> queue = new ArrayDeque<>();
+        Map<GridPos, GridPos> previous = new HashMap<>();
         queue.add(start);
-        visited.add(start);
+        previous.put(start, null);
 
         while (!queue.isEmpty()) {
             GridPos current = queue.poll();
 
-            if(current.equals((target))) {
-                return true;
+            if (current.equals(target)) {
+                return reconstructPath(previous, target);
             }
 
             for (GridPos next : adjacency.getOrDefault(current, List.of())) {
-                if (!visited.contains(next)) {
-                    visited.add(next);
-                    queue.add(next);
+                if (previous.containsKey(next)) {
+                    continue;
                 }
+                previous.put(next, current);
+                queue.add(next);
             }
         }
-        return false;
+
+        return List.of();
+    }
+
+    private List<GridPos> reconstructPath(Map<GridPos, GridPos> previous, GridPos target) {
+        List<GridPos> path = new ArrayList<>();
+        GridPos current = target;
+
+        while (current != null) {
+            path.add(0, current);
+            current = previous.get(current);
+        }
+
+        return path;
     }
 }

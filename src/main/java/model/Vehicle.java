@@ -5,12 +5,8 @@ import common.Id;
 import common.Money;
 import common.Vec2;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Queue;
 
 public abstract class Vehicle {
     private static final double STOP_DURATION_SECONDS = 1.5;
@@ -439,7 +435,7 @@ public abstract class Vehicle {
         List<GridPos> bestRoadPath = List.of();
         for (GridPos startRoad : startRoadTiles) {
             for (GridPos endRoad : endRoadTiles) {
-                List<GridPos> roadPath = findRoadPath(startRoad, endRoad);
+                List<GridPos> roadPath = world.getRoadNetwork().findPath(startRoad, endRoad);
                 if (roadPath.isEmpty()) {
                     continue;
                 }
@@ -560,53 +556,6 @@ public abstract class Vehicle {
         savedCurrentPathIndex = 0;
         savedTilePos = null;
         savedWorldPos = null;
-    }
-
-    private List<GridPos> findRoadPath(GridPos start, GridPos target) {
-        if (start.equals(target)) {
-            return List.of(start);
-        }
-
-        // A simple BFS is enough because every road step has the same cost.
-        Queue<GridPos> queue = new ArrayDeque<>();
-        Map<GridPos, GridPos> previous = new HashMap<>();
-        queue.add(start);
-        previous.put(start, null);
-
-        while (!queue.isEmpty()) {
-            GridPos current = queue.poll();
-            if (current.equals(target)) {
-                return reconstructPath(previous, target);
-            }
-
-            for (GridPos neighbor : getFourNeighbors(current)) {
-                if (!world.getMap().inBounds(neighbor) || previous.containsKey(neighbor)) {
-                    continue;
-                }
-
-                Tile neighborTile = world.getMap().getTile(neighbor);
-                if (neighborTile.getRoadPiece() == null) {
-                    continue;
-                }
-
-                previous.put(neighbor, current);
-                queue.add(neighbor);
-            }
-        }
-
-        return List.of();
-    }
-
-    private List<GridPos> reconstructPath(Map<GridPos, GridPos> previous, GridPos target) {
-        // Rebuild the final path by walking backwards from the target.
-        List<GridPos> path = new ArrayList<>();
-        GridPos current = target;
-
-        while (current != null) {
-            path.add(0, current);
-            current = previous.get(current);
-        }
-        return path;
     }
 
     private List<GridPos> getFourNeighbors(GridPos pos) {
