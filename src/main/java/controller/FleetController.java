@@ -186,14 +186,14 @@ public class FleetController {
         if (vehicle == null || garage == null || garage.isFull()) {
             return false;
         }
+//        vehicle.setHomeGarage(garage);
+//        vehicle.setWorld(world);
 
         if (!company.buyVehicle(vehicle)) {
             return false;
+        }else{
+            return true;
         }
-
-        vehicle.setHomeGarage(garage);
-        vehicle.setWorld(world);
-        return garage.addVehicle(vehicle);
     }
 
     public ActionResult buyTruck(Garage garage, String specName) {
