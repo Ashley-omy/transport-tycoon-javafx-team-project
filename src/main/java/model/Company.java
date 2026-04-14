@@ -48,13 +48,9 @@ public class Company {
                           "Purchased vehicle " + v.getId())) {
             return false;
         }
-        if(v.getHomeGarage().sellVehicle(v)){
-            v.setOwner(this); // Set this company as owner
-            fleet.add(v);
-            return true;
-        }else{
-            return false;
-        }
+        v.setOwner(this); // Set this company as owner
+        fleet.add(v);
+        return true;
     }
 
     public void sellVehicle(Vehicle v) {
