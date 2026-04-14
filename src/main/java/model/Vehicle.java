@@ -15,6 +15,7 @@ public abstract class Vehicle {
     private static final double MAINTENANCE_DURATION = 5.0; // 5 seconds in garage
     private static final double MIN_MAINTENANCE_INTERVAL = 120.0; // 2 minutes minimum
     private static final double AGE_FOR_MIN_INTERVAL = 1200.0; // 20 minutes to reach minimum
+    private static final double OVER_AGED_THRESHOLD = 1800.0; // 30 minutes before the vehicle is considered over-aged
 
     protected final Id id;
     protected final int capacityUnits;
@@ -76,6 +77,14 @@ public abstract class Vehicle {
     public void setHomeGarage(Garage garage) { this.homeGarage = garage; }
 
     public Garage getHomeGarage() { return homeGarage; }
+
+    public double getMaintenanceIntervalSeconds() {
+        return getMaintenanceInterval();
+    }
+
+    public boolean isOverAged() {
+        return age >= OVER_AGED_THRESHOLD;
+    }
 
     // Calculate maintenance interval. older vehicles need more frequent maintenance
     private double getMaintenanceInterval() {
