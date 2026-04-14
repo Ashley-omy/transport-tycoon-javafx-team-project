@@ -368,6 +368,19 @@ public abstract class Vehicle {
                 continue;
             }
 
+            GridPos myDir = new GridPos(Integer.signum(to.x - from.x), Integer.signum(to.y - from.y));
+
+            double step = Math.min(remainingDistance, distanceToSegmentEnd);
+            double ratio = step / distanceToSegmentEnd;
+            Vec2 nextPos = Vec2.lerp(worldPos, toPos, ratio);
+
+            if (isBlocked(nextPos, myDir)) {
+                // We are blocked from moving fully to nextPos.
+                // Just consume the remaining time for this frame.
+                remainingDistance = 0.0;
+                break;
+            }
+
             if (remainingDistance + EPSILON >= distanceToSegmentEnd) {
                 remainingDistance -= distanceToSegmentEnd;
                 currentPathIndex++;
@@ -383,9 +396,8 @@ public abstract class Vehicle {
                     break;
                 }
             } else {
-                double ratio = remainingDistance / distanceToSegmentEnd;
-                worldPos = Vec2.lerp(worldPos, toPos, ratio);
-                remainingDistance = 0.0;
+                worldPos = nextPos;
+                remainingDistance -= step;
             }
         }
 
@@ -471,6 +483,50 @@ public abstract class Vehicle {
         if (world != null) {
             world.pushDebugMessage("Vehicle " + id + " arrived at garage");
         }
+    }
+
+    private boolean isBlocked(Vec2 nextPos, GridPos myDir) {
+        if (owner == null) return false;
+        GridPos targetTile = new GridPos((int) nextPos.x, (int) nextPos.y);
+
+        for (Vehicle other : owner.getFleet()) {
+            if (other == this) continue;
+            if (other.state == VehicleState.IN_GARAGE || other.state == VehicleState.IDLE) continue;
+
+            Vec2 otherPos = other.worldPos != null ? other.worldPos : (other.tilePos != null ? toWorldPos(other.tilePos) : null);
+            if (otherPos == null) continue;
+
+            GridPos otherTile = new GridPos((int) otherPos.x, (int) otherPos.y);
+            if (!targetTile.equals(otherTile)) continue;
+
+            GridPos otherDir = other.getDirectionVec();
+            if (!myDir.equals(otherDir)) continue;
+
+            // They are in the same tile, moving the same direction.
+            // Check if other is ahead of me.
+            double dx = otherPos.x - nextPos.x;
+            double dy = otherPos.y - nextPos.y;
+            double dot = dx * myDir.x + dy * myDir.y;
+
+            if (dot > 0) {
+                return true; // strictly ahead
+            } else if (Math.abs(dot) <= EPSILON) {
+                // exact same position, break tie by ID
+                if (other.id.toString().compareTo(this.id.toString()) > 0) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public GridPos getDirectionVec() {
+        if (currentPath == null || currentPath.isEmpty() || currentPathIndex >= currentPath.size() - 1) {
+            return new GridPos(0, 0);
+        }
+        GridPos from = currentPath.get(currentPathIndex);
+        GridPos to = currentPath.get(currentPathIndex + 1);
+        return new GridPos(Integer.signum(to.x - from.x), Integer.signum(to.y - from.y));
     }
 
     private void completeMaintenance() {
