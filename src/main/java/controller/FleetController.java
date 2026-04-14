@@ -186,14 +186,14 @@ public class FleetController {
         if (vehicle == null || garage == null || garage.isFull()) {
             return false;
         }
-//        vehicle.setHomeGarage(garage);
-//        vehicle.setWorld(world);
 
         if (!company.buyVehicle(vehicle)) {
             return false;
-        }else{
-            return true;
         }
+
+        vehicle.setHomeGarage(garage);
+        vehicle.setWorld(world);
+        return garage.addVehicle(vehicle);
     }
 
     public ActionResult buyTruck(Garage garage, String specName) {
@@ -252,6 +252,46 @@ public class FleetController {
         
         company.sellVehicle(vehicle);
         return ActionResult.success("Vehicle sold: " + vehicleId);
+    }
+
+    public ActionResult sellOverAgedVehicle(String vehicleId) {
+        if (vehicleId == null || vehicleId.isEmpty()) {
+            return ActionResult.fail("Vehicle ID cannot be null or empty");
+        }
+
+        Vehicle vehicle = findVehicleInCompany(vehicleId);
+        if (vehicle == null) {
+            return ActionResult.fail("Vehicle not found");
+        }
+
+        if (!vehicle.isOverAged()) {
+            return ActionResult.fail("Vehicle is not over-aged yet");
+        }
+
+        return sellVehicle(vehicleId);
+    }
+
+    public ActionResult sellAllOverAgedVehicles() {
+        List<Vehicle> overAgedVehicles = new ArrayList<>();
+        for (Vehicle vehicle : company.getFleet()) {
+            if (vehicle.isOverAged()) {
+                overAgedVehicles.add(vehicle);
+            }
+        }
+
+        if (overAgedVehicles.isEmpty()) {
+            return ActionResult.fail("No over-aged vehicles available for sale");
+        }
+
+        for (Vehicle vehicle : overAgedVehicles) {
+            Garage foundGarage = findGarageContainingVehicle(vehicle);
+            if (foundGarage != null) {
+                foundGarage.sellVehicle(vehicle);
+            }
+            company.sellVehicle(vehicle);
+        }
+
+        return ActionResult.success("Sold " + overAgedVehicles.size() + " over-aged vehicle(s)");
     }
     
     private Garage findGarageContainingVehicle(Vehicle vehicle) {
