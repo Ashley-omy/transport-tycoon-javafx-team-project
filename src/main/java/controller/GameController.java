@@ -15,6 +15,7 @@ import common.Vec2;
 import javafx.animation.AnimationTimer;
 import model.Game;
 import view.BuildMode;
+import view.GaragePane;
 import view.GameWindow;
 import model.*;
 import view.BuildMode.*;
@@ -32,6 +33,7 @@ public class GameController {
     private TimeController time;
     private BuildController build;
     private FleetController fleet;
+    private final GaragePane garagePane;
     private final List<Stop> pendingRouteStops = new ArrayList<>();
 
     private long lastTime = 0;
@@ -50,6 +52,7 @@ public class GameController {
         this.time = time;
         this.build = build;
         this.fleet = fleet;
+        this.garagePane = new GaragePane(game.getCompany(), fleet, window.getHudView()::displayBuildResult);
     }
 
     // Start game loop
@@ -119,8 +122,23 @@ public class GameController {
                 .screenToTile(e.mousePos);
 
         selection.selectTile(tile);
+        if (tile == null) {
+            return;
+        }
 
-        /* Logic to trigger Build Controller and Fleet Controller */
+        // In neutral mode, clicking a garage tile opens the garage management pane.
+        if (window.getUIState().getBuildMode() == BuildMode.NONE) {
+            Tile clickedTile = game.getWorld().getMap().getTile(tile);
+            if (clickedTile != null && clickedTile.getGarage() != null) {
+                garagePane.showForGarage(
+                        clickedTile.getGarage(),
+                        window.getScene() == null ? null : window.getScene().getWindow()
+                );
+                return;
+            }
+        }
+
+        /* Logic to trigger Build Controller */
         switch (window.getUIState().getBuildMode()) {
             case ROAD:
                 pendingRouteStops.clear();

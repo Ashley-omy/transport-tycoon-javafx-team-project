@@ -53,11 +53,17 @@ public class HUDView extends HBox {
         veryFastSpeedBtn = new Button("4x");
         uiStateLabel = new Label("UI State");
         buildResultLabel = new Label();
-        // Bind actions
-        roadBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.ROAD));
-        stopBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.STOP));
-        garageBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.GARAGE));
-        deconstructBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.DECONSTRUCT));
+
+        disableFocusRing(
+                roadBtn, stopBtn, garageBtn, deconstructBtn, routeBtn,
+                pauseBtn, normalSpeedBtn, fastSpeedBtn, veryFastSpeedBtn
+        );
+
+        // Bind actions: clicking the same build button again resets to NONE mode.
+        roadBtn.setOnAction(e -> toggleBuildMode(BuildMode.ROAD));
+        stopBtn.setOnAction(e -> toggleBuildMode(BuildMode.STOP));
+        garageBtn.setOnAction(e -> toggleBuildMode(BuildMode.GARAGE));
+        deconstructBtn.setOnAction(e -> toggleBuildMode(BuildMode.DECONSTRUCT));
         pauseBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.PAUSE));
         normalSpeedBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.NORMAL));
         fastSpeedBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.FAST));
@@ -65,6 +71,7 @@ public class HUDView extends HBox {
         routeBtn.setOnAction(e -> {
             if (uiState.getBuildMode() == BuildMode.ROUTE) {
                 uiState.requestRoutePlacement();
+                uiState.setBuildMode(BuildMode.NONE);
             } else {
                 uiState.setBuildMode(BuildMode.ROUTE);
             }
@@ -88,6 +95,22 @@ public class HUDView extends HBox {
         );
 
     }
+
+    private void toggleBuildMode(BuildMode mode) {
+        if (uiState.getBuildMode() == mode) {
+            uiState.setBuildMode(BuildMode.NONE);
+            return;
+        }
+        uiState.setBuildMode(mode);
+    }
+
+    private void disableFocusRing(Button... buttons) {
+        for (Button button : buttons) {
+            button.setFocusTraversable(false);
+            button.setStyle("-fx-focus-color: transparent; -fx-faint-focus-color: transparent;");
+        }
+    }
+
     public void displayBuildResult(ActionResult result){
         if(result == null){ return; }
 
