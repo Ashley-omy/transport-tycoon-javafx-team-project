@@ -68,6 +68,7 @@ public abstract class Vehicle {
     public Money getPurchaseCost() { return purchaseCost; }
     public Money getMaintenanceCost() { return maintenanceCost; }
     public double getSpeed() { return speed; }
+    public int getCapacityUnits() { return capacityUnits; }
     public double getAge() { return age; }
 
     public void setOwner(Company owner) { this.owner = owner; }

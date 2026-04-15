@@ -14,7 +14,7 @@ import java.util.Map;
 
 /**
  *
- * @author Qian
+ * @author Qian, Asuna
  */
 
 // where we put path pick?? UI or route or controller???
@@ -86,7 +86,7 @@ public class FleetController {
         }
 
         Vehicle vehicle = createVehicleFor(route);
-        if (!purchaseVehicleInGarage(vehicle, garage)) {
+        if (!purchaseVehicleInGarageInternal(vehicle, garage)) {
             return ActionResult.fail("Not enough money to create vehicle for route");
         }
 
@@ -182,18 +182,47 @@ public class FleetController {
         return VehicleFactory.createSmallTruck(Id.genNew());
     }
 
-    private boolean purchaseVehicleInGarage(Vehicle vehicle, Garage garage) {
-        if (vehicle == null || garage == null || garage.isFull()) {
+    private boolean purchaseVehicleInGarageInternal(Vehicle vehicle, Garage garage) {
+        if (vehicle == null || garage == null) {
             return false;
         }
+
+        // New stock vehicles need free garage capacity. Pre-stocked vehicles can be bought regardless.
+        if (!garage.hasVehicle(vehicle) && garage.isFull()) {
+            return false;
+        }
+
+        // Home garage should be pre-assigned by garage-side initialization logic.
+        if (vehicle.getHomeGarage() != null && vehicle.getHomeGarage() != garage) {
+            return false;
+        }
+        vehicle.setWorld(world);
 
         if (!company.buyVehicle(vehicle)) {
             return false;
         }
 
-        vehicle.setHomeGarage(garage);
-        vehicle.setWorld(world);
-        return garage.addVehicle(vehicle);
+        // Keep purchased vehicles visible in the garage list (as OWNED in GaragePane).
+        if (!garage.hasVehicle(vehicle)) {
+            return garage.addVehicle(vehicle);
+        }
+        return true;
+    }
+
+    public ActionResult purchaseVehicleInGarage(Garage garage, Vehicle vehicle) {
+        if (garage == null) return ActionResult.fail("Garage cannot be null");
+        if (vehicle == null) return ActionResult.fail("Vehicle cannot be null");
+        if (!garage.hasVehicle(vehicle)) {
+            return ActionResult.fail("Selected vehicle is not available in this garage");
+        }
+        if (company.getFleet().contains(vehicle)) {
+            return ActionResult.fail("Selected vehicle is already owned");
+        }
+
+        if (!purchaseVehicleInGarageInternal(vehicle, garage)) {
+            return ActionResult.fail("Not enough money to buy vehicle");
+        }
+        return ActionResult.success("Vehicle purchased: " + vehicle.getId());
     }
 
     public ActionResult buyTruck(Garage garage, String specName) {
@@ -208,8 +237,8 @@ public class FleetController {
         } else {
             return ActionResult.fail("Unknown truck spec: " + specName);
         }
-        
-        if (!purchaseVehicleInGarage(truck, garage)) {
+
+        if (!purchaseVehicleInGarageInternal(truck, garage)) {
             return ActionResult.fail("Not enough money to buy truck");
         }
         return ActionResult.success("Truck purchased: " + truck.getId());
@@ -227,8 +256,8 @@ public class FleetController {
         } else {
             return ActionResult.fail("Unknown bus spec: " + specName);
         }
-        
-        if (!purchaseVehicleInGarage(bus, garage)) {
+
+        if (!purchaseVehicleInGarageInternal(bus, garage)) {
             return ActionResult.fail("Not enough money to buy bus");
         }
         return ActionResult.success("Bus purchased: " + bus.getId());
@@ -243,13 +272,8 @@ public class FleetController {
         if (vehicle == null) {
             return ActionResult.fail("Vehicle not found");
         }
-        
-        // Find and remove from garage if it's in one
-        Garage foundGarage = findGarageContainingVehicle(vehicle);
-        if (foundGarage != null) {
-            foundGarage.sellVehicle(vehicle);
-        }
-        
+
+        // Keep vehicle in garage stock list so it can appear as on-sale in the garage pane.
         company.sellVehicle(vehicle);
         return ActionResult.success("Vehicle sold: " + vehicleId);
     }
@@ -284,27 +308,10 @@ public class FleetController {
         }
 
         for (Vehicle vehicle : overAgedVehicles) {
-            Garage foundGarage = findGarageContainingVehicle(vehicle);
-            if (foundGarage != null) {
-                foundGarage.sellVehicle(vehicle);
-            }
             company.sellVehicle(vehicle);
         }
 
         return ActionResult.success("Sold " + overAgedVehicles.size() + " over-aged vehicle(s)");
-    }
-    
-    private Garage findGarageContainingVehicle(Vehicle vehicle) {
-        GameMap map = world.getMap();
-        for (Tile[] column : map.getTiles()) {
-            for (Tile tile : column) {
-                Garage garage = tile.getGarage();
-                if (garage != null && garage.hasVehicle(vehicle)) {
-                    return garage;
-                }
-            }
-        }
-        return null;
     }
 
     private Garage findAvailableGarage() {
