@@ -6,7 +6,7 @@ package view;
 
 /**
  *
- * @author lenovo
+ * @author asuna
  * This class renders terrain tiles
  */
 import common.Vec2;
