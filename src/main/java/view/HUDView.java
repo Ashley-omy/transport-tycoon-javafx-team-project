@@ -70,8 +70,10 @@ public class HUDView extends HBox {
         veryFastSpeedBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.VERY_FAST));
         routeBtn.setOnAction(e -> {
             if (uiState.getBuildMode() == BuildMode.ROUTE) {
-                uiState.requestRoutePlacement();
+                // Leave ROUTE mode first, then raise the placement request.
+                // UIState#setBuildMode(NONE) clears pending route requests.
                 uiState.setBuildMode(BuildMode.NONE);
+                uiState.requestRoutePlacement();
             } else {
                 uiState.setBuildMode(BuildMode.ROUTE);
             }
