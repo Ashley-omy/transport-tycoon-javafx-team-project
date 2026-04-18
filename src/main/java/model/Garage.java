@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class Garage {
+    private static final int DEFAULT_STOCK_PER_TYPE = 2;
+    private static final int DEFAULT_INITIAL_STOCK_SIZE = DEFAULT_STOCK_PER_TYPE * 2;
 
     private final Id id;
     private final int capacity;
@@ -24,6 +26,9 @@ public class Garage {
         if (capacity <= 0) {
             throw new IllegalArgumentException("capacity must be > 0");
         }
+        if (capacity < DEFAULT_INITIAL_STOCK_SIZE) {
+            throw new IllegalArgumentException("capacity must be >= " + DEFAULT_INITIAL_STOCK_SIZE);
+        }
         if (serviceBayCount <= 0) {
             throw new IllegalArgumentException("serviceBayCount must be > 0");
         }
@@ -33,6 +38,7 @@ public class Garage {
         this.capacity = capacity;
         this.serviceBayCount = serviceBayCount;
         this.occupiedTiles.addAll(occupiedTiles);
+        populateInitialStock();
     }
 
     public Id getId() {
@@ -90,5 +96,17 @@ public class Garage {
     
     public boolean hasVehicle(Vehicle v) {
         return vehicles.contains(v);
+    }
+
+    private void populateInitialStock() {
+        for (int i = 0; i < DEFAULT_STOCK_PER_TYPE; i++) {
+            stockVehicle(VehicleFactory.createSmallBus(Id.genNew()));
+            stockVehicle(VehicleFactory.createSmallTruck(Id.genNew()));
+        }
+    }
+
+    private void stockVehicle(Vehicle vehicle) {
+        vehicle.setHomeGarage(this);
+        vehicles.add(vehicle);
     }
 }
