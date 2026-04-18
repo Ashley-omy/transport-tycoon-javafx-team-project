@@ -36,7 +36,10 @@ test-job:
   stage: test
   script:
     - mvn $MAVEN_CLI_OPTS clean test
-    - awk -F, 'NR > 1 { missed += $4; covered += $5 } END { total = missed + covered; if (total == 0) { print "Total coverage: 0%" } else { printf "Total coverage: %.0f%%\n", (covered / total) * 100 } }' target/site/jacoco/jacoco.csv
+    - >-
+      awk -F, 'NR > 1 { missed += $4; covered += $5 } END { total = missed + covered;
+      if (total == 0) { print "Total coverage: 0%" } else { printf "Total coverage:
+      %.0f%%\n", (covered / total) * 100 } }' target/site/jacoco/jacoco.csv
   coverage: '/Total coverage: ([0-9]{1,3})%/'
   artifacts:
     when: always
