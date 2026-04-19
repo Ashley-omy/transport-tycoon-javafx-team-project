@@ -22,7 +22,7 @@ import model.Vehicle;
 public class MinimapView extends StackPane {
     private static final double WIDTH = 220;
     private static final double HEIGHT = 160;
-    private static final double PADDING = 10;
+    private static final double PADDING = 3;
 
     private final Canvas canvas;
     private final Camera camera;
@@ -38,9 +38,10 @@ public class MinimapView extends StackPane {
         setMaxSize(WIDTH + (PADDING * 2), HEIGHT + (PADDING * 2));
         setPickOnBounds(false);
         setStyle("-fx-background-color: rgba(20, 23, 30, 0.92);"
-                + "-fx-background-radius: 12;"
-                + "-fx-border-color: rgba(255,255,255,0.18);"
-                + "-fx-border-radius: 12;");
+                + "-fx-background-radius: 5;"
+                + "-fx-border-color: rgba(255,255,255,0.10);"
+                + "-fx-border-width: 0.05;"
+                + "-fx-border-radius: 5;");
     }
 
     public void setMap(GameMap map) {
@@ -57,8 +58,6 @@ public class MinimapView extends StackPane {
         }
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.setFill(Color.rgb(15, 18, 22));
-        gc.fillRoundRect(0, 0, canvas.getWidth(), canvas.getHeight(), 14, 14);
 
         double scaleX = canvas.getWidth() / map.getWidth();
         double scaleY = canvas.getHeight() / map.getHeight();
@@ -119,8 +118,8 @@ public class MinimapView extends StackPane {
         double viewportTilesW = Math.max(1, (double) camera.getViewportW() / camera.getTileSize());
         double viewportTilesH = Math.max(1, (double) camera.getViewportH() / camera.getTileSize());
 
-        gc.setStroke(Color.WHITE);
-        gc.setLineWidth(2);
+        gc.setStroke(Color.rgb(255, 255, 255, 0.7));
+        gc.setLineWidth(1);
         gc.strokeRect(
                 topLeft.x * scaleX,
                 topLeft.y * scaleY,

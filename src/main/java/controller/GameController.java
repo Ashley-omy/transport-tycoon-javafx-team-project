@@ -52,7 +52,7 @@ public class GameController {
         this.time = time;
         this.build = build;
         this.fleet = fleet;
-        this.garagePane = new GaragePane(game.getCompany(), fleet, window.getHudView()::displayBuildResult);
+        this.garagePane = new GaragePane(game.getCompany(), fleet, window.getControlPanes()::displayBuildResult);
     }
 
     // Start game loop
@@ -145,7 +145,7 @@ public class GameController {
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
                     result = build.buildRoad(pos);
-                    window.getHudView().displayBuildResult(result);
+                    window.getControlPanes().displayBuildResult(result);
                 }
                 break;
             case DECONSTRUCT:
@@ -153,7 +153,7 @@ public class GameController {
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
                     result = build.removeRoad(pos);
-                    window.getHudView().displayBuildResult(result);
+                    window.getControlPanes().displayBuildResult(result);
                 }
                 break;
             case STOP:
@@ -161,7 +161,7 @@ public class GameController {
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
                      result = build.buildStop(pos);
-                     window.getHudView().displayBuildResult(result);
+                     window.getControlPanes().displayBuildResult(result);
                 }
                 break;
             case GARAGE:
@@ -169,7 +169,7 @@ public class GameController {
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
                     result = build.buildGarage(pos);
-                    window.getHudView().displayBuildResult(result);
+                    window.getControlPanes().displayBuildResult(result);
                 }
                 break;
             case ROUTE:
@@ -191,17 +191,17 @@ public class GameController {
         Tile tile = game.getWorld().getMap().getTile(pos);
         Stop selectedStop = tile.getStop();
         if (selectedStop == null) {
-            window.getHudView().displayBuildResult(ActionResult.fail("Select a stop to add it to the route"));
+            window.getControlPanes().displayBuildResult(ActionResult.fail("Select a stop to add it to the route"));
             return;
         }
 
         if (pendingRouteStops.contains(selectedStop)) {
-            window.getHudView().displayBuildResult(ActionResult.fail("That stop is already selected"));
+            window.getControlPanes().displayBuildResult(ActionResult.fail("That stop is already selected"));
             return;
         }
 
         pendingRouteStops.add(selectedStop);
-        window.getHudView().displayBuildResult(
+        window.getControlPanes().displayBuildResult(
                 ActionResult.success("Selected " + pendingRouteStops.size() + " stop(s). Press Place Route to create the route.")
         );
     }
@@ -216,7 +216,7 @@ public class GameController {
             pendingRouteStops.clear();
             window.getUIState().setBuildMode(BuildMode.NONE);
         }
-        window.getHudView().displayBuildResult(result);
+        window.getControlPanes().displayBuildResult(result);
     }
 
     private void handleKey(InputEvent e) {

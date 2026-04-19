@@ -6,7 +6,7 @@ import common.Id;
 /**
  * @author asuna
  * Responsible only for initial world population:
- * terrain accents, forests, water, fixed cities/facilities, and starter road graph setup.
+ * terrain accents, forests, water, and fixed cities/facilities setup.
  */
 final class WorldInitializer {
     private final World world;
@@ -45,7 +45,6 @@ final class WorldInitializer {
         placeInitialForests();
         placeInitialCities();
         placeInitialFacilitiesAndMines();
-        placeStarterRoad();
         world.getRoadNetwork().rebuild(map);
     }
 
@@ -98,17 +97,6 @@ final class WorldInitializer {
         // +2 mines
         placeEntityAvoidingOverlap(Mine.createIronMine(Id.genNew()), new GridPos(clamp(width / 3, 1, width - 2), clamp(height / 10, 1, height - 2)));
         placeEntityAvoidingOverlap(Mine.createWoodMine(Id.genNew()), new GridPos(clamp(width / 10, 1, width - 2), clamp((height * 9) / 10, 1, height - 2)));
-    }
-
-    private void placeStarterRoad() {
-        GridPos preferred = new GridPos(
-                clamp(width / 3, 0, width - 1),
-                clamp(height / 6, 0, height - 1)
-        );
-        GridPos roadSeed = findNearestRoadSeed(preferred);
-        if (roadSeed != null) {
-            world.buildRoad(roadSeed);
-        }
     }
 
     //Preventing entity's position from being placed on edges
@@ -263,45 +251,4 @@ final class WorldInitializer {
         return true;
     }
 
-    private GridPos findNearestRoadSeed(GridPos preferred) {
-        if (isRoadSeedCandidate(preferred)) {
-            return preferred;
-        }
-
-        int maxRadius = Math.max(width, height);
-        for (int radius = 1; radius <= maxRadius; radius++) {
-            for (int dx = -radius; dx <= radius; dx++) {
-                int dyAbs = radius - Math.abs(dx);
-
-                GridPos candidateA = preferred.add(dx, dyAbs);
-                if (isRoadSeedCandidate(candidateA)) {
-                    return candidateA;
-                }
-
-                if (dyAbs == 0) {
-                    continue;
-                }
-
-                GridPos candidateB = preferred.add(dx, -dyAbs);
-                if (isRoadSeedCandidate(candidateB)) {
-                    return candidateB;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    private boolean isRoadSeedCandidate(GridPos pos) {
-        if (pos == null || !map.inBounds(pos)) {
-            return false;
-        }
-
-        Tile tile = map.getTile(pos);
-        return tile.getRoadPiece() == null
-                && tile.getStop() == null
-                && tile.getGarage() == null
-                && tile.getEntity() == null
-                && tile.getTerrain().isPassable();
-    }
 }
