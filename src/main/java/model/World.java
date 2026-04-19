@@ -232,6 +232,8 @@ public class World {
         Set<MapEntity> entities = collectEntities();
         for (MapEntity entity : entities) {
             entity.tick(deltaTime);
+            // Keep per-entity floating UI messages in sync with simulation time.
+            entity.tickEventDisplays(deltaTime);
         }
 
         // Stops get their own updates after the entities they serve.

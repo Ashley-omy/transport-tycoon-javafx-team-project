@@ -209,12 +209,28 @@ public abstract class Vehicle {
                     cargo.getValuePerTile()
             );
         }
+
+        MapEntity servedPlace = stop.getServedPlace();
+        if (servedPlace != null) {
+            // Display immediate load feedback at the served entity location.
+            servedPlace.pushEventDisplay("Load +" + routedShipment.getUnits() + " " + describeShipment(routedShipment));
+        }
         return true;
     }
 
     public Money unloadTo(Stop stop) {
         if (stop == null) return Money.ZERO;
+        Shipment unloading = cargo;
+        boolean isDeliveringToThisStop = unloading != null && stop.getId().equals(unloading.getToStopId());
         Money payout = stop.deliverFrom(this);
+
+        if (isDeliveringToThisStop && unloading != null) {
+            MapEntity servedPlace = stop.getServedPlace();
+            if (servedPlace != null) {
+                // Display immediate unload feedback where delivery happened.
+                servedPlace.pushEventDisplay("Unload +" + unloading.getUnits() + " " + describeShipment(unloading));
+            }
+        }
 
         // Pay the company for successful delivery
         if (owner != null && payout.isPositive()) {
@@ -674,6 +690,20 @@ public abstract class Vehicle {
         }
 
         return nextStop;
+    }
+
+    private String describeShipment(Shipment shipment) {
+        // Convert shipment payload into a compact label for floating UI messages.
+        if (shipment == null) {
+            return "CARGO";
+        }
+        if (shipment.isPassengers()) {
+            return "PASSENGERS";
+        }
+        if (shipment.isGoods() && shipment.getGoodsType() != null) {
+            return shipment.getGoodsType().name();
+        }
+        return shipment.getKind().name();
     }
 
     private Stop findNextStopMatching(java.util.function.Predicate<Stop> predicate) {

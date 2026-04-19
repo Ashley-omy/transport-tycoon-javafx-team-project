@@ -9,9 +9,11 @@ package view;
  * @author asuna
  */
 import common.Vec2;
+import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import model.City;
 import model.Facility;
 import model.MapEntity;
@@ -22,6 +24,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.List;
 
 public class EntityRenderer {
     private static final String CITY_TEXTURE_PATH = "/textures/City.png";
@@ -60,6 +63,9 @@ public class EntityRenderer {
             gc.setFill(Color.DARKRED);
             gc.fillRect(pos.x, pos.y, size, size);
         }
+
+        // Render short-lived entity event texts (demand/load/unload) above sprites.
+        drawEntityEventDisplays(gc, entity, t, pos, size);
 
         if (t.getStop() != null) {
             double outerRadius = size * 0.34;
@@ -104,6 +110,56 @@ public class EntityRenderer {
 
         gc.setFill(fallbackColor);
         gc.fillRect(pos.x, pos.y, size, size);
+    }
+
+    private void drawEntityEventDisplays(GraphicsContext gc, MapEntity entity, Tile currentTile, Vec2 currentPos, int size) {
+        if (entity == null || currentTile == null || currentPos == null) {
+            return;
+        }
+        // Only production/consumption entities currently publish floating messages.
+        if (!(entity instanceof City) && !(entity instanceof Facility)) {
+            return;
+        }
+        // Draw once per entity to avoid duplicate labels on multi-tile footprints.
+        if (!isTopLeftEntityTile(entity, currentTile)) {
+            return;
+        }
+
+        List<String> messages = entity.getActiveEventDisplayTexts();
+        if (messages.isEmpty()) {
+            return;
+        }
+
+        int minX = Integer.MAX_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        for (Tile occupied : entity.getOccupiedTiles()) {
+            if (occupied == null || occupied.getPos() == null) {
+                continue;
+            }
+            minX = Math.min(minX, occupied.getPos().x);
+            minY = Math.min(minY, occupied.getPos().y);
+            maxX = Math.max(maxX, occupied.getPos().x);
+        }
+        if (minX == Integer.MAX_VALUE || minY == Integer.MAX_VALUE || maxX == Integer.MIN_VALUE) {
+            return;
+        }
+
+        double widthTiles = (maxX - minX) + 1.0;
+        double centerX = currentPos.x + ((widthTiles * size) / 2.0);
+        // Place text just above the top edge of the entity footprint.
+        double topY = currentPos.y - 4.0;
+
+        gc.save();
+        gc.setFill(Color.WHITE);
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.BOTTOM);
+
+        for (int i = 0; i < messages.size(); i++) {
+            double textY = topY - (i * 14.0);
+            gc.fillText(messages.get(i), centerX, textY);
+        }
+        gc.restore();
     }
 
     private boolean isTopLeftCityBlockTile(City city, Tile currentTile) {
