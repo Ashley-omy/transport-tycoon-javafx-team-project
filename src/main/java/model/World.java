@@ -238,14 +238,16 @@ public class World {
         }
 
         // 2. record to tick the new spread forest location
-        List<GridPos> newForests = new ArrayList<>();
+        Set<GridPos> newForests = new LinkedHashSet<>();
 
         for (Tile tile : map.getAllTiles()) {
             Terrain t = tile.getTerrain();
 
-            // when is full then spread
-            if (t instanceof Forest forest && forest.getTrees() == 4) {
-                spreadForest(tile.getPos(), newForests);
+            if (t instanceof Forest forest) {
+                int attempts = forest.consumeSpreadAttempts(deltaTime);
+                for (int i = 0; i < attempts; i++) {
+                    spreadForest(tile.getPos(), newForests);
+                }
             }
         }
 
@@ -268,7 +270,7 @@ public class World {
     }
 
     // Forest tick helper fn
-    private void spreadForest(GridPos origin, List<GridPos> newForests) {
+    private void spreadForest(GridPos origin, Set<GridPos> newForests) {
 
         int[][] dirs = {
                 {1, 0}, {-1, 0}, {0, 1}, {0, -1}
