@@ -45,7 +45,7 @@ final class WorldInitializer {
         placeInitialForests();
         placeInitialCities();
         placeInitialFacilitiesAndMines();
-        //placeStarterRoad();
+        placeStarterRoad();
         world.getRoadNetwork().rebuild(map);
     }
 
@@ -66,43 +66,50 @@ final class WorldInitializer {
     }
 
     private void placeInitialCities() {
-        world.placeEntity(new City(Id.genNew()), new GridPos(clamp(width / 6, 2, width - 3), clamp(height / 6, 2, height - 3)));
-        world.placeEntity(new City(Id.genNew()), new GridPos(clamp((width * 2) / 3, 2, width - 3), clamp(height / 6, 2, height - 3)));
-        world.placeEntity(new City(Id.genNew()), new GridPos(clamp((width * 5) / 6, 2, width - 3), clamp(height / 2, 2, height - 3)));
-        world.placeEntity(new City(Id.genNew()), new GridPos(clamp(width / 3, 2, width - 3), clamp((height * 5) / 6, 2, height - 3)));
+        placeEntityAvoidingOverlap(new City(Id.genNew()), new GridPos(clamp(width / 6, 2, width - 3), clamp(height / 6, 2, height - 3)));
+        placeEntityAvoidingOverlap(new City(Id.genNew()), new GridPos(clamp((width * 2) / 3, 2, width - 3), clamp(height / 6, 2, height - 3)));
+        placeEntityAvoidingOverlap(new City(Id.genNew()), new GridPos(clamp((width * 5) / 6, 2, width - 3), clamp(height / 2, 2, height - 3)));
+        placeEntityAvoidingOverlap(new City(Id.genNew()), new GridPos(clamp(width / 3, 2, width - 3), clamp((height * 5) / 6, 2, height - 3)));
     }
 
     private void placeInitialFacilitiesAndMines() {
         // Factories
-        world.placeEntity(Factory.createSteelMill(Id.genNew()), new GridPos(clamp(width / 5, 1, width - 2), clamp((height * 2) / 3, 1, height - 2)));
-        world.placeEntity(Factory.createPaperMill(Id.genNew()), new GridPos(clamp((width * 3) / 5, 1, width - 2), clamp((height * 2) / 3, 1, height - 2)));
-        world.placeEntity(Factory.createSteelMill(Id.genNew()), new GridPos(clamp(width / 4, 1, width - 2), clamp(height / 3, 1, height - 2)));
-        world.placeEntity(Factory.createPaperMill(Id.genNew()), new GridPos(clamp((width * 7) / 8, 1, width - 2), clamp((height * 3) / 4, 1, height - 2)));
-        world.placeEntity(Factory.createSteelMill(Id.genNew()), new GridPos(clamp(2, 1, width - 2), clamp(height / 4, 1, height - 2)));
-        world.placeEntity(Factory.createPaperMill(Id.genNew()), new GridPos(clamp(width - 2, 1, width - 2), clamp(height / 5, 1, height - 2)));
-        world.placeEntity(Factory.createSteelMill(Id.genNew()), new GridPos(clamp((width / 2) + 2, 1, width - 2), clamp(height - 2, 1, height - 2)));
-        world.placeEntity(Factory.createPaperMill(Id.genNew()), new GridPos(clamp(width / 6, 1, width - 2), clamp(height - 2, 1, height - 2)));
+        placeEntityAvoidingOverlap(Factory.createSteelMill(Id.genNew()), new GridPos(clamp(width / 5, 1, width - 2), clamp((height * 2) / 3, 1, height - 2)));
+        placeEntityAvoidingOverlap(Factory.createPaperMill(Id.genNew()), new GridPos(clamp((width * 3) / 5, 1, width - 2), clamp((height * 2) / 3, 1, height - 2)));
+        placeEntityAvoidingOverlap(Factory.createSteelMill(Id.genNew()), new GridPos(clamp(width / 4, 1, width - 2), clamp(height / 3, 1, height - 2)));
+        placeEntityAvoidingOverlap(Factory.createPaperMill(Id.genNew()), new GridPos(clamp((width * 7) / 8, 1, width - 2), clamp((height * 3) / 4, 1, height - 2)));
+        placeEntityAvoidingOverlap(Factory.createSteelMill(Id.genNew()), new GridPos(clamp(2, 1, width - 2), clamp(height / 4, 1, height - 2)));
+        placeEntityAvoidingOverlap(Factory.createPaperMill(Id.genNew()), new GridPos(clamp(width - 2, 1, width - 2), clamp(height / 5, 1, height - 2)));
+        placeEntityAvoidingOverlap(Factory.createSteelMill(Id.genNew()), new GridPos(clamp((width / 2) + 2, 1, width - 2), clamp(height - 2, 1, height - 2)));
+        placeEntityAvoidingOverlap(Factory.createPaperMill(Id.genNew()), new GridPos(clamp(width / 6, 1, width - 2), clamp(height - 2, 1, height - 2)));
         // +2 factories
-        world.placeEntity(Factory.createSteelMill(Id.genNew()), new GridPos(clamp(width / 10, 1, width - 2), clamp(height / 8, 1, height - 2)));
-        world.placeEntity(Factory.createPaperMill(Id.genNew()), new GridPos(clamp((width * 9) / 10, 1, width - 2), clamp((height * 7) / 8, 1, height - 2)));
+        placeEntityAvoidingOverlap(Factory.createSteelMill(Id.genNew()), new GridPos(clamp(width / 10, 1, width - 2), clamp(height / 8, 1, height - 2)));
+        placeEntityAvoidingOverlap(Factory.createPaperMill(Id.genNew()), new GridPos(clamp((width * 9) / 10, 1, width - 2), clamp((height * 7) / 8, 1, height - 2)));
 
         // Mines
-        world.placeEntity(Mine.createIronMine(Id.genNew()), new GridPos(clamp((width * 4) / 5, 1, width - 2), clamp(height / 4, 1, height - 2)));
-        world.placeEntity(Mine.createWoodMine(Id.genNew()), new GridPos(clamp((width * 3) / 4, 1, width - 2), clamp((height * 4) / 5, 1, height - 2)));
-        world.placeEntity(Mine.createIronMine(Id.genNew()), new GridPos(clamp(width / 8, 1, width - 2), clamp((height * 3) / 5, 1, height - 2)));
-        world.placeEntity(Mine.createWoodMine(Id.genNew()), new GridPos(clamp((width * 7) / 12, 1, width - 2), clamp(height / 3, 1, height - 2)));
-        world.placeEntity(Mine.createIronMine(Id.genNew()), new GridPos(clamp(2, 1, width - 2), clamp((height * 4) / 5, 1, height - 2)));
-        world.placeEntity(Mine.createWoodMine(Id.genNew()), new GridPos(clamp(width - 2, 1, width - 2), clamp(height / 2, 1, height - 2)));
-        world.placeEntity(Mine.createIronMine(Id.genNew()), new GridPos(clamp((width * 2) / 3, 1, width - 2), clamp(2, 1, height - 2)));
-        world.placeEntity(Mine.createWoodMine(Id.genNew()), new GridPos(clamp(width - 2, 1, width - 2), clamp(height - 2, 1, height - 2)));
+        placeEntityAvoidingOverlap(Mine.createIronMine(Id.genNew()), new GridPos(clamp((width * 4) / 5, 1, width - 2), clamp(height / 4, 1, height - 2)));
+        placeEntityAvoidingOverlap(Mine.createWoodMine(Id.genNew()), new GridPos(clamp((width * 3) / 4, 1, width - 2), clamp((height * 4) / 5, 1, height - 2)));
+        placeEntityAvoidingOverlap(Mine.createIronMine(Id.genNew()), new GridPos(clamp(width / 8, 1, width - 2), clamp((height * 3) / 5, 1, height - 2)));
+        placeEntityAvoidingOverlap(Mine.createWoodMine(Id.genNew()), new GridPos(clamp((width * 7) / 12, 1, width - 2), clamp(height / 3, 1, height - 2)));
+        placeEntityAvoidingOverlap(Mine.createIronMine(Id.genNew()), new GridPos(clamp(2, 1, width - 2), clamp((height * 4) / 5, 1, height - 2)));
+        placeEntityAvoidingOverlap(Mine.createWoodMine(Id.genNew()), new GridPos(clamp(width - 2, 1, width - 2), clamp(height / 2, 1, height - 2)));
+        placeEntityAvoidingOverlap(Mine.createIronMine(Id.genNew()), new GridPos(clamp((width * 2) / 3, 1, width - 2), clamp(2, 1, height - 2)));
+        placeEntityAvoidingOverlap(Mine.createWoodMine(Id.genNew()), new GridPos(clamp(width - 2, 1, width - 2), clamp(height - 2, 1, height - 2)));
         // +2 mines
-        world.placeEntity(Mine.createIronMine(Id.genNew()), new GridPos(clamp(width / 3, 1, width - 2), clamp(height / 10, 1, height - 2)));
-        world.placeEntity(Mine.createWoodMine(Id.genNew()), new GridPos(clamp(width / 10, 1, width - 2), clamp((height * 9) / 10, 1, height - 2)));
+        placeEntityAvoidingOverlap(Mine.createIronMine(Id.genNew()), new GridPos(clamp(width / 3, 1, width - 2), clamp(height / 10, 1, height - 2)));
+        placeEntityAvoidingOverlap(Mine.createWoodMine(Id.genNew()), new GridPos(clamp(width / 10, 1, width - 2), clamp((height * 9) / 10, 1, height - 2)));
     }
 
-//    private void placeStarterRoad() {
-//        world.buildRoad(new GridPos(clamp((width / 6) + 2, 0, width - 1), clamp(height / 6, 0, height - 1)));
-//    }
+    private void placeStarterRoad() {
+        GridPos preferred = new GridPos(
+                clamp(width / 3, 0, width - 1),
+                clamp(height / 6, 0, height - 1)
+        );
+        GridPos roadSeed = findNearestRoadSeed(preferred);
+        if (roadSeed != null) {
+            world.buildRoad(roadSeed);
+        }
+    }
 
     //Preventing entity's position from being placed on edges
     private static int clamp(int value, int min, int max) {
@@ -184,5 +191,117 @@ final class WorldInitializer {
             return;
         }
         map.setTerrain(pos, new Forest());
+    }
+
+    // Place entity at preferred location; if occupied, shift to nearest valid position.
+    private void placeEntityAvoidingOverlap(MapEntity entity, GridPos preferredCenter) {
+        if (tryPlaceEntityAt(entity, preferredCenter)) {
+            return;
+        }
+
+        int maxRadius = Math.max(width, height);
+        for (int radius = 1; radius <= maxRadius; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                int dyAbs = radius - Math.abs(dx);
+
+                GridPos candidateA = preferredCenter.add(dx, dyAbs);
+                if (tryPlaceEntityAt(entity, candidateA)) {
+                    return;
+                }
+
+                if (dyAbs == 0) {
+                    continue;
+                }
+
+                GridPos candidateB = preferredCenter.add(dx, -dyAbs);
+                if (tryPlaceEntityAt(entity, candidateB)) {
+                    return;
+                }
+            }
+        }
+
+        throw new IllegalStateException("No free position found for " + entity.getClass().getSimpleName());
+    }
+
+    private boolean tryPlaceEntityAt(MapEntity entity, GridPos center) {
+        if (!canPlaceEntityAt(entity, center)) {
+            return false;
+        }
+        try {
+            world.placeEntity(entity, center);
+            return true;
+        } catch (IllegalArgumentException | IllegalStateException ex) {
+            return false;
+        }
+    }
+
+    private boolean canPlaceEntityAt(MapEntity entity, GridPos center) {
+        if (entity == null || center == null) {
+            return false;
+        }
+
+        int footprint = entity.getFootprintW();
+        int startOffset = -(footprint / 2);
+        int endOffset = startOffset + footprint - 1;
+
+        for (int dx = startOffset; dx <= endOffset; dx++) {
+            for (int dy = startOffset; dy <= endOffset; dy++) {
+                GridPos p = new GridPos(center.x + dx, center.y + dy);
+                if (!map.inBounds(p)) {
+                    return false;
+                }
+
+                Tile tile = map.getTile(p);
+                if (tile.getEntity() != null) {
+                    return false;
+                }
+                if (!tile.getTerrain().isPassable()) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private GridPos findNearestRoadSeed(GridPos preferred) {
+        if (isRoadSeedCandidate(preferred)) {
+            return preferred;
+        }
+
+        int maxRadius = Math.max(width, height);
+        for (int radius = 1; radius <= maxRadius; radius++) {
+            for (int dx = -radius; dx <= radius; dx++) {
+                int dyAbs = radius - Math.abs(dx);
+
+                GridPos candidateA = preferred.add(dx, dyAbs);
+                if (isRoadSeedCandidate(candidateA)) {
+                    return candidateA;
+                }
+
+                if (dyAbs == 0) {
+                    continue;
+                }
+
+                GridPos candidateB = preferred.add(dx, -dyAbs);
+                if (isRoadSeedCandidate(candidateB)) {
+                    return candidateB;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private boolean isRoadSeedCandidate(GridPos pos) {
+        if (pos == null || !map.inBounds(pos)) {
+            return false;
+        }
+
+        Tile tile = map.getTile(pos);
+        return tile.getRoadPiece() == null
+                && tile.getStop() == null
+                && tile.getGarage() == null
+                && tile.getEntity() == null
+                && tile.getTerrain().isPassable();
     }
 }

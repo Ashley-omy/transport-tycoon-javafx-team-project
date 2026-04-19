@@ -40,6 +40,7 @@ public class World {
         int w = entity.getFootprintW();
         int startOffset = -(w / 2);
         int endOffset = startOffset + w - 1;
+        List<Tile> tilesToOccupy = new ArrayList<>(w * w);
 
         for (int dx = startOffset; dx <= endOffset; dx++) {
             for (int dy = startOffset; dy <= endOffset; dy++) {
@@ -55,10 +56,13 @@ public class World {
                 if (t.getEntity() != null) {
                     throw new IllegalStateException("Tile already occupied at: " + p);
                 }
-
-                t.setEntity(entity);
-                entity.getOccupiedTiles().add(t);
+                tilesToOccupy.add(t);
             }
+        }
+
+        for (Tile tile : tilesToOccupy) {
+            tile.setEntity(entity);
+            entity.getOccupiedTiles().add(tile);
         }
 
         if (entity instanceof City city) {
