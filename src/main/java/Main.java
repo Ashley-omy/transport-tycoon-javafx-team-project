@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import view.GameWindow;
@@ -23,6 +24,7 @@ public class Main extends Application {
         stage.setTitle("Transport Tycoon");
         stage.setScene(scene);
         stage.show();
+        Platform.runLater(root::requestFocus);
     }
 
     public static void main(String[] args) {

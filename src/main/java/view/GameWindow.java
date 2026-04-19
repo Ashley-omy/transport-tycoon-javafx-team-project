@@ -130,14 +130,22 @@ public class GameWindow extends BorderPane {
     }
 
     private void setupInput() {
-        mapView.setOnMousePressed(inputController::onMousePressed);
+        mapView.setOnMousePressed(event -> {
+            this.requestFocus();
+            inputController.onMousePressed(event);
+        });
         mapView.setOnMouseReleased(inputController::onMouseReleased);
-        mapView.setOnMouseDragged(inputController::onMouseDragged);
+        mapView.setOnMouseDragged(event -> {
+            this.requestFocus();
+            inputController.onMouseDragged(event);
+        });
         minimapView.setOnMousePressed(event -> {
+            this.requestFocus();
             gameController.handleMinimapInput(event.getX(), event.getY());
             event.consume();
         });
         minimapView.setOnMouseDragged(event -> {
+            this.requestFocus();
             gameController.handleMinimapInput(event.getX(), event.getY());
             event.consume();
         });
