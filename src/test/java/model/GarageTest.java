@@ -7,6 +7,8 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class GarageTest {
@@ -35,5 +37,27 @@ class GarageTest {
         }
 
         throw new AssertionError("Expected IllegalArgumentException");
+    }
+
+    @Test
+    void garageCanHoldAssignedRoute() {
+        Tile tile = new Tile(new GridPos(1, 1), new Land());
+        Garage garage = new Garage(Id.genNew(), 10, 2, List.of(tile));
+
+        assertFalse(garage.hasRoute());
+        assertNull(garage.getRoute());
+
+        Route route = new Route(
+                Id.genNew(),
+                List.of(
+                        new Stop(Id.genNew(), new Tile(new GridPos(2, 1), new Land()), new City(Id.genNew())),
+                        new Stop(Id.genNew(), new Tile(new GridPos(3, 1), new Land()), new City(Id.genNew()))
+                )
+        );
+
+        garage.setRoute(route);
+
+        assertTrue(garage.hasRoute());
+        assertEquals(route, garage.getRoute());
     }
 }
