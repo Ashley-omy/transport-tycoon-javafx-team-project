@@ -20,6 +20,7 @@ public class Garage {
 
     private final List<Vehicle> vehicles = new ArrayList<>();
     private final List<Tile> occupiedTiles = new ArrayList<>();
+    private Route route;
 
     public Garage(Id id, int capacity, int serviceBayCount, List<Tile> occupiedTiles) {
         this.id = Objects.requireNonNull(id, "id cannot be null");
@@ -59,6 +60,18 @@ public class Garage {
 
     public List<Tile> getOccupiedTiles() {
         return Collections.unmodifiableList(occupiedTiles);
+    }
+
+    public Route getRoute() {
+        return route;
+    }
+
+    public void setRoute(Route route) {
+        this.route = route;
+    }
+
+    public boolean hasRoute() {
+        return route != null;
     }
 
     public boolean isFull() {

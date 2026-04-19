@@ -293,7 +293,28 @@ public abstract class Vehicle {
             return;
         }
 
-        // Start from the first stop in the route and perform the first stop actions there.
+        if (homeGarage != null && !homeGarage.getOccupiedTiles().isEmpty()) {
+            GridPos garagePos = homeGarage.getOccupiedTiles().get(0).getPos();
+            Stop firstStop = assignedRoute.getStop(0);
+
+            tilePos = garagePos;
+            worldPos = toWorldPos(tilePos);
+            currentStopIndex = -1;
+            targetStopIndex = 0;
+            currentPath = buildPathBetweenLocations(garagePos, firstStop.getOccupiedTile().getPos());
+            currentPathIndex = 0;
+            stopTimerRemaining = 0.0;
+
+            if (currentPath.size() < 2) {
+                state = VehicleState.BLOCKED;
+                return;
+            }
+
+            state = VehicleState.ON_ROUTE;
+            return;
+        }
+
+        // Fallback for vehicles without a garage: start directly from the first stop.
         currentStopIndex = 0;
         Stop firstStop = assignedRoute.getStop(currentStopIndex);
         tilePos = firstStop.getOccupiedTile().getPos();
