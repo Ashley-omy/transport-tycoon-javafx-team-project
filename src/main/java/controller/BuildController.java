@@ -248,7 +248,7 @@ public class BuildController {
         tile.setStop(stop);
         served.attachStop(stop);
 
-        return ActionResult.success("Build stop sucessfully");
+        return ActionResult.success("Build stop successfully for " + served.getClass().getSimpleName());
     }
 
     // Garage building
