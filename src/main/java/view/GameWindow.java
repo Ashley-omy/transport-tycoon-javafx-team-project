@@ -14,6 +14,7 @@ import controller.GameController;
 import controller.InputController;
 import controller.SelectionController;
 import controller.TimeController;
+import common.Money;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.input.KeyEvent;
@@ -46,11 +47,13 @@ public class GameWindow extends BorderPane {
     private final Company company;
     private final TimeController timeController;
     private final AnimationEngine animationEngine;
+    private Money lastRenderedCash;
 
     public GameWindow(Game game, World world, Company company) {
         this.world = world;
         this.company = company;
         this.animationEngine = new AnimationEngine();
+        this.lastRenderedCash = company.getEconomy().getCash();
 
         // -----------------------------
         // UI State
@@ -165,8 +168,13 @@ public class GameWindow extends BorderPane {
         mapView.render();
         minimapView.render();
         world.drainDebugMessages();
+        Money currentCash = company.getEconomy().getCash();
+        if (currentCash.greaterThan(lastRenderedCash)) {
+            hudView.showEarnMessage(currentCash.subtract(lastRenderedCash));
+        }
+        lastRenderedCash = currentCash;
         hudView.render(
-                company.getEconomy().getCash(),
+                currentCash,
                 animationEngine.getFormattedTime(),
                 timeController.getSpeed()
         );
