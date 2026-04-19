@@ -338,14 +338,14 @@ public abstract class Vehicle {
     }
 
     private double moveAlongCurrentPath(double remainingTime) {
-        // Convert the frame time into travel distance and consume it along the path.
-        double remainingDistance = speed * remainingTime;
+        double remainingTimeBudget = remainingTime;
 
-        while (remainingDistance > EPSILON && currentPathIndex < currentPath.size() - 1) {
+        while (remainingTimeBudget > EPSILON && currentPathIndex < currentPath.size() - 1) {
             GridPos from = currentPath.get(currentPathIndex);
             GridPos to = currentPath.get(currentPathIndex + 1);
             Vec2 fromPos = toWorldPos(from);
             Vec2 toPos = toWorldPos(to);
+            double currentSpeed = getEffectiveSpeedForSegment(from, to);
 
             if (worldPos == null) {
                 worldPos = fromPos;
@@ -362,19 +362,22 @@ public abstract class Vehicle {
 
             GridPos myDir = new GridPos(Integer.signum(to.x - from.x), Integer.signum(to.y - from.y));
 
-            double step = Math.min(remainingDistance, distanceToSegmentEnd);
+            double maxDistanceThisFrame = currentSpeed * remainingTimeBudget;
+            double step = Math.min(maxDistanceThisFrame, distanceToSegmentEnd);
             double ratio = step / distanceToSegmentEnd;
             Vec2 nextPos = Vec2.lerp(worldPos, toPos, ratio);
 
             if (isBlocked(nextPos, myDir)) {
                 // We are blocked from moving fully to nextPos.
                 // Just consume the remaining time for this frame.
-                remainingDistance = 0.0;
+                remainingTimeBudget = 0.0;
                 break;
             }
 
-            if (remainingDistance + EPSILON >= distanceToSegmentEnd) {
-                remainingDistance -= distanceToSegmentEnd;
+            double timeSpent = step / currentSpeed;
+
+            if (step + EPSILON >= distanceToSegmentEnd) {
+                remainingTimeBudget -= timeSpent;
                 currentPathIndex++;
                 tilePos = to;
                 worldPos = toPos;
@@ -389,11 +392,36 @@ public abstract class Vehicle {
                 }
             } else {
                 worldPos = nextPos;
-                remainingDistance -= step;
+                remainingTimeBudget -= timeSpent;
             }
         }
 
-        return remainingDistance / speed;
+        return remainingTimeBudget;
+    }
+
+    private double getEffectiveSpeedForSegment(GridPos from, GridPos to) {
+        double limitedSpeed = speed;
+        limitedSpeed = Math.min(limitedSpeed, getBridgeSpeedLimitAt(from));
+        limitedSpeed = Math.min(limitedSpeed, getBridgeSpeedLimitAt(to));
+        return limitedSpeed;
+    }
+
+    private double getBridgeSpeedLimitAt(GridPos pos) {
+        if (world == null || pos == null || !world.getMap().inBounds(pos)) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        Tile tile = world.getMap().getTile(pos);
+        if (tile == null) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        RoadPiece roadPiece = tile.getRoadPiece();
+        if (roadPiece == null || !roadPiece.isBridge() || roadPiece.getBridgeSpec() == null) {
+            return Double.POSITIVE_INFINITY;
+        }
+
+        return roadPiece.getBridgeSpec().getSpeedLimit();
     }
 
     private void arriveAtStop() {
