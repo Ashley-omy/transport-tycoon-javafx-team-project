@@ -58,9 +58,18 @@ public class EntityRenderer {
         }
 
         if (t.getStop() != null) {
-            gc.setFill(Color.YELLOW);
-            gc.fillOval(pos.x + size * 0.3, pos.y + size * 0.3,
-                    size * 0.4, size * 0.4);
+            double outerRadius = size * 0.34;
+            double innerRadius = size * 0.16;
+            double centerX = pos.x + (size * 0.5);
+            double centerY = pos.y + (size * 0.5);
+
+            gc.setFill(Color.RED);
+            gc.fillOval(centerX - outerRadius, centerY - outerRadius,
+                    outerRadius * 2, outerRadius * 2);
+
+            gc.setFill(Color.WHITE);
+            gc.fillOval(centerX - innerRadius, centerY - innerRadius,
+                    innerRadius * 2, innerRadius * 2);
         }
     }
 
