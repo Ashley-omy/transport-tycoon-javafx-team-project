@@ -75,7 +75,7 @@ public class TileRenderer {
             }
         }
         // Grid border
-        gc.setStroke(Color.DARKGREEN);
+        gc.setStroke(t.isWater() ? Color.LIGHTBLUE : Color.DARKGREEN);
         gc.strokeRect(pos.x, pos.y, size, size);
     }
 
