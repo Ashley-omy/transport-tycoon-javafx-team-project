@@ -352,7 +352,7 @@ public class GameController {
             return;
         }
         // Finalize the route only after the Place Route button is pressed again.
-        ActionResult result = fleet.createRouteWithVehicle(pendingRouteStops);
+        ActionResult result = fleet.createRoute(pendingRouteStops);
         if (result.isSuccess()) {
             pendingRouteStops.clear();
             window.getUIState().setBuildMode(BuildMode.NONE);
