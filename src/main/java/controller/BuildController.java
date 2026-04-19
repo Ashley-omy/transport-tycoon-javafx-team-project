@@ -62,15 +62,18 @@ public class BuildController {
         if (!tile.getTerrain().isPassable()) return false;
         if(!hasAnyRoad()) return true;
 
-        // if we already has road on map, check connectivity for new one and existing roads
-        boolean hasNeighborRoad = false;
+        // If roads already exist, new road must connect to nearby infrastructure:
+        // existing road OR stop tile.
+        return hasAdjacentRoadOrStop(tile);
+    }
+
+    private boolean hasAdjacentRoadOrStop(Tile tile) {
         for (Tile n : getNeighbors(tile)) {
-            if (n.getRoadPiece() != null) {
-                hasNeighborRoad = true;
-                break;
+            if (n.getRoadPiece() != null || n.getStop() != null) {
+                return true;
             }
         }
-        return hasNeighborRoad;
+        return false;
     }
 
     // step 4: now its ok to build the road
