@@ -7,10 +7,10 @@ package controller;
 import common.*;
 import model.*;
 
-import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 
 /**
  *
@@ -86,11 +86,14 @@ public class FleetController {
             return ActionResult.fail("Selected stops are not connected by road");
         }
 
-        registerRoute(route);
-        Garage garage = findReachableGarageForRoute(route);
-        if (garage != null) {
-            garage.setRoute(route);
+        Garage garage = findAvailableGarageForRoute(route);
+        if (garage == null) {
+            return ActionResult.fail("Build a garage with free space before creating a route");
         }
+
+        registerRoute(route);
+        garage.setRoute(route);
+        startOwnedVehiclesForGarageRoute(garage, route);
         return ActionResult.success("Route created with " + routeStops.size() + " stops");
     }
 
@@ -205,7 +208,6 @@ public class FleetController {
         if (company.getFleet().contains(vehicle)) {
             return ActionResult.fail("Selected vehicle is already owned");
         }
-
         if (!purchaseVehicleInGarageInternal(vehicle, garage)) {
             return ActionResult.fail("Not enough money to buy vehicle");
         }
@@ -215,7 +217,6 @@ public class FleetController {
     public ActionResult buyTruck(Garage garage, String specName) {
         if (garage == null) return ActionResult.fail("Garage cannot be null");
         if (garage.isFull()) return ActionResult.fail("Garage is full");
-        
         Vehicle truck;
         if ("small".equalsIgnoreCase(specName)) {
             truck = VehicleFactory.createSmallTruck(Id.genNew());
@@ -234,7 +235,6 @@ public class FleetController {
     public ActionResult buyBus(Garage garage, String specName) {
         if (garage == null) return ActionResult.fail("Garage cannot be null");
         if (garage.isFull()) return ActionResult.fail("Garage is full");
-        
         Vehicle bus;
         if ("small".equalsIgnoreCase(specName)) {
             bus = VehicleFactory.createSmallBus(Id.genNew());
@@ -307,38 +307,64 @@ public class FleetController {
         return !world.getRoadNetwork().findPathBetweenLocations(world.getMap(), garagePos, firstStopPos).isEmpty();
     }
 
-    private Garage findReachableGarageForRoute(Route route) {
+    private Garage findAvailableGarageForRoute(Route route) {
         if (route == null) {
             return null;
         }
 
         GameMap map = world.getMap();
+        Garage bestGarage = null;
+        int bestPathLength = Integer.MAX_VALUE;
         for (Tile[] column : map.getTiles()) {
             for (Tile tile : column) {
                 Garage garage = tile.getGarage();
-                if (garage == null || garage.getOccupiedTiles().isEmpty()) {
+                if (garage == null || garage.getOccupiedTiles().isEmpty() || garage.hasRoute()) {
                     continue;
                 }
                 GridPos garagePos = garage.getOccupiedTiles().get(0).getPos();
                 GridPos firstStopPos = route.getStop(0).getOccupiedTile().getPos();
-                if (!world.getRoadNetwork().findPathBetweenLocations(map, garagePos, firstStopPos).isEmpty()) {
-                    return garage;
+                List<GridPos> path = world.getRoadNetwork().findPathBetweenLocations(map, garagePos, firstStopPos);
+                if (!path.isEmpty() && path.size() < bestPathLength) {
+                    bestPathLength = path.size();
+                    bestGarage = garage;
                 }
             }
         }
-        return null;
+        return bestGarage;
     }
 
-    private void autoAssignGarageRoute(Vehicle vehicle, Garage garage) {
-        if (vehicle == null || garage == null || garage.getRoute() == null) {
-            return;
+    private boolean autoAssignGarageRoute(Vehicle vehicle, Garage garage) {
+        if (vehicle == null || garage == null) {
+            return false;
         }
-        if (!canReachRouteFromGarage(vehicle, garage.getRoute())) {
-            return;
+
+        Route route = garage.getRoute();
+        if (route == null || !canReachRouteFromGarage(vehicle, route)) {
+            return false;
         }
 
         vehicle.setWorld(world);
-        vehicle.assignRoute(garage.getRoute());
+        vehicle.assignRoute(route);
         vehicle.setState(VehicleState.ON_ROUTE);
+        return true;
+    }
+
+    private void startOwnedVehiclesForGarageRoute(Garage garage, Route route) {
+        if (garage == null || route == null) {
+            return;
+        }
+
+        for (Vehicle vehicle : company.getFleet()) {
+            if (vehicle.getHomeGarage() != garage) {
+                continue;
+            }
+            if (vehicle.hasRoute() && vehicle.getAssignedRoute() != route) {
+                continue;
+            }
+
+            vehicle.setWorld(world);
+            vehicle.assignRoute(route);
+            vehicle.setState(VehicleState.ON_ROUTE);
+        }
     }
 }

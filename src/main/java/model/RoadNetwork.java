@@ -112,12 +112,12 @@ public class RoadNetwork {
         }
 
         List<GridPos> accessTiles = new ArrayList<>();
-        if (roadTiles.contains(pos)) {
+        if (networkTiles.contains(pos)) {
             accessTiles.add(pos);
         }
 
         for (GridPos neighbor : getFourNeighbors(pos)) {
-            if (!map.inBounds(neighbor) || !roadTiles.contains(neighbor)) {
+            if (!map.inBounds(neighbor) || !networkTiles.contains(neighbor)) {
                 continue;
             }
             appendIfDifferent(accessTiles, neighbor);

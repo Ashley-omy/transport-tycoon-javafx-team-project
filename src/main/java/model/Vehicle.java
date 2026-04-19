@@ -305,7 +305,8 @@ public abstract class Vehicle {
     }
 
     private void ensureInitializedOnRoute() {
-        if (currentStopIndex >= 0 && tilePos != null && worldPos != null) {
+        if (tilePos != null && worldPos != null &&
+                (!currentPath.isEmpty() || currentStopIndex >= 0 || targetStopIndex >= 0)) {
             return;
         }
 
