@@ -23,7 +23,9 @@ class BuildControllerTest {
         World world = new World(25, 25);
         Company company = new Company();
         BuildController buildController = new BuildController(world, company);
-        GridPos garagePos = new GridPos(8, 5);
+        // Do not depend on hard-coded coordinates because world initialization changes often.
+        // Instead, find a valid candidate tile from the current map state.
+        GridPos garagePos = findEmptyTileNextToRoad(world);
 
         Money cashBefore = company.getEconomy().getCash();
 
@@ -40,7 +42,8 @@ class BuildControllerTest {
         World world = new World(25, 25);
         Company company = new Company();
         BuildController buildController = new BuildController(world, company);
-        GridPos garagePos = new GridPos(20, 20);
+        // Pick a tile that is buildable in general but intentionally not connected to roads.
+        GridPos garagePos = findEmptyTileNotAdjacentToRoad(world);
 
         ActionResult result = buildController.buildGarage(garagePos);
 
@@ -53,7 +56,8 @@ class BuildControllerTest {
         World world = new World(25, 25);
         Company company = new Company(Money.of(1_000));
         BuildController buildController = new BuildController(world, company);
-        GridPos garagePos = new GridPos(8, 5);
+        // Reuse the same placement precondition as the success case and isolate only "money" failure.
+        GridPos garagePos = findEmptyTileNextToRoad(world);
 
         ActionResult result = buildController.buildGarage(garagePos);
 
@@ -99,5 +103,62 @@ class BuildControllerTest {
         assertFalse(result.isSuccess());
         assertEquals("Bridge must connect to an existing road at one end", result.getMessage());
         assertNull(world.getMap().getTile(bridgeTile).getRoadPiece());
+    }
+
+    private GridPos findEmptyTileNextToRoad(World world) {
+        // Find a tile that satisfies garage tile constraints and is road-adjacent.
+        // This keeps the test stable even if map layout changes.
+        for (int x = 0; x < world.getMap().getWidth(); x++) {
+            for (int y = 0; y < world.getMap().getHeight(); y++) {
+                GridPos pos = new GridPos(x, y);
+                if (isEmptyGarageCandidate(world, pos) && hasAdjacentRoad(world, pos)) {
+                    return pos;
+                }
+            }
+        }
+        throw new AssertionError("No empty tile adjacent to road found in test world");
+    }
+
+    private GridPos findEmptyTileNotAdjacentToRoad(World world) {
+        // Find a tile that is otherwise valid for garage placement but has no road neighbor.
+        // Used to verify the "must be next to a road" validation path.
+        for (int x = 0; x < world.getMap().getWidth(); x++) {
+            for (int y = 0; y < world.getMap().getHeight(); y++) {
+                GridPos pos = new GridPos(x, y);
+                if (isEmptyGarageCandidate(world, pos) && !hasAdjacentRoad(world, pos)) {
+                    return pos;
+                }
+            }
+        }
+        throw new AssertionError("No empty tile away from roads found in test world");
+    }
+
+    private boolean isEmptyGarageCandidate(World world, GridPos pos) {
+        // Mirrors BuildController#isTileEmptyForGarage conditions so test expectations are explicit.
+        var tile = world.getMap().getTile(pos);
+        return tile.getTerrain().isPassable()
+                && tile.getEntity() == null
+                && tile.getRoadPiece() == null
+                && tile.getStop() == null
+                && tile.getGarage() == null;
+    }
+
+    private boolean hasAdjacentRoad(World world, GridPos pos) {
+        // 4-neighbor check, same connectivity model used by production build logic.
+        GridPos[] neighbors = {
+                new GridPos(pos.x + 1, pos.y),
+                new GridPos(pos.x - 1, pos.y),
+                new GridPos(pos.x, pos.y + 1),
+                new GridPos(pos.x, pos.y - 1)
+        };
+        for (GridPos neighbor : neighbors) {
+            if (!world.getMap().inBounds(neighbor)) {
+                continue;
+            }
+            if (world.getMap().getTile(neighbor).getRoadPiece() != null) {
+                return true;
+            }
+        }
+        return false;
     }
 }
