@@ -1,0 +1,138 @@
+@startuml
+class view.VehicleRenderer {
++ void draw(GraphicsContext,List<Vehicle>,Camera)
+}
+
+class view.EntityRenderer {
++ void draw(GraphicsContext,Tile,Vec2,int)
+}
+
+class view.AnimationEngine {
+- double gameTime
++ void update(double,TimeController)
++ String getFormattedTime()
++ double getGameTime()
++ Vec2 interpolateVehicle(common.GridPos,double)
+}
+
+
+class view.GameWindow {
+- {static} int MAX_DEBUG_LINES
+- MapView mapView
+- HUDView hudView
+- Label latestDebugLabel
+- VBox debugEventList
+- List<Label> debugLabels
+- UIState uiState
+- InputController inputController
+- SelectionController selectionController
+- GameController gameController
+- World world
+- Company company
+- TimeController timeController
+- AnimationEngine animationEngine
++ void render()
++ MapView getMapView()
++ UIState getUIState()
++ AnimationEngine getAnimationEngine()
++ HUDView getHudView()
+}
+
+
+class view.Camera {
+- GridPos topLeftTile
+- int viewportW
+- int viewportH
+- int tileSize
++ void pan(int,int)
++ void setTopLeft(GridPos)
++ GridPos getTopLeftTile()
++ int getViewportW()
++ int getViewportH()
++ int getTileSize()
++ GridPos screenToTile(Vec2)
++ Vec2 tileToScreen(GridPos)
+}
+
+
+class view.Renderer {
+- TileRenderer tileRenderer
+- EntityRenderer entityRenderer
+- VehicleRenderer vehicleRenderer
+- AnimationEngine anim
++ void render(GraphicsContext,GameMap,Camera,UIState,List<Vehicle>)
+}
+
+
+class view.MapView {
+- Canvas canvas
+- GraphicsContext gc
+- UIState uiState
+- Camera camera
+- Renderer renderer
+- GameMap map
+- Company company
++ void setMap(GameMap)
++ void setCompany(Company)
++ Camera getCamera()
++ void setUIState(UIState)
++ GridPos screenToTile(Vec2)
++ void render()
+}
+
+
+class view.UIState {
+- BuildMode buildMode
+- GridPos selectedTile
+- String selectedVehicleId
+- boolean routePlacementRequested
++ void setBuildMode(BuildMode)
++ BuildMode getBuildMode()
++ void syncFromSelection(SelectionController)
++ GridPos getSelectedTile()
++ String getSelectedVehicleId()
++ void requestRoutePlacement()
++ boolean consumeRoutePlacementRequest()
+}
+
+
+class view.HUDView {
+- Label moneyLabel
+- Label timeLabel
+- Label speedLabel
+- Label uiStateLabel
+- UIState uiState
+- Button roadBtn
+- Button stopBtn
+- Button garageBtn
+- Button routeBtn
+- Button pauseBtn
+- Button normalSpeedBtn
+- Button fastSpeedBtn
+- Button veryFastSpeedBtn
+- Label buildResultLabel
+~ String lastMessage
++ void displayBuildResult(ActionResult)
++ void render(Money,String,TimeSpeed)
+}
+
+
+enum view.BuildMode {
++  NONE
++  ROAD
++  BRIDGE
++  STOP
++  GARAGE
++  ROUTE
+}
+
+class view.TileRenderer {
++ void drawTile(GraphicsContext,Tile,Vec2,int)
+}
+
+
+
+javafx.scene.layout.BorderPane <|-- view.GameWindow
+javafx.scene.layout.Pane <|-- view.MapView
+javafx.scene.layout.HBox <|-- view.HUDView
+@enduml
