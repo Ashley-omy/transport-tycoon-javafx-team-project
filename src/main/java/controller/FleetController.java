@@ -41,6 +41,12 @@ public class FleetController {
 
         // step2: find if the route legal(route has 2 stops -> stops are connected in roadNetwork??)
         if (!isRouteValid(route)) return ActionResult.fail("Route is not connected");
+        if (v.getHomeGarage() == null || v.getHomeGarage().getOccupiedTiles().isEmpty()) {
+            return ActionResult.fail("Vehicle must have a home garage before route assignment");
+        }
+        if (!canReachRouteFromGarage(v, route)) {
+            return ActionResult.fail("Vehicle garage is not connected to the route start");
+        }
 
         v.setWorld(world);
         v.assignRoute(route);
@@ -54,7 +60,7 @@ public class FleetController {
         routes.put(route.getId().toString(), route);
     }
 
-    public ActionResult createRouteWithVehicle(List<Stop> selectedStops) {
+    public ActionResult createRoute(List<Stop> selectedStops) {
         if (selectedStops == null || selectedStops.size() < 2) {
             return ActionResult.fail("Select at least two stops");
         }
@@ -80,24 +86,12 @@ public class FleetController {
             return ActionResult.fail("Selected stops are not connected by road");
         }
 
-        Garage garage = findAvailableGarage();
-        if (garage == null) {
-            return ActionResult.fail("Build a garage with free space before creating a route");
-        }
-
-        Vehicle vehicle = createVehicleFor(route);
-        if (!purchaseVehicleInGarageInternal(vehicle, garage)) {
-            return ActionResult.fail("Not enough money to create vehicle for route");
-        }
-
         registerRoute(route);
-        vehicle.setWorld(world);
-        vehicle.assignRoute(route);
-        vehicle.setState(VehicleState.ON_ROUTE);
-
-        return ActionResult.success(
-                "Route created with " + routeStops.size() + " stops and vehicle " + vehicle.getId()
-        );
+        Garage garage = findReachableGarageForRoute(route);
+        if (garage != null) {
+            garage.setRoute(route);
+        }
+        return ActionResult.success("Route created with " + routeStops.size() + " stops");
     }
 
     // for UI
@@ -170,18 +164,6 @@ public class FleetController {
 
         return roadTiles;
     }
-    //This is a temporary function used instead of Garage.
-    private Vehicle createVehicleFor(Route route) {
-        // Use a bus only when every stop serves a city; otherwise use a truck.
-        boolean passengerRoute = route.getStops().stream()
-                .allMatch(stop -> stop.getServedPlace() instanceof City);
-
-        if (passengerRoute) {
-            return VehicleFactory.createSmallBus(Id.genNew());
-        }
-        return VehicleFactory.createSmallTruck(Id.genNew());
-    }
-
     private boolean purchaseVehicleInGarageInternal(Vehicle vehicle, Garage garage) {
         if (vehicle == null || garage == null) {
             return false;
@@ -192,9 +174,11 @@ public class FleetController {
             return false;
         }
 
-        // Home garage should be pre-assigned by garage-side initialization logic.
         if (vehicle.getHomeGarage() != null && vehicle.getHomeGarage() != garage) {
             return false;
+        }
+        if (vehicle.getHomeGarage() == null) {
+            vehicle.setHomeGarage(garage);
         }
         vehicle.setWorld(world);
 
@@ -204,8 +188,11 @@ public class FleetController {
 
         // Keep purchased vehicles visible in the garage list (as OWNED in GaragePane).
         if (!garage.hasVehicle(vehicle)) {
-            return garage.addVehicle(vehicle);
+            if (!garage.addVehicle(vehicle)) {
+                return false;
+            }
         }
+        autoAssignGarageRoute(vehicle, garage);
         return true;
     }
 
@@ -314,16 +301,44 @@ public class FleetController {
         return ActionResult.success("Sold " + overAgedVehicles.size() + " over-aged vehicle(s)");
     }
 
-    private Garage findAvailableGarage() {
+    private boolean canReachRouteFromGarage(Vehicle vehicle, Route route) {
+        GridPos garagePos = vehicle.getHomeGarage().getOccupiedTiles().get(0).getPos();
+        GridPos firstStopPos = route.getStop(0).getOccupiedTile().getPos();
+        return !world.getRoadNetwork().findPathBetweenLocations(world.getMap(), garagePos, firstStopPos).isEmpty();
+    }
+
+    private Garage findReachableGarageForRoute(Route route) {
+        if (route == null) {
+            return null;
+        }
+
         GameMap map = world.getMap();
         for (Tile[] column : map.getTiles()) {
             for (Tile tile : column) {
                 Garage garage = tile.getGarage();
-                if (garage != null && !garage.isFull()) {
+                if (garage == null || garage.getOccupiedTiles().isEmpty()) {
+                    continue;
+                }
+                GridPos garagePos = garage.getOccupiedTiles().get(0).getPos();
+                GridPos firstStopPos = route.getStop(0).getOccupiedTile().getPos();
+                if (!world.getRoadNetwork().findPathBetweenLocations(map, garagePos, firstStopPos).isEmpty()) {
                     return garage;
                 }
             }
         }
         return null;
+    }
+
+    private void autoAssignGarageRoute(Vehicle vehicle, Garage garage) {
+        if (vehicle == null || garage == null || garage.getRoute() == null) {
+            return;
+        }
+        if (!canReachRouteFromGarage(vehicle, garage.getRoute())) {
+            return;
+        }
+
+        vehicle.setWorld(world);
+        vehicle.assignRoute(garage.getRoute());
+        vehicle.setState(VehicleState.ON_ROUTE);
     }
 }
