@@ -19,17 +19,9 @@ import model.Tile;
 public class EntityRenderer {
 
     public void draw(GraphicsContext gc, Tile t, Vec2 pos, int size) {
-
-        if (t.getStop() != null) {
-            gc.setFill(Color.YELLOW);
-            gc.fillOval(pos.x + size * 0.3, pos.y + size * 0.3,
-                    size * 0.4, size * 0.4);
-        }
-
         if (t.getGarage() != null) {
             gc.setFill(Color.ORANGE);
-            gc.fillRect(pos.x + size * 0.25, pos.y + size * 0.25,
-                    size * 0.5, size * 0.5);
+            gc.fillRect(pos.x, pos.y, size, size);
         }
 
         boolean hideCityFillForInternalRoad = t.getEntity() instanceof City city
@@ -44,8 +36,13 @@ public class EntityRenderer {
             } else {
                 gc.setFill(Color.DARKRED);
             }
-            gc.fillRect(pos.x + size * 0.1, pos.y + size * 0.1,
-                    size * 0.8, size * 0.8);
+            gc.fillRect(pos.x, pos.y, size, size);
+        }
+
+        if (t.getStop() != null) {
+            gc.setFill(Color.YELLOW);
+            gc.fillOval(pos.x + size * 0.3, pos.y + size * 0.3,
+                    size * 0.4, size * 0.4);
         }
     }
 }
