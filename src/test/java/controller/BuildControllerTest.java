@@ -3,7 +3,11 @@ package controller;
 import common.GridPos;
 import common.Money;
 import model.BridgeType;
+import model.City;
 import model.Company;
+import model.Land;
+import model.Stop;
+import model.Tile;
 import model.World;
 import model.Water;
 import model.WaterType;
@@ -105,6 +109,32 @@ class BuildControllerTest {
         assertNull(world.getMap().getTile(bridgeTile).getRoadPiece());
     }
 
+    @Test
+    void buildStopShouldAttachToAdjacentCity() {
+        World world = new World(25, 25);
+        Company company = new Company();
+        BuildController buildController = new BuildController(world, company);
+
+        prepareOpenTile(world, new GridPos(5, 4));
+        prepareOpenTile(world, new GridPos(6, 4));
+        prepareOpenTile(world, new GridPos(6, 5));
+
+        placeRoad(world, new GridPos(5, 4));
+        world.getRoadNetwork().rebuild(world.getMap());
+
+        City city = new City(common.Id.genNew());
+        Tile cityTile = world.getMap().getTile(new GridPos(6, 5));
+        cityTile.setEntity(city);
+        city.getOccupiedTiles().add(cityTile);
+
+        ActionResult result = buildController.buildStop(new GridPos(6, 4));
+
+        assertTrue(result.isSuccess());
+        assertEquals("Build stop successfully for City", result.getMessage());
+        Stop stop = world.getMap().getTile(new GridPos(6, 4)).getStop();
+        assertEquals(city, stop.getServedPlace());
+    }
+
     private GridPos findEmptyTileNextToRoad(World world) {
         // Find a tile that satisfies garage tile constraints and is road-adjacent.
         // This keeps the test stable even if map layout changes.
@@ -160,5 +190,21 @@ class BuildControllerTest {
             }
         }
         return false;
+    }
+
+    private void prepareOpenTile(World world, GridPos pos) {
+        Tile tile = world.getMap().getTile(pos);
+        tile.setTerrain(new Land());
+        tile.setEntity(null);
+        tile.setRoadPiece(null);
+        tile.setStop(null);
+        tile.setGarage(null);
+    }
+
+    private void placeRoad(World world, GridPos pos) {
+        Tile tile = world.getMap().getTile(pos);
+        model.RoadPiece road = new model.RoadPiece(model.RoadKind.ROAD, null);
+        road.addTile(tile);
+        tile.setRoadPiece(road);
     }
 }
