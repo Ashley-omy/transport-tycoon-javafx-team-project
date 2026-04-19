@@ -21,7 +21,9 @@ import model.*;
 import view.BuildMode.*;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public class GameController {
 
@@ -35,6 +37,13 @@ public class GameController {
     private FleetController fleet;
     private final GaragePane garagePane;
     private final List<Stop> pendingRouteStops = new ArrayList<>();
+    // Shared drag state used by both camera panning and drag-build interactions.
+    private Vec2 lastDragMousePos;
+    private double dragCarryX;
+    private double dragCarryY;
+    // Road-drag state to build each tile at most once during one drag gesture.
+    private GridPos lastRoadDragTile;
+    private final Set<GridPos> dragRoadVisitedTiles = new HashSet<>();
 
     private long lastTime = 0;
 
@@ -52,7 +61,7 @@ public class GameController {
         this.time = time;
         this.build = build;
         this.fleet = fleet;
-        this.garagePane = new GaragePane(game.getCompany(), fleet, window.getHudView()::displayBuildResult);
+        this.garagePane = new GaragePane(game.getCompany(), fleet, window.getControlPanes()::displayBuildResult);
     }
 
     // Start game loop
@@ -104,7 +113,18 @@ public class GameController {
             switch (e.type) {
 
                 case "MOUSE_DOWN":
+                    // Keep click behavior (selection/build) and also arm drag tracking.
                     handleMouseClick(e);
+                    beginDrag(e);
+                    break;
+
+                case "MOUSE_DRAG":
+                    // Depending on current mode, drag either pans camera or lays roads.
+                    handleMapDrag(e);
+                    break;
+
+                case "MOUSE_UP":
+                    endDrag();
                     break;
 
                 case "KEY_DOWN":
@@ -145,7 +165,7 @@ public class GameController {
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
                     result = build.buildRoad(pos);
-                    window.getHudView().displayBuildResult(result);
+                    window.getControlPanes().displayBuildResult(result);
                 }
                 break;
             case DECONSTRUCT:
@@ -153,7 +173,7 @@ public class GameController {
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
                     result = build.removeRoad(pos);
-                    window.getHudView().displayBuildResult(result);
+                    window.getControlPanes().displayBuildResult(result);
                 }
                 break;
             case STOP:
@@ -161,7 +181,7 @@ public class GameController {
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
                      result = build.buildStop(pos);
-                     window.getHudView().displayBuildResult(result);
+                     window.getControlPanes().displayBuildResult(result);
                 }
                 break;
             case GARAGE:
@@ -169,7 +189,7 @@ public class GameController {
                 if (selection.getSelectedTile() != null) {
                     GridPos pos = selection.getSelectedTile();
                     result = build.buildGarage(pos);
-                    window.getHudView().displayBuildResult(result);
+                    window.getControlPanes().displayBuildResult(result);
                 }
                 break;
             case ROUTE:
@@ -179,6 +199,127 @@ public class GameController {
                 pendingRouteStops.clear();
                 break;
         }
+    }
+
+    private void beginDrag(InputEvent e) {
+        if (e == null) {
+            return;
+        }
+        // Initialize generic drag accumulators.
+        lastDragMousePos = e.mousePos;
+        dragCarryX = 0.0;
+        dragCarryY = 0.0;
+        dragRoadVisitedTiles.clear();
+
+        // In ROAD mode, remember drag start tile to enable contiguous placement.
+        if (window.getUIState().getBuildMode() == BuildMode.ROAD && e.mousePos != null) {
+            lastRoadDragTile = window.getMapView().screenToTile(e.mousePos);
+            if (lastRoadDragTile != null) {
+                dragRoadVisitedTiles.add(lastRoadDragTile);
+            }
+        } else {
+            lastRoadDragTile = null;
+        }
+    }
+
+    private void handleMapDrag(InputEvent e) {
+        if (e == null || e.mousePos == null || lastDragMousePos == null) {
+            return;
+        }
+
+        BuildMode mode = window.getUIState().getBuildMode();
+        // ROAD mode: drag should build roads, not move the camera.
+        if (mode == BuildMode.ROAD) {
+            handleRoadBuildDrag(e);
+            return;
+        }
+        // Other build modes intentionally ignore drag camera movement.
+        if (mode != BuildMode.NONE) {
+            return;
+        }
+
+        double deltaX = e.mousePos.x - lastDragMousePos.x;
+        double deltaY = e.mousePos.y - lastDragMousePos.y;
+        lastDragMousePos = e.mousePos;
+
+        dragCarryX += deltaX;
+        dragCarryY += deltaY;
+
+        var camera = window.getMapView().getCamera();
+        int tileSize = camera.getTileSize();
+        int moveTilesX = (int) (dragCarryX / tileSize);
+        int moveTilesY = (int) (dragCarryY / tileSize);
+
+        if (moveTilesX == 0 && moveTilesY == 0) {
+            return;
+        }
+
+        dragCarryX -= moveTilesX * tileSize;
+        dragCarryY -= moveTilesY * tileSize;
+
+        // Dragging the mouse right/down should move the map in the same direction.
+        camera.panClamped(game.getWorld().getMap(), -moveTilesX, -moveTilesY);
+    }
+
+    private void handleRoadBuildDrag(InputEvent e) {
+        GridPos currentTile = window.getMapView().screenToTile(e.mousePos);
+        if (currentTile == null) {
+            return;
+        }
+        if (lastRoadDragTile == null) {
+            lastRoadDragTile = currentTile;
+            dragRoadVisitedTiles.add(currentTile);
+            return;
+        }
+        if (currentTile.equals(lastRoadDragTile)) {
+            return;
+        }
+
+        GridPos cursor = lastRoadDragTile;
+        int builtCount = 0;
+        ActionResult lastFailure = null;
+
+        while (!cursor.equals(currentTile)) {
+            // Build along a Manhattan path from last tile toward current cursor tile.
+            // Prefer X movement first, then Y when X is aligned.
+            int stepX = Integer.compare(currentTile.x, cursor.x);
+            int stepY = stepX == 0 ? Integer.compare(currentTile.y, cursor.y) : 0;
+            cursor = cursor.add(stepX, stepY);
+
+            // Skip tiles already processed in this drag sequence.
+            if (!dragRoadVisitedTiles.add(cursor)) {
+                continue;
+            }
+
+            Tile tile = game.getWorld().getMap().getTile(cursor);
+            if (tile == null || tile.getRoadPiece() != null) {
+                continue;
+            }
+
+            ActionResult result = build.buildRoad(cursor);
+            if (result.isSuccess()) {
+                builtCount++;
+            } else {
+                lastFailure = result;
+            }
+        }
+
+        lastRoadDragTile = currentTile;
+        // Show aggregate drag-build feedback instead of per-tile spam.
+        if (builtCount > 0) {
+            window.getControlPanes().displayBuildResult(ActionResult.success("Built " + builtCount + " road tiles"));
+        } else if (lastFailure != null) {
+            window.getControlPanes().displayBuildResult(lastFailure);
+        }
+    }
+
+    private void endDrag() {
+        // Clear all drag-related state when gesture finishes.
+        lastDragMousePos = null;
+        dragCarryX = 0.0;
+        dragCarryY = 0.0;
+        lastRoadDragTile = null;
+        dragRoadVisitedTiles.clear();
     }
 
     private void collectRouteStop() {
@@ -191,17 +332,17 @@ public class GameController {
         Tile tile = game.getWorld().getMap().getTile(pos);
         Stop selectedStop = tile.getStop();
         if (selectedStop == null) {
-            window.getHudView().displayBuildResult(ActionResult.fail("Select a stop to add it to the route"));
+            window.getControlPanes().displayBuildResult(ActionResult.fail("Select a stop to add it to the route"));
             return;
         }
 
         if (pendingRouteStops.contains(selectedStop)) {
-            window.getHudView().displayBuildResult(ActionResult.fail("That stop is already selected"));
+            window.getControlPanes().displayBuildResult(ActionResult.fail("That stop is already selected"));
             return;
         }
 
         pendingRouteStops.add(selectedStop);
-        window.getHudView().displayBuildResult(
+        window.getControlPanes().displayBuildResult(
                 ActionResult.success("Selected " + pendingRouteStops.size() + " stop(s). Press Place Route to create the route.")
         );
     }
@@ -216,7 +357,7 @@ public class GameController {
             pendingRouteStops.clear();
             window.getUIState().setBuildMode(BuildMode.NONE);
         }
-        window.getHudView().displayBuildResult(result);
+        window.getControlPanes().displayBuildResult(result);
     }
 
     private void handleKey(InputEvent e) {

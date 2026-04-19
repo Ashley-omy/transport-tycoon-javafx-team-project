@@ -126,6 +126,6 @@ public final class Money implements Comparable<Money> {
 
     @Override
     public String toString() {
-        return currency + " " + amount;
+        return amount  + " " +  currency;
     }
 }

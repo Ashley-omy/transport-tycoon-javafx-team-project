@@ -18,17 +18,24 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import model.Company;
 import model.Game;
 import model.GameMap;
 import model.World;
 
 public class GameWindow extends BorderPane {
+    private static final int MAP_VIEW_WIDTH = 1000;
+    private static final int MAP_VIEW_HEIGHT = 700;
+    private static final int BUILD_PANE_TO_MAP_GAP = 16;
+
     // --- View ---
     private final MapView mapView;
     private final HUDView hudView;
     private final MinimapView minimapView;
+    private final ControlPanes controlPanes;
     private final UIState uiState;
 
     // --- Controllers ---
@@ -53,17 +60,34 @@ public class GameWindow extends BorderPane {
         // -----------------------------
         // Views
         // -----------------------------
-        this.mapView = new MapView(1000, 700);
+        this.mapView = new MapView(MAP_VIEW_WIDTH, MAP_VIEW_HEIGHT);
         this.timeController = new TimeController();
-        this.hudView = new HUDView(uiState, timeController);
+        this.hudView = new HUDView(uiState);
         this.minimapView = new MinimapView(mapView.getCamera());
+        this.controlPanes = new ControlPanes(uiState, timeController);
+
+        StackPane topOverlay = new StackPane(hudView, controlPanes.getSpeedPane());
+        StackPane.setAlignment(hudView, Pos.TOP_LEFT);
+        StackPane.setAlignment(controlPanes.getSpeedPane(), Pos.TOP_RIGHT);
+        StackPane.setMargin(controlPanes.getSpeedPane(), new Insets(0, 16, 0, 0));
 
         // Layout
-        StackPane center = new StackPane(mapView, minimapView);
-        StackPane.setAlignment(minimapView, Pos.TOP_RIGHT);
-        StackPane.setMargin(minimapView, new Insets(16));
+        VBox rightOverlay = new VBox(12, minimapView);
+        rightOverlay.setAlignment(Pos.TOP_RIGHT);
+        rightOverlay.setFillWidth(false);
+        rightOverlay.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+
+        StackPane center = new StackPane(mapView, rightOverlay, controlPanes.getBuildPane());
+        StackPane.setAlignment(mapView, Pos.CENTER_RIGHT);
+        StackPane.setAlignment(rightOverlay, Pos.TOP_RIGHT);
+        StackPane.setMargin(rightOverlay, new Insets(16));
+        StackPane.setAlignment(controlPanes.getBuildPane(), Pos.TOP_RIGHT);
+        StackPane.setMargin(
+                controlPanes.getBuildPane(),
+                new Insets(16, MAP_VIEW_WIDTH + BUILD_PANE_TO_MAP_GAP, 0, 0)
+        );
         this.setCenter(center);
-        this.setTop(hudView);
+        this.setTop(topOverlay);
 
         // -----------------------------
         // Connect Model -> View
@@ -106,14 +130,22 @@ public class GameWindow extends BorderPane {
     }
 
     private void setupInput() {
-        mapView.setOnMousePressed(inputController::onMousePressed);
+        mapView.setOnMousePressed(event -> {
+            this.requestFocus();
+            inputController.onMousePressed(event);
+        });
         mapView.setOnMouseReleased(inputController::onMouseReleased);
-        mapView.setOnMouseDragged(inputController::onMouseDragged);
+        mapView.setOnMouseDragged(event -> {
+            this.requestFocus();
+            inputController.onMouseDragged(event);
+        });
         minimapView.setOnMousePressed(event -> {
+            this.requestFocus();
             gameController.handleMinimapInput(event.getX(), event.getY());
             event.consume();
         });
         minimapView.setOnMouseDragged(event -> {
+            this.requestFocus();
             gameController.handleMinimapInput(event.getX(), event.getY());
             event.consume();
         });
@@ -138,6 +170,7 @@ public class GameWindow extends BorderPane {
                 animationEngine.getFormattedTime(),
                 timeController.getSpeed()
         );
+        controlPanes.render();
     }
 
     public MapView getMapView() {
@@ -158,5 +191,9 @@ public class GameWindow extends BorderPane {
 
     public HUDView getHudView() {
         return hudView;
+    }
+
+    public ControlPanes getControlPanes() {
+        return controlPanes;
     }
 }
