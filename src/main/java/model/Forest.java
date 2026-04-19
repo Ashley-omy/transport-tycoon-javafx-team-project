@@ -15,7 +15,7 @@ public class Forest extends Terrain {
     private double growthTimer;
 
     public Forest() {
-        this.trees = 1 + (int) (Math.random() * 4);
+        this.trees = 1;
         this.growthTimer = 0.0;
     }
 

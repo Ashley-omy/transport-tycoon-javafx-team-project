@@ -11,6 +11,7 @@ package view;
 import common.Vec2;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import model.City;
 import model.Factory;
 import model.Mine;
 import model.Tile;
@@ -31,7 +32,11 @@ public class EntityRenderer {
                     size * 0.5, size * 0.5);
         }
 
-        if (t.getEntity() != null) {
+        boolean hideCityFillForInternalRoad = t.getEntity() instanceof City city
+                && t.getRoadPiece() != null
+                && city.hasInternalRoadAt(t.getPos());
+
+        if (t.getEntity() != null && !hideCityFillForInternalRoad) {
             if (t.getEntity() instanceof Factory) {
                 gc.setFill(Color.MEDIUMPURPLE);
             } else if (t.getEntity() instanceof Mine) {
