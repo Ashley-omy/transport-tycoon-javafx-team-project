@@ -95,6 +95,43 @@ public class BuildController {
         return ActionResult.success("Build road successfully");
     }
 
+    public ActionResult buildBridge(List<GridPos> line, BridgeType type) {
+        if (line == null || line.isEmpty()) {
+            return ActionResult.fail("Bridge line cannot be empty");
+        }
+
+        BridgeSpec spec;
+        try {
+            spec = world.getBridgeSpec(type);
+        } catch (IllegalArgumentException ex) {
+            return ActionResult.fail(ex.getMessage());
+        }
+
+        if (!hasRoadConnectionAtEitherEnd(line)) {
+            return ActionResult.fail("Bridge must connect to an existing road at one end");
+        }
+
+        if (!company.getEconomy().spend(
+                spec.getCost(),
+                TransactionType.INFRASTRUCTURE,
+                "Built bridge " + type)) {
+            return ActionResult.fail("Not enough money");
+        }
+
+        try {
+            world.buildBridge(line, type);
+        } catch (IllegalArgumentException ex) {
+            company.getEconomy().earn(
+                    spec.getCost(),
+                    TransactionType.INFRASTRUCTURE,
+                    "Refund for failed bridge build"
+            );
+            return ActionResult.fail(ex.getMessage());
+        }
+
+        return ActionResult.success("Bridge built successfully");
+    }
+
     public ActionResult removeRoad(GridPos pos) {
         Tile tile = world.getMap().getTile(pos);
         if (tile == null) {
@@ -128,6 +165,28 @@ public class BuildController {
             throw new IllegalArgumentException("tile cannot be null");
         }
         return World.ROAD_BUILD_COST.multiply(tile.getTerrain().buildMultiplier());
+    }
+
+    private boolean hasRoadConnectionAtEitherEnd(List<GridPos> line) {
+        return hasAdjacentRoadOutsideLine(line.get(0), line)
+                || hasAdjacentRoadOutsideLine(line.get(line.size() - 1), line);
+    }
+
+    private boolean hasAdjacentRoadOutsideLine(GridPos pos, List<GridPos> line) {
+        Tile tile = world.getMap().getTile(pos);
+        if (tile == null) {
+            return false;
+        }
+
+        for (Tile neighbor : getNeighbors(tile)) {
+            if (neighbor.getRoadPiece() == null) {
+                continue;
+            }
+            if (!line.contains(neighbor.getPos())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     //--------- Stop placement rules ----------------

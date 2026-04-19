@@ -9,14 +9,17 @@ package model;
  */
 
 public class Forest extends Terrain {
-    private static final double GROWTH_INTERVAL = 5.0;
+    static final double GROWTH_INTERVAL_SECONDS = 12.0;
+    static final double SPREAD_INTERVAL_SECONDS = 18.0;
 
     private int trees;
     private double growthTimer;
+    private double spreadTimer;
 
     public Forest() {
         this.trees = 1;
         this.growthTimer = 0.0;
+        this.spreadTimer = 0.0;
     }
 
     public int getTrees() {
@@ -37,10 +40,28 @@ public class Forest extends Terrain {
         }
 
         growthTimer += deltaTime;
-        while (growthTimer >= GROWTH_INTERVAL && trees < 4) {
-            growthTimer -= GROWTH_INTERVAL;
+        while (growthTimer >= GROWTH_INTERVAL_SECONDS && trees < 4) {
+            growthTimer -= GROWTH_INTERVAL_SECONDS;
             trees++;
         }
+    }
+
+    public int consumeSpreadAttempts(double deltaTime) {
+        if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) {
+            return 0;
+        }
+
+        if (trees < 4) {
+            spreadTimer = 0.0;
+            return 0;
+        }
+
+        spreadTimer += deltaTime;
+        int attempts = (int) (spreadTimer / SPREAD_INTERVAL_SECONDS);
+        if (attempts > 0) {
+            spreadTimer -= attempts * SPREAD_INTERVAL_SECONDS;
+        }
+        return attempts;
     }
 
     @Override

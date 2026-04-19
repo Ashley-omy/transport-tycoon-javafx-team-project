@@ -1,12 +1,16 @@
 package model;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 
 class BridgeTypeTest {
 
     @Test
-    @Disabled("TODO")
-    void placeholder() {
+    void exposesTheBridgeTypesFromTheUml() {
+        assertArrayEquals(
+                new BridgeType[]{BridgeType.TYPE_A, BridgeType.TYPE_B, BridgeType.TYPE_C},
+                BridgeType.values()
+        );
     }
 }

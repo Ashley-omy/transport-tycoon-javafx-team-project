@@ -13,6 +13,11 @@ import java.util.Set;
 public class World {
     // Emit supply in chunks instead of every frame.
     private static final double SUPPLY_EMIT_INTERVAL = 5.0;
+    private static final List<BridgeSpec> DEFAULT_BRIDGE_CATALOG = List.of(
+            new BridgeSpec(BridgeType.TYPE_A, 4, Money.of(600), 1.0),
+            new BridgeSpec(BridgeType.TYPE_B, 7, Money.of(1_100), 1.5),
+            new BridgeSpec(BridgeType.TYPE_C, 10, Money.of(1_800), 2.0)
+    );
     // Temporary debug marker for revenue lines in the UI.
     private static final String REVENUE_PREFIX = "[REV] ";
     // Temporary debug marker for maintenance/cost lines in the UI.
@@ -31,6 +36,7 @@ public class World {
 
         this.map = new GameMap(width, height);
         this.roads = new RoadNetwork();
+        this.bridgeCatalog = new ArrayList<>(DEFAULT_BRIDGE_CATALOG);
 
         WorldInitializer.initialize(this);
     }
@@ -101,7 +107,7 @@ public class World {
 
     public RoadNetwork getRoadNetwork() { return roads; }
 
-    public List<BridgeSpec> getBridgeCatalog() { return bridgeCatalog; }
+    public List<BridgeSpec> getBridgeCatalog() { return Collections.unmodifiableList(bridgeCatalog); }
 
     // Temporary debug helper for transport event messages.
     public void pushDebugMessage(String message) {
@@ -153,11 +159,29 @@ public class World {
     }
 
     public void buildRoad(GridPos pos) {
+        if (!canBuildAt(pos)) {
+            throw new IllegalArgumentException("Cannot build road at: " + pos);
+        }
+
         Tile tile = map.getTile(pos);
 
         RoadPiece piece = new RoadPiece(RoadKind.ROAD, null);
         piece.addTile(tile);
         tile.setRoadPiece(piece);
+
+        roads.rebuild(map);
+    }
+
+    public void buildBridge(List<GridPos> line, BridgeType type) {
+        BridgeSpec spec = getBridgeSpec(type);
+        validateBridgeLine(line, spec);
+
+        RoadPiece bridge = new RoadPiece(RoadKind.BRIDGE, spec);
+        for (GridPos pos : line) {
+            Tile tile = map.getTile(pos);
+            bridge.addTile(tile);
+            tile.setRoadPiece(bridge);
+        }
 
         roads.rebuild(map);
     }
@@ -238,14 +262,16 @@ public class World {
         }
 
         // 2. record to tick the new spread forest location
-        List<GridPos> newForests = new ArrayList<>();
+        Set<GridPos> newForests = new LinkedHashSet<>();
 
         for (Tile tile : map.getAllTiles()) {
             Terrain t = tile.getTerrain();
 
-            // when is full then spread
-            if (t instanceof Forest forest && forest.getTrees() == 4) {
-                spreadForest(tile.getPos(), newForests);
+            if (t instanceof Forest forest) {
+                int attempts = forest.consumeSpreadAttempts(deltaTime);
+                for (int i = 0; i < attempts; i++) {
+                    spreadForest(tile.getPos(), newForests);
+                }
             }
         }
 
@@ -268,7 +294,7 @@ public class World {
     }
 
     // Forest tick helper fn
-    private void spreadForest(GridPos origin, List<GridPos> newForests) {
+    private void spreadForest(GridPos origin, Set<GridPos> newForests) {
 
         int[][] dirs = {
                 {1, 0}, {-1, 0}, {0, 1}, {0, -1}
@@ -297,6 +323,58 @@ public class World {
                 tile.getStop() == null &&
                 tile.getGarage() == null &&
                 tile.getEntity() == null;
+    }
+
+    public BridgeSpec getBridgeSpec(BridgeType type) {
+        if (type == null) {
+            throw new IllegalArgumentException("Bridge type cannot be null");
+        }
+
+        for (BridgeSpec spec : bridgeCatalog) {
+            if (spec.getType() == type) {
+                return spec;
+            }
+        }
+        throw new IllegalArgumentException("Unknown bridge type: " + type);
+    }
+
+    private void validateBridgeLine(List<GridPos> line, BridgeSpec spec) {
+        if (line == null || line.isEmpty()) {
+            throw new IllegalArgumentException("Bridge line cannot be empty");
+        }
+        if (line.size() > spec.getMaxSpanTiles()) {
+            throw new IllegalArgumentException("Bridge span exceeds maxSpanTiles for " + spec.getType());
+        }
+
+        boolean touchesWater = false;
+        GridPos previous = null;
+        for (GridPos pos : line) {
+            if (pos == null || !map.inBounds(pos)) {
+                throw new IllegalArgumentException("Bridge tile out of bounds: " + pos);
+            }
+
+            Tile tile = map.getTile(pos);
+            if (!isEmptyTile(tile)) {
+                throw new IllegalArgumentException("Bridge tile is occupied: " + pos);
+            }
+
+            if (tile.getTerrain().isWater()) {
+                touchesWater = true;
+            }
+
+            if (previous != null) {
+                int dx = Math.abs(pos.x - previous.x);
+                int dy = Math.abs(pos.y - previous.y);
+                if (dx + dy != 1) {
+                    throw new IllegalArgumentException("Bridge line must be contiguous: " + previous + " -> " + pos);
+                }
+            }
+            previous = pos;
+        }
+
+        if (!touchesWater) {
+            throw new IllegalArgumentException("Bridge line must cross at least one water tile");
+        }
     }
 
 
