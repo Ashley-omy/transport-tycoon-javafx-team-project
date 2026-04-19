@@ -24,10 +24,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class EntityRenderer {
+    private static final String CITY_TEXTURE_PATH = "/textures/City.png";
     private static final String MINE_TEXTURE_PATH = "/textures/Mine.png";
     private static final String FACILITY_TEXTURE_PATH = "/textures/Facility.png";
     private static final String GARAGE_TEXTURE_PATH = "/textures/Garage.png";
 
+    private static final Image CITY_TEXTURE = loadTexture(CITY_TEXTURE_PATH);
     private static final Image MINE_TEXTURE = loadTexture(MINE_TEXTURE_PATH);
     private static final Image FACILITY_TEXTURE = loadTexture(FACILITY_TEXTURE_PATH);
     private static final Image GARAGE_TEXTURE = loadTexture(GARAGE_TEXTURE_PATH);
@@ -39,12 +41,14 @@ public class EntityRenderer {
 
         MapEntity entity = t.getEntity();
         if (entity instanceof City city) {
-            // Keep city internal road tiles visible; color only non-internal city tiles.
-            boolean hideCityFillForInternalRoad = t.getRoadPiece() != null
-                    && city.hasInternalRoadAt(t.getPos());
-            if (!hideCityFillForInternalRoad) {
-                gc.setFill(Color.DARKRED);
-                gc.fillRect(pos.x, pos.y, size, size);
+            if (isTopLeftCityBlockTile(city, t)) {
+                double blockSize = size * 2.0;
+                if (CITY_TEXTURE != null && !CITY_TEXTURE.isError()) {
+                    gc.drawImage(CITY_TEXTURE, pos.x, pos.y, blockSize, blockSize);
+                } else {
+                    gc.setFill(Color.DARKRED);
+                    gc.fillRect(pos.x, pos.y, blockSize, blockSize);
+                }
             }
         } else if (entity instanceof Mine mine) {
             // Mine footprint is 2x2; draw one sprite across all occupied tiles.
@@ -100,6 +104,56 @@ public class EntityRenderer {
 
         gc.setFill(fallbackColor);
         gc.fillRect(pos.x, pos.y, size, size);
+    }
+
+    private boolean isTopLeftCityBlockTile(City city, Tile currentTile) {
+        if (city == null || currentTile == null || currentTile.getPos() == null) {
+            return false;
+        }
+
+        int x = currentTile.getPos().x;
+        int y = currentTile.getPos().y;
+
+        // Draw only on non-internal-road city tiles.
+        if (city.hasInternalRoadAt(currentTile.getPos())) {
+            return false;
+        }
+
+        // Current tile must be a valid 2x2 block origin and not overlap with a
+        // valid origin from left/up.
+        if (!canDrawCityBlockAt(city, x, y)) {
+            return false;
+        }
+        if (canDrawCityBlockAt(city, x - 1, y)) {
+            return false;
+        }
+        return !canDrawCityBlockAt(city, x, y - 1);
+    }
+
+    private boolean canDrawCityBlockAt(City city, int x, int y) {
+        return cityOccupiesTile(city, x, y)
+                && cityOccupiesTile(city, x + 1, y)
+                && cityOccupiesTile(city, x, y + 1)
+                && cityOccupiesTile(city, x + 1, y + 1)
+                && !city.hasInternalRoadAt(new common.GridPos(x, y))
+                && !city.hasInternalRoadAt(new common.GridPos(x + 1, y))
+                && !city.hasInternalRoadAt(new common.GridPos(x, y + 1))
+                && !city.hasInternalRoadAt(new common.GridPos(x + 1, y + 1));
+    }
+
+    private boolean cityOccupiesTile(City city, int x, int y) {
+        if (city.getOccupiedTiles() == null || city.getOccupiedTiles().isEmpty()) {
+            return false;
+        }
+        for (Tile occupied : city.getOccupiedTiles()) {
+            if (occupied == null || occupied.getPos() == null) {
+                continue;
+            }
+            if (occupied.getPos().x == x && occupied.getPos().y == y) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isTopLeftEntityTile(MapEntity entity, Tile currentTile) {
