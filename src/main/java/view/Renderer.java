@@ -46,7 +46,7 @@ public class Renderer {
 
                 var tile = map.getTile(pos);
                 var screenPos = camera.tileToScreen(pos);
-                tileRenderer.drawTile(gc, tile, screenPos, tileSize);
+                tileRenderer.drawTile(gc, map, tile, screenPos, tileSize);
             }
         }
 
