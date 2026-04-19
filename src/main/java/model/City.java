@@ -132,6 +132,11 @@ public class City extends MapEntity {
 
             stop.enqueue(shipment);
         }
+        int totalEmitted = perStop * servedStops.size();
+        if (totalEmitted > 0) {
+            // Show demand generation feedback above the city for a short time.
+            pushEventDisplay("Demand +" + totalEmitted + " PASSENGERS");
+        }
     }
 
     /**

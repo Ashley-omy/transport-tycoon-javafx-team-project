@@ -101,6 +101,7 @@ public abstract class Facility extends MapEntity {
         int perStop = outputStock / servedStops.size();
         if (perStop <= 0) return;
 
+        int totalEmitted = 0;
         for (Stop stop : servedStops) {
             if (outputStock <= 0) break;
 
@@ -118,6 +119,12 @@ public abstract class Facility extends MapEntity {
 
             stop.enqueue(shipment);
             outputStock -= toEmit;
+            totalEmitted += toEmit;
+        }
+
+        if (totalEmitted > 0) {
+            // Show production/output demand feedback above facility/mine tiles.
+            pushEventDisplay("Demand +" + totalEmitted + " " + outputType);
         }
     }
 }
