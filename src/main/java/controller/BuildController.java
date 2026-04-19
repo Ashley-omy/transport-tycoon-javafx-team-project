@@ -103,6 +103,9 @@ public class BuildController {
         if (tile.getRoadPiece() == null) {
             return ActionResult.fail("No road to remove");
         }
+        if (tile.getEntity() instanceof City city && city.hasInternalRoadAt(pos)) {
+            return ActionResult.fail("City internal roads cannot be removed");
+        }
 
         for (Vehicle v : company.getFleet()) {
             if (v.isUsingTile(pos)) {

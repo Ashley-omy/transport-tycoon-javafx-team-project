@@ -38,25 +38,7 @@ public class GameMap {
             }
         }
 
-        initializeWaterTiles();
-    }
-
-    private void initializeWaterTiles() {
-        for (int x = 2; x < width - 2; ++x) {
-            setTerrainIfInBounds(new GridPos(x, height / 3), new Water(WaterType.RIVER));
-        }
-
-        for (int x = Math.max(0, width - 6); x < width - 2; ++x) {
-            for (int y = Math.max(0, height - 6); y < height - 2; ++y) {
-                setTerrainIfInBounds(new GridPos(x, y), new Water(WaterType.LAKE));
-            }
-        }
-    }
-
-    private void setTerrainIfInBounds(GridPos pos, Terrain terrain) {
-        if (inBounds(pos)) {
-            tiles[pos.x][pos.y].setTerrain(terrain);
-        }
+        WorldInitializer.initializeMapWater(this);
     }
 
     // #66 Implement map bounds checking

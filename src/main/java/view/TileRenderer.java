@@ -12,6 +12,7 @@ package view;
 import common.Vec2;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import model.City;
 import model.Factory;
 import model.Mine;
 import model.Tile;
@@ -31,19 +32,18 @@ public class TileRenderer {
 
         gc.fillRect(pos.x, pos.y, size, size);
 
-        // Grid border
-        gc.setStroke(Color.DARKGREEN);
-        gc.strokeRect(pos.x, pos.y, size, size);
-
-        // Road overlay (simple)
+        // Road overlay
         if (t.getRoadPiece() != null) {
             gc.setFill(Color.DARKGRAY);
-            gc.fillRect(pos.x + size * 0.2, pos.y + size * 0.2,
-                    size * 0.6, size * 0.6);
+            gc.fillRect(pos.x, pos.y, size, size);
         }
-        if (t.getEntity() != null) {
+        boolean hideCityFillForInternalRoad = t.getEntity() instanceof City city
+                && t.getRoadPiece() != null
+                && city.hasInternalRoadAt(t.getPos());
+
+        if (t.getEntity() != null && !hideCityFillForInternalRoad) {
             if (t.getEntity() instanceof Factory) {
-                gc.setFill(Color.MEDIUMPURPLE);
+                gc.setFill(Color.GRAY);
             } else if (t.getEntity() instanceof Mine) {
                 gc.setFill(Color.SADDLEBROWN);
             } else {
@@ -57,5 +57,9 @@ public class TileRenderer {
             gc.fillRect(pos.x + size * 0.2, pos.y + size * 0.2,
                     size * 0.6, size * 0.6);
         }
+
+        // Grid border
+        gc.setStroke(Color.DARKGREEN);
+        gc.strokeRect(pos.x, pos.y, size, size);
     }
 }

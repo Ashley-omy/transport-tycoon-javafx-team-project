@@ -9,17 +9,23 @@ import java.util.*;
 
 public class RoadNetwork {
     private final Set<GridPos> roadTiles = new HashSet<>();
+    // Predefined, unmodifiable intra-city roads represented by city footprint tiles.
+    private final Set<GridPos> cityRoadTiles = new HashSet<>();
+    // Traversable graph nodes used by pathfinding (player roads + city internal roads).
+    private final Set<GridPos> networkTiles = new HashSet<>();
 
-    // wanna make an adjacency list: road tile -> its connected neighbors
+    // adjacency list: traversable tile -> connected traversable neighbors
     private final Map<GridPos, List<GridPos>> adjacency = new HashMap<>();
 
     public RoadNetwork() { }
 
     public void rebuild(GameMap map) {
         roadTiles.clear();
+        cityRoadTiles.clear();
+        networkTiles.clear();
         adjacency.clear();
 
-        // step 1: we collect all road tiles
+        // step 1: collect player-built roads and predefined city-internal roads
         for (int x = 0; x < map.getWidth(); ++x) {
             for (int y = 0; y < map.getHeight(); ++y) {
                 GridPos pos = new GridPos(x, y);
@@ -28,15 +34,20 @@ public class RoadNetwork {
                 if (tile.getRoadPiece() != null) {
                     roadTiles.add(pos);
                 }
+                if (tile.getEntity() instanceof City city && city.hasInternalRoadAt(pos)) {
+                    cityRoadTiles.add(pos);
+                }
             }
         }
+        networkTiles.addAll(roadTiles);
+        networkTiles.addAll(cityRoadTiles);
 
         // step 2: crate adjacency list
-        for(GridPos pos : roadTiles) {
+        for(GridPos pos : networkTiles) {
             List<GridPos> neighbors = new ArrayList<>();
 
             for (GridPos p : getFourNeighbors(pos)) {
-                if (roadTiles.contains(p)) {
+                if (networkTiles.contains(p)) {
                     neighbors.add(p);
                 }
             }
@@ -63,7 +74,7 @@ public class RoadNetwork {
         if (start == null || target == null) {
             return List.of();
         }
-        if (!roadTiles.contains(start) || !roadTiles.contains(target)) {
+        if (!networkTiles.contains(start) || !networkTiles.contains(target)) {
             return List.of();
         }
         if (start.equals(target)) {

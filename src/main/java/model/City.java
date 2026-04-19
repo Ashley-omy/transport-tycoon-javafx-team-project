@@ -10,6 +10,7 @@ import java.util.Map;
  */
 public class City extends MapEntity {
     private static final int STANDARD_POPULATION = 5000;
+    private static final int CITY_FOOTPRINT = 5;
     private static final double DEMAND_INCREASE_RATE = 0.5; // Units per second
     private static final int INITIAL_DEMAND = 50;
     private static final int MAX_DEMAND = 500;
@@ -22,7 +23,7 @@ public class City extends MapEntity {
     private double passengerDemand;  // Current demand for passengers
 
     public City(Id id) {
-        super(id, 3);
+        super(id, CITY_FOOTPRINT);
         this.population = STANDARD_POPULATION;
         this.receivedGoods = new HashMap<>();
         this.receivedPassengers = 0;
@@ -56,6 +57,34 @@ public class City extends MapEntity {
     
     public int getPassengerDemand() {
         return (int) passengerDemand;
+    }
+
+    /**
+     * Internal city roads are tile-based crossing lanes:
+     * center row and center column of the city footprint.
+     * For a 5x5 city, that means row 3 and column 3.
+     */
+    public boolean hasInternalRoadAt(GridPos pos) {
+        if (pos == null || occupiedTiles.isEmpty()) {
+            return false;
+        }
+
+        int minX = Integer.MAX_VALUE;
+        int maxX = Integer.MIN_VALUE;
+        int minY = Integer.MAX_VALUE;
+        int maxY = Integer.MIN_VALUE;
+
+        for (Tile tile : occupiedTiles) {
+            GridPos tilePos = tile.getPos();
+            minX = Math.min(minX, tilePos.x);
+            maxX = Math.max(maxX, tilePos.x);
+            minY = Math.min(minY, tilePos.y);
+            maxY = Math.max(maxY, tilePos.y);
+        }
+
+        int centerX = (minX + maxX) / 2;
+        int centerY = (minY + maxY) / 2;
+        return pos.x == centerX || pos.y == centerY;
     }
 
     /**
@@ -128,4 +157,3 @@ public class City extends MapEntity {
         }
     }
 }
-

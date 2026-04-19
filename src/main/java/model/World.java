@@ -32,10 +32,10 @@ public class World {
         this.map = new GameMap(width, height);
         this.roads = new RoadNetwork();
 
-        placeInitialEntities();
+        WorldInitializer.initialize(this);
     }
 
-    // place city(3*3) / facility(2*2) FOOTPRINT logic
+    // place city(5*5) / facility(2*2) FOOTPRINT logic
     public void placeEntity(MapEntity entity, GridPos center) {
         int w = entity.getFootprintW();
         int startOffset = -(w / 2);
@@ -60,22 +60,25 @@ public class World {
                 entity.getOccupiedTiles().add(t);
             }
         }
+
+        if (entity instanceof City city) {
+            initializeCityInternalRoads(city);
+        }
     }
 
-    // for place some cities and facilities for MS2
-    private void placeInitialEntities() {
-        City c1 = new City(Id.genNew());
-        placeEntity(c1, new GridPos(5, 5));
-
-        Facility steelMill = Factory.createSteelMill(Id.genNew());
-        placeEntity(steelMill, new GridPos(10, 10));
-
-        Facility ironMine = Mine.createIronMine(Id.genNew());
-        placeEntity(ironMine, new GridPos(15, 15));
-
-        // Start with one garage connected to a short road so garage workflows are usable immediately.
-        buildRoad(new GridPos(7, 5));
-        //buildGarage(new GridPos(8, 4), 10, 2);
+    // Initialize fixed city-internal road tiles (center row + center column).
+    private void initializeCityInternalRoads(City city) {
+        for (Tile tile : city.getOccupiedTiles()) {
+            if (!city.hasInternalRoadAt(tile.getPos())) {
+                continue;
+            }
+            if (tile.getRoadPiece() != null) {
+                continue;
+            }
+            RoadPiece internalRoad = new RoadPiece(RoadKind.ROAD, null);
+            internalRoad.addTile(tile);
+            tile.setRoadPiece(internalRoad);
+        }
     }
 
     public static final Money ROAD_BUILD_COST = Money.of(150);
