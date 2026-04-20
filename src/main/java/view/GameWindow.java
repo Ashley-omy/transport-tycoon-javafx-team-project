@@ -19,6 +19,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -31,6 +32,7 @@ public class GameWindow extends BorderPane {
     private static final int MAP_VIEW_WIDTH = 1000;
     private static final int MAP_VIEW_HEIGHT = 700;
     private static final int BUILD_PANE_TO_MAP_GAP = 16;
+    private static final String CENTER_BACKGROUND_STYLE = "-fx-background-color: black;";
 
     // --- View ---
     private final MapView mapView;
@@ -69,26 +71,30 @@ public class GameWindow extends BorderPane {
         this.minimapView = new MinimapView(mapView.getCamera());
         this.controlPanes = new ControlPanes(uiState, timeController);
 
-        StackPane topOverlay = new StackPane(hudView, controlPanes.getSpeedPane());
-        StackPane.setAlignment(hudView, Pos.TOP_LEFT);
-        StackPane.setAlignment(controlPanes.getSpeedPane(), Pos.TOP_RIGHT);
-        StackPane.setMargin(controlPanes.getSpeedPane(), new Insets(0, 16, 0, 0));
+        BorderPane topOverlay = new BorderPane();
+        topOverlay.setLeft(hudView);
+        topOverlay.setRight(controlPanes.getSpeedPane());
+        BorderPane.setAlignment(hudView, Pos.TOP_LEFT);
+        BorderPane.setAlignment(controlPanes.getSpeedPane(), Pos.TOP_RIGHT);
+        BorderPane.setMargin(controlPanes.getSpeedPane(), new Insets(0, 16, 0, 0));
 
         // Layout
+        HBox leftPlayArea = new HBox(BUILD_PANE_TO_MAP_GAP, controlPanes.getBuildPane(), mapView);
+        leftPlayArea.setAlignment(Pos.TOP_LEFT);
+        leftPlayArea.setFillHeight(false);
+        leftPlayArea.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+
         VBox rightOverlay = new VBox(12, minimapView);
         rightOverlay.setAlignment(Pos.TOP_RIGHT);
         rightOverlay.setFillWidth(false);
         rightOverlay.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 
-        StackPane center = new StackPane(mapView, rightOverlay, controlPanes.getBuildPane());
-        StackPane.setAlignment(mapView, Pos.CENTER_RIGHT);
+        StackPane center = new StackPane(leftPlayArea, rightOverlay);
+        center.setAlignment(Pos.TOP_LEFT);
+        center.setPadding(new Insets(16));
+        center.setStyle(CENTER_BACKGROUND_STYLE);
+        StackPane.setAlignment(leftPlayArea, Pos.TOP_LEFT);
         StackPane.setAlignment(rightOverlay, Pos.TOP_RIGHT);
-        StackPane.setMargin(rightOverlay, new Insets(16));
-        StackPane.setAlignment(controlPanes.getBuildPane(), Pos.TOP_RIGHT);
-        StackPane.setMargin(
-                controlPanes.getBuildPane(),
-                new Insets(16, MAP_VIEW_WIDTH + BUILD_PANE_TO_MAP_GAP, 0, 0)
-        );
         this.setCenter(center);
         this.setTop(topOverlay);
 
