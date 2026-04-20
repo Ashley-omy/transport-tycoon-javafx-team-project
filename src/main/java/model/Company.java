@@ -8,7 +8,6 @@ import java.util.List;
 public class Company {
     private final Economy economy;
     private final List<Vehicle> fleet = new ArrayList<>();
-    // Temporary debug hook so maintenance deductions can be shown in the debug window.
     private World world;
 
     public static final Money DEFAULT_STARTING_CAPITAL = Money.of(100_000);
@@ -103,7 +102,12 @@ public class Company {
         );
 
         if (world != null) {
-            world.pushCostMessage("Maintenance fee: -" + cost + " for vehicle " + vehicle.getId());
+            String maintenanceText = "-" + cost.amount();
+            world.pushCostMessage("Maintenance fee: " + maintenanceText);
+            Garage homeGarage = vehicle.getHomeGarage();
+            if (homeGarage != null) {
+                homeGarage.pushEventDisplay(maintenanceText);
+            }
         }
 
         if (!paid) {

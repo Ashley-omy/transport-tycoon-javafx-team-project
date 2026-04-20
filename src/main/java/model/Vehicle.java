@@ -99,7 +99,6 @@ public abstract class Vehicle {
         return homeGarage != null && timeSinceLastMaintenance >= getMaintenanceInterval();
     }
 
-    // Temporary debug access so stops can publish transport event messages.
     public World getWorld() { return world; }
 
     // Route assignment methods
@@ -236,7 +235,6 @@ public abstract class Vehicle {
         if (owner != null && payout.isPositive()) {
             owner.completeShipmentWithPayout(payout);
             if (world != null) {
-                // Temporary debug message for verifying delivery revenue.
                 world.pushRevenueMessage("Revenue earned: +" + payout + " at " + describeEntity(stop.getServedPlace()));
             }
         }
@@ -524,7 +522,7 @@ public abstract class Vehicle {
         targetStopIndex = -1;
         state = VehicleState.ON_ROUTE;
         if (world != null) {
-            world.pushDebugMessage("Vehicle " + id + " returning to garage (age: " +
+            world.pushMessage("Vehicle " + id + " returning to garage (age: " +
                     String.format("%.0f", age) + "s, interval: " +
                     String.format("%.0f", getMaintenanceInterval()) + "s)");
         }
@@ -539,7 +537,7 @@ public abstract class Vehicle {
         maintenanceTimer = 0.0;
         state = VehicleState.IN_GARAGE;
         if (world != null) {
-            world.pushDebugMessage("Vehicle " + id + " arrived at garage");
+            world.pushMessage("Vehicle " + id + " arrived at garage");
         }
     }
 
@@ -595,7 +593,7 @@ public abstract class Vehicle {
         maintenanceTimer = 0.0;
         restoreProgressAfterMaintenance();
         if (world != null) {
-            world.pushDebugMessage("Maintenance complete: " + id);
+            world.pushMessage("Maintenance complete: " + id);
         }
     }
 
@@ -717,7 +715,6 @@ public abstract class Vehicle {
         return null;
     }
 
-    // Temporary debug formatter for transport event messages.
     private String describeEntity(MapEntity entity) {
         return entity.getClass().getSimpleName();
     }

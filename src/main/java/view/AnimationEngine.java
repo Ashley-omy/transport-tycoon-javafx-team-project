@@ -32,7 +32,7 @@ public class AnimationEngine {
 
     public double getGameTime(){return gameTime;}
 
-    public Vec2 interpolateVehicle(common.GridPos tilePos, double progress) {
-        return new Vec2(tilePos.x, tilePos.y);
-    }
+//    public Vec2 interpolateVehicle(common.GridPos tilePos, double progress) {
+//        return new Vec2(tilePos.x, tilePos.y);
+//    }
 }

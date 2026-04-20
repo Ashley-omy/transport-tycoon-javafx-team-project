@@ -18,9 +18,7 @@ public class World {
             new BridgeSpec(BridgeType.TYPE_B, 7, Money.of(1_100), 1.5),
             new BridgeSpec(BridgeType.TYPE_C, 10, Money.of(1_800), 2.0)
     );
-    // Temporary debug marker for revenue lines in the UI.
     private static final String REVENUE_PREFIX = "[REV] ";
-    // Temporary debug marker for maintenance/cost lines in the UI.
     private static final String COST_PREFIX = "[COST] ";
 
     private GameMap map;
@@ -28,8 +26,7 @@ public class World {
     private List<BridgeSpec> bridgeCatalog = new ArrayList<>();
     long rngSeed;
     private double supplyEmitTimer = 0.0;
-    // Temporary debug buffer. Safe to remove when the debug UI is no longer needed.
-    private final List<String> debugMessages = new ArrayList<>();
+    private final List<String> hudMessages = new ArrayList<>();
 
     // later need to modify (bridge + rngspeed)
     public World(int width, int height){
@@ -109,46 +106,39 @@ public class World {
 
     public List<BridgeSpec> getBridgeCatalog() { return Collections.unmodifiableList(bridgeCatalog); }
 
-    // Temporary debug helper for transport event messages.
-    public void pushDebugMessage(String message) {
+    public void pushMessage(String message) {
         if (message == null || message.isBlank()) return;
-        debugMessages.add(message);
+        hudMessages.add(message);
     }
 
-    // Temporary debug helper for revenue messages.
     public void pushRevenueMessage(String message) {
         if (message == null || message.isBlank()) return;
-        debugMessages.add(REVENUE_PREFIX + message);
+        hudMessages.add(REVENUE_PREFIX + message);
     }
 
-    // Temporary debug helper for maintenance and other cost messages.
     public void pushCostMessage(String message) {
         if (message == null || message.isBlank()) return;
-        debugMessages.add(COST_PREFIX + message);
+        hudMessages.add(COST_PREFIX + message);
     }
 
-    // Temporary debug helper consumed by the right-side debug panel.
-    public List<String> drainDebugMessages() {
-        if (debugMessages.isEmpty()) {
+    public List<String> drainMessages() {
+        if (hudMessages.isEmpty()) {
             return List.of();
         }
-        List<String> drained = new ArrayList<>(debugMessages);
-        debugMessages.clear();
+        List<String> drained = new ArrayList<>(hudMessages);
+        hudMessages.clear();
         return Collections.unmodifiableList(drained);
     }
 
-    // Temporary debug helper for coloring revenue lines.
     public boolean isRevenueMessage(String message) {
         return message != null && message.startsWith(REVENUE_PREFIX);
     }
 
-    // Temporary debug helper for coloring maintenance/cost lines.
     public boolean isCostMessage(String message) {
         return message != null && message.startsWith(COST_PREFIX);
     }
 
-    // Temporary debug helper for hiding the internal revenue prefix from the UI text.
-    public String stripDebugPrefix(String message) {
+    public String stripMessagePrefix(String message) {
         if (isRevenueMessage(message)) {
             return message.substring(REVENUE_PREFIX.length());
         }
@@ -393,7 +383,7 @@ public class World {
     }
     
     private List<Garage> collectGarages() {
-        List<Garage> garages = new ArrayList<>();
+        Set<Garage> garages = new LinkedHashSet<>();
         for (Tile[] column : map.getTiles()) {
             for (Tile tile : column) {
                 if (tile.getGarage() != null) {
@@ -401,6 +391,7 @@ public class World {
                 }
             }
         }
-        return garages;
+        return new ArrayList<>(garages);
     }
+
 }
