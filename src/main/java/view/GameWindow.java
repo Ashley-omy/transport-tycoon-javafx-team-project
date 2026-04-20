@@ -167,14 +167,23 @@ public class GameWindow extends BorderPane {
     public void render() {
         mapView.render();
         minimapView.render();
+        boolean showedRevenueMessage = false;
+        boolean showedCostMessage = false;
         for (String message : world.drainMessages()) {
             if (world.isCostMessage(message)) {
                 hudView.showCostMessage(world.stripMessagePrefix(message));
+                showedCostMessage = true;
+            } else if (world.isRevenueMessage(message)) {
+                hudView.showEarnMessage(world.stripMessagePrefix(message));
+                showedRevenueMessage = true;
             }
         }
         Money currentCash = company.getEconomy().getCash();
-        if (currentCash.greaterThan(lastRenderedCash)) {
-            hudView.showEarnMessage(currentCash.subtract(lastRenderedCash));
+        Money cashDelta = currentCash.subtract(lastRenderedCash);
+        if (cashDelta.isPositive() && !showedRevenueMessage) {
+            hudView.showEarnMessage(cashDelta);
+        } else if (cashDelta.isNegative() && !showedCostMessage) {
+            hudView.showCostMessage("spend -" + cashDelta.abs().amount() + " coins");
         }
         lastRenderedCash = currentCash;
         hudView.render(
