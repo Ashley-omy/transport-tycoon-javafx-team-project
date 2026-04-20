@@ -15,6 +15,8 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import model.Forest;
 import model.GameMap;
+import model.RoadKind;
+import model.RoadPiece;
 import model.Tile;
 
 import java.io.InputStream;
@@ -38,6 +40,7 @@ public class TileRenderer {
 
     public void drawTile(GraphicsContext gc, GameMap map, Tile t, Vec2 pos, int size) {
         boolean baseTileAlreadyDrawn = false;
+        boolean bridgeTileDrawn = false;
 
         // Simple color by terrain
         if (t.isWater()) {
@@ -66,17 +69,38 @@ public class TileRenderer {
 
         // Road overlay
         if (t.getRoadPiece() != null) {
-            Image roadTexture = resolveRoadTexture(map, t);
-            if (roadTexture != null && !roadTexture.isError()) {
-                gc.drawImage(roadTexture, pos.x, pos.y, size, size);
+            RoadPiece roadPiece = t.getRoadPiece();
+            if (roadPiece.getKind() == RoadKind.BRIDGE) {
+                Color bridgeColor = BridgeVisuals.colorFor(
+                        roadPiece.getBridgeSpec() == null ? null : roadPiece.getBridgeSpec().getType()
+                );
+
+                // Slightly overlap neighbors to hide tiny seams between adjacent bridge tiles.
+                gc.setFill(bridgeColor);
+                gc.fillRect(pos.x - 0.5, pos.y - 0.5, size + 1.0, size + 1.0);
+
+                // Draw an inner border so each bridge tile still has a clear edge.
+                gc.setStroke(bridgeColor.darker());
+                gc.setLineWidth(1.0);
+                gc.strokeRect(pos.x + 0.5, pos.y + 0.5, size - 1.0, size - 1.0);
+                bridgeTileDrawn = true;
             } else {
-                gc.setFill(Color.DARKGRAY);
-                gc.fillRect(pos.x, pos.y, size, size);
+                Image roadTexture = resolveRoadTexture(map, t);
+                if (roadTexture != null && !roadTexture.isError()) {
+                    gc.drawImage(roadTexture, pos.x, pos.y, size, size);
+                } else {
+                    gc.setFill(Color.DARKGRAY);
+                    gc.fillRect(pos.x, pos.y, size, size);
+                }
             }
         }
-        // Grid border
-        gc.setStroke(t.isWater() ? Color.LIGHTBLUE : Color.DARKGREEN);
-        gc.strokeRect(pos.x, pos.y, size, size);
+
+        if (!bridgeTileDrawn) {
+            // Grid border
+            gc.setStroke(t.isWater() ? Color.LIGHTBLUE : Color.DARKGREEN);
+            gc.setLineWidth(1.0);
+            gc.strokeRect(pos.x, pos.y, size, size);
+        }
     }
 
     private Image resolveForestTexture(Tile tile) {

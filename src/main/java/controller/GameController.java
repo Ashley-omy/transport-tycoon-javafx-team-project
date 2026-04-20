@@ -15,10 +15,11 @@ import common.Vec2;
 import javafx.animation.AnimationTimer;
 import model.Game;
 import view.BuildMode;
+import view.BridgeTypePane;
 import view.GaragePane;
 import view.GameWindow;
+import view.UIState;
 import model.*;
-import view.BuildMode.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -36,6 +37,7 @@ public class GameController {
     private BuildController build;
     private FleetController fleet;
     private final GaragePane garagePane;
+    private final BridgeTypePane bridgeTypePane;
     private final List<Stop> pendingRouteStops = new ArrayList<>();
     // Shared drag state used by both camera panning and drag-build interactions.
     private Vec2 lastDragMousePos;
@@ -62,6 +64,10 @@ public class GameController {
         this.build = build;
         this.fleet = fleet;
         this.garagePane = new GaragePane(game.getCompany(), fleet, window.getControlPanes()::displayBuildResult);
+        this.bridgeTypePane = new BridgeTypePane(
+                game.getWorld().getBridgeCatalog(),
+                this::placePendingBridge
+        );
     }
 
     // Start game loop
@@ -92,6 +98,7 @@ public class GameController {
         List<InputEvent> events = input.poll();
         handleInput(events);
         handlePendingRoutePlacement();
+        handlePendingBridgeTypeSelection();
 
         // 2. Update game logic
         if (time.getSpeed() != TimeSpeed.PAUSE) {
@@ -183,6 +190,10 @@ public class GameController {
                      result = build.buildStop(pos);
                      window.getControlPanes().displayBuildResult(result);
                 }
+                break;
+            case BRIDGE:
+                pendingRouteStops.clear();
+                collectBridgeTile();
                 break;
             case GARAGE:
                 pendingRouteStops.clear();
@@ -347,6 +358,39 @@ public class GameController {
         );
     }
 
+    private void collectBridgeTile() {
+        GridPos pos = selection.getSelectedTile();
+        if (pos == null) {
+            return;
+        }
+
+        UIState uiState = window.getUIState();
+        if (uiState.hasPendingBridgeTile(pos)) {
+            window.getControlPanes().displayBuildResult(ActionResult.fail("That bridge tile is already selected"));
+            return;
+        }
+
+        GridPos lastSelected = uiState.getLastPendingBridgeTile();
+        if (lastSelected != null) {
+            int dx = Math.abs(pos.x - lastSelected.x);
+            int dy = Math.abs(pos.y - lastSelected.y);
+            if (dx + dy != 1) {
+                window.getControlPanes().displayBuildResult(
+                        ActionResult.fail("Bridge tiles must be contiguous (click adjacent tiles)")
+                );
+                return;
+            }
+        }
+
+        uiState.addPendingBridgeTile(pos);
+        window.getControlPanes().displayBuildResult(
+                ActionResult.success(
+                        "Selected " + uiState.getPendingBridgeTiles().size()
+                                + " bridge tile(s). Press Bridge again to choose type."
+                )
+        );
+    }
+
     private void handlePendingRoutePlacement() {
         if (!window.getUIState().consumeRoutePlacementRequest()) {
             return;
@@ -358,6 +402,36 @@ public class GameController {
             window.getUIState().setBuildMode(BuildMode.NONE);
         }
         window.getControlPanes().displayBuildResult(result);
+    }
+
+    private void handlePendingBridgeTypeSelection() {
+        UIState uiState = window.getUIState();
+        if (!uiState.consumeBridgeTypeSelectionRequest()) {
+            return;
+        }
+        if (!uiState.hasPendingBridgeTiles()) {
+            window.getControlPanes().displayBuildResult(
+                    ActionResult.fail("Select bridge tiles first, then press Bridge again")
+            );
+            return;
+        }
+        bridgeTypePane.showForBridgeSelection(window.getScene() == null ? null : window.getScene().getWindow());
+    }
+
+    private void placePendingBridge(BridgeType selectedType) {
+        UIState uiState = window.getUIState();
+        List<GridPos> selectedLine = uiState.getPendingBridgeTiles();
+        if (selectedLine.isEmpty()) {
+            window.getControlPanes().displayBuildResult(ActionResult.fail("No bridge tiles selected"));
+            return;
+        }
+
+        ActionResult result = build.buildBridge(selectedLine, selectedType);
+        window.getControlPanes().displayBuildResult(result);
+        if (result.isSuccess()) {
+            uiState.clearPendingBridgeTiles();
+            uiState.setBuildMode(BuildMode.NONE);
+        }
     }
 
     private void handleKey(InputEvent e) {
