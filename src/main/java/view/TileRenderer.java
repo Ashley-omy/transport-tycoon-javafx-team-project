@@ -40,6 +40,7 @@ public class TileRenderer {
 
     public void drawTile(GraphicsContext gc, GameMap map, Tile t, Vec2 pos, int size) {
         boolean baseTileAlreadyDrawn = false;
+        boolean bridgeTileDrawn = false;
 
         // Simple color by terrain
         if (t.isWater()) {
@@ -70,10 +71,19 @@ public class TileRenderer {
         if (t.getRoadPiece() != null) {
             RoadPiece roadPiece = t.getRoadPiece();
             if (roadPiece.getKind() == RoadKind.BRIDGE) {
-                gc.setFill(BridgeVisuals.colorFor(
+                Color bridgeColor = BridgeVisuals.colorFor(
                         roadPiece.getBridgeSpec() == null ? null : roadPiece.getBridgeSpec().getType()
-                ));
-                gc.fillRect(pos.x, pos.y, size, size);
+                );
+
+                // Slightly overlap neighbors to hide tiny seams between adjacent bridge tiles.
+                gc.setFill(bridgeColor);
+                gc.fillRect(pos.x - 0.5, pos.y - 0.5, size + 1.0, size + 1.0);
+
+                // Draw an inner border so each bridge tile still has a clear edge.
+                gc.setStroke(bridgeColor.darker());
+                gc.setLineWidth(1.0);
+                gc.strokeRect(pos.x + 0.5, pos.y + 0.5, size - 1.0, size - 1.0);
+                bridgeTileDrawn = true;
             } else {
                 Image roadTexture = resolveRoadTexture(map, t);
                 if (roadTexture != null && !roadTexture.isError()) {
@@ -84,9 +94,13 @@ public class TileRenderer {
                 }
             }
         }
-        // Grid border
-        gc.setStroke(t.isWater() ? Color.LIGHTBLUE : Color.DARKGREEN);
-        gc.strokeRect(pos.x, pos.y, size, size);
+
+        if (!bridgeTileDrawn) {
+            // Grid border
+            gc.setStroke(t.isWater() ? Color.LIGHTBLUE : Color.DARKGREEN);
+            gc.setLineWidth(1.0);
+            gc.strokeRect(pos.x, pos.y, size, size);
+        }
     }
 
     private Image resolveForestTexture(Tile tile) {
