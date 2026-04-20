@@ -3,7 +3,10 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package view;
+import common.GridPos;
+import common.Vec2;
 import javafx.scene.canvas.GraphicsContext;
+import javafx.scene.paint.Color;
 import model.GameMap;
 import model.Vehicle;
 
@@ -50,6 +53,8 @@ public class Renderer {
             }
         }
 
+        drawPendingBridgePreview(gc, map, camera, uiState, tileSize, startX, startY, endX, endY);
+
         // Pass 2: draw entities/stops/garages on top of the finished base.
         // Expand the scan range so multi-tile entities whose top-left tile is slightly
         // outside the viewport can still be drawn correctly.
@@ -72,5 +77,27 @@ public class Renderer {
 
         // Vehicles (draw after tiles)
         vehicleRenderer.draw(gc, vehicles, camera);
+    }
+
+    private void drawPendingBridgePreview(GraphicsContext gc, GameMap map, Camera camera, UIState uiState,
+                                          int tileSize, int startX, int startY, int endX, int endY) {
+        if (uiState == null || uiState.getBuildMode() != BuildMode.BRIDGE || !uiState.hasPendingBridgeTiles()) {
+            return;
+        }
+
+        gc.save();
+        gc.setFill(Color.DARKGRAY);
+        for (GridPos bridgeTile : uiState.getPendingBridgeTiles()) {
+            if (bridgeTile == null || !map.inBounds(bridgeTile)) {
+                continue;
+            }
+            if (bridgeTile.x < startX || bridgeTile.x >= endX || bridgeTile.y < startY || bridgeTile.y >= endY) {
+                continue;
+            }
+
+            Vec2 screenPos = camera.tileToScreen(bridgeTile);
+            gc.fillRect(screenPos.x, screenPos.y, tileSize, tileSize);
+        }
+        gc.restore();
     }
 }

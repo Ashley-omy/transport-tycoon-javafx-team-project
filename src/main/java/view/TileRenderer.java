@@ -15,6 +15,8 @@ import javafx.scene.image.Image;
 import javafx.scene.paint.Color;
 import model.Forest;
 import model.GameMap;
+import model.RoadKind;
+import model.RoadPiece;
 import model.Tile;
 
 import java.io.InputStream;
@@ -66,12 +68,20 @@ public class TileRenderer {
 
         // Road overlay
         if (t.getRoadPiece() != null) {
-            Image roadTexture = resolveRoadTexture(map, t);
-            if (roadTexture != null && !roadTexture.isError()) {
-                gc.drawImage(roadTexture, pos.x, pos.y, size, size);
-            } else {
-                gc.setFill(Color.DARKGRAY);
+            RoadPiece roadPiece = t.getRoadPiece();
+            if (roadPiece.getKind() == RoadKind.BRIDGE) {
+                gc.setFill(BridgeVisuals.colorFor(
+                        roadPiece.getBridgeSpec() == null ? null : roadPiece.getBridgeSpec().getType()
+                ));
                 gc.fillRect(pos.x, pos.y, size, size);
+            } else {
+                Image roadTexture = resolveRoadTexture(map, t);
+                if (roadTexture != null && !roadTexture.isError()) {
+                    gc.drawImage(roadTexture, pos.x, pos.y, size, size);
+                } else {
+                    gc.setFill(Color.DARKGRAY);
+                    gc.fillRect(pos.x, pos.y, size, size);
+                }
             }
         }
         // Grid border
