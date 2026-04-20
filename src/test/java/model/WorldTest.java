@@ -84,4 +84,5 @@ class WorldTest {
 
         assertThrows(IllegalArgumentException.class, () -> world.buildBridge(line, BridgeType.TYPE_A));
     }
+
 }

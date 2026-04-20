@@ -7,12 +7,14 @@ package model;
 import common.Id;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
 public class Garage {
     private static final int DEFAULT_STOCK_PER_TYPE = 2;
     private static final int DEFAULT_INITIAL_STOCK_SIZE = DEFAULT_STOCK_PER_TYPE * 2;
+    private static final double DEFAULT_EVENT_DISPLAY_SECONDS = 2.0;
 
     private final Id id;
     private final int capacity;
@@ -20,6 +22,7 @@ public class Garage {
 
     private final List<Vehicle> vehicles = new ArrayList<>();
     private final List<Tile> occupiedTiles = new ArrayList<>();
+    private final List<GarageEventDisplay> activeEventDisplays = new ArrayList<>();
     private Route route;
 
     public Garage(Id id, int capacity, int serviceBayCount, List<Tile> occupiedTiles) {
@@ -90,10 +93,48 @@ public class Garage {
         vehicles.remove(v);
     }
 
+    public void pushEventDisplay(String text) {
+        pushEventDisplay(text, DEFAULT_EVENT_DISPLAY_SECONDS);
+    }
+
+    public void pushEventDisplay(String text, double durationSeconds) {
+        if (text == null || text.isBlank()) {
+            return;
+        }
+        if (Double.isNaN(durationSeconds) || Double.isInfinite(durationSeconds) || durationSeconds <= 0.0) {
+            return;
+        }
+        activeEventDisplays.add(new GarageEventDisplay(text, durationSeconds));
+    }
+
+    public List<String> getActiveEventDisplayTexts() {
+        if (activeEventDisplays.isEmpty()) {
+            return List.of();
+        }
+        List<String> texts = new ArrayList<>(activeEventDisplays.size());
+        for (GarageEventDisplay display : activeEventDisplays) {
+            texts.add(display.text);
+        }
+        return Collections.unmodifiableList(texts);
+    }
+
+    public void tickEventDisplays(double deltaTime) {
+        if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) {
+            return;
+        }
+        Iterator<GarageEventDisplay> iterator = activeEventDisplays.iterator();
+        while (iterator.hasNext()) {
+            GarageEventDisplay display = iterator.next();
+            display.remainingSeconds -= deltaTime;
+            if (display.remainingSeconds <= 0.0) {
+                iterator.remove();
+            }
+        }
+    }
+
     public void tick(double deltaTime) {
         if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
-        // Garage mainly stores vehicles; actual maintenance is handled by Company
-        // Vehicles in garage are parked and not ticking
+        tickEventDisplays(deltaTime);
     }
 
     // Company.buyVehicle(v) is called by FleetController
@@ -121,5 +162,15 @@ public class Garage {
     private void stockVehicle(Vehicle vehicle) {
         vehicle.setHomeGarage(this);
         vehicles.add(vehicle);
+    }
+
+    private static final class GarageEventDisplay {
+        private final String text;
+        private double remainingSeconds;
+
+        private GarageEventDisplay(String text, double remainingSeconds) {
+            this.text = text;
+            this.remainingSeconds = remainingSeconds;
+        }
     }
 }

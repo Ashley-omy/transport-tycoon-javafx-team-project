@@ -167,7 +167,11 @@ public class GameWindow extends BorderPane {
     public void render() {
         mapView.render();
         minimapView.render();
-        world.drainDebugMessages();
+        for (String message : world.drainMessages()) {
+            if (world.isCostMessage(message)) {
+                hudView.showCostMessage(world.stripMessagePrefix(message));
+            }
+        }
         Money currentCash = company.getEconomy().getCash();
         if (currentCash.greaterThan(lastRenderedCash)) {
             hudView.showEarnMessage(currentCash.subtract(lastRenderedCash));

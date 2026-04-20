@@ -60,4 +60,19 @@ class GarageTest {
         assertTrue(garage.hasRoute());
         assertEquals(route, garage.getRoute());
     }
+
+    @Test
+    void garageEventDisplayExpiresAfterDuration() {
+        Tile tile = new Tile(new GridPos(1, 1), new Land());
+        Garage garage = new Garage(Id.genNew(), 10, 2, List.of(tile));
+
+        garage.pushEventDisplay("-120");
+        assertEquals(List.of("-120"), garage.getActiveEventDisplayTexts());
+
+        garage.tick(1.0);
+        assertEquals(List.of("-120"), garage.getActiveEventDisplayTexts());
+
+        garage.tick(1.1);
+        assertTrue(garage.getActiveEventDisplayTexts().isEmpty());
+    }
 }

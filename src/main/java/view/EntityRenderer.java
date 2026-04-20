@@ -16,6 +16,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.TextAlignment;
 import model.City;
 import model.Facility;
+import model.Garage;
 import model.MapEntity;
 import model.Mine;
 import model.Tile;
@@ -40,6 +41,7 @@ public class EntityRenderer {
     public void draw(GraphicsContext gc, Tile t, Vec2 pos, int size) {
         if (t.getGarage() != null) {
             drawSingleTileImageOrFallback(gc, GARAGE_TEXTURE, Color.ORANGE, pos, size);
+            drawGarageEventDisplays(gc, t.getGarage(), t, pos);
         }
 
         MapEntity entity = t.getEntity();
@@ -162,6 +164,33 @@ public class EntityRenderer {
         gc.restore();
     }
 
+    private void drawGarageEventDisplays(GraphicsContext gc, Garage garage, Tile currentTile, Vec2 currentPos) {
+        if (garage == null || currentTile == null || currentPos == null) {
+            return;
+        }
+        if (!isTopLeftGarageTile(garage, currentTile)) {
+            return;
+        }
+
+        List<String> messages = garage.getActiveEventDisplayTexts();
+        if (messages.isEmpty()) {
+            return;
+        }
+
+        gc.save();
+        gc.setFill(Color.WHITE);
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.BOTTOM);
+
+        for (int i = 0; i < messages.size(); i++) {
+            double textX = currentPos.x - 8.0;
+            double textY = currentPos.y - 4.0 - (i * 14.0);
+            gc.fillText(messages.get(i), textX, textY);
+        }
+
+        gc.restore();
+    }
+
     private boolean isTopLeftCityBlockTile(City city, Tile currentTile) {
         if (city == null || currentTile == null || currentTile.getPos() == null) {
             return false;
@@ -223,6 +252,31 @@ public class EntityRenderer {
         int minX = Integer.MAX_VALUE;
         int minY = Integer.MAX_VALUE;
         for (Tile occupied : entity.getOccupiedTiles()) {
+            if (occupied == null || occupied.getPos() == null) {
+                continue;
+            }
+            minX = Math.min(minX, occupied.getPos().x);
+            minY = Math.min(minY, occupied.getPos().y);
+        }
+
+        if (minX == Integer.MAX_VALUE || minY == Integer.MAX_VALUE) {
+            return true;
+        }
+
+        return currentTile.getPos().x == minX && currentTile.getPos().y == minY;
+    }
+
+    private boolean isTopLeftGarageTile(Garage garage, Tile currentTile) {
+        if (garage == null || currentTile == null || currentTile.getPos() == null) {
+            return false;
+        }
+        if (garage.getOccupiedTiles() == null || garage.getOccupiedTiles().isEmpty()) {
+            return true;
+        }
+
+        int minX = Integer.MAX_VALUE;
+        int minY = Integer.MAX_VALUE;
+        for (Tile occupied : garage.getOccupiedTiles()) {
             if (occupied == null || occupied.getPos() == null) {
                 continue;
             }

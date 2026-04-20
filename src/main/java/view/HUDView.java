@@ -19,16 +19,19 @@ import javafx.scene.control.Label;
 public class HUDView extends HBox {
     private static final String HUD_TEXT_STYLE = "-fx-font-size: 16px; -fx-font-weight: bold;";
     private static final String EARN_TEXT_STYLE = "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #6DFF74;";
-    private static final long EARN_MESSAGE_DURATION_NANOS = 2_000_000_000L;
+    private static final String COST_TEXT_STYLE = "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #FF4D4D;";
+    private static final long MESSAGE_DURATION_NANOS = 2_000_000_000L;
 
     private Label moneyLabel;
     private Label timeLabel;
     private Label speedLabel;
     private Label uiStateLabel;
     private Label earnLabel;
+    private Label costLabel;
     private final Region spacer;
     private UIState uiState;
     private long earnMessageHideAtNanos;
+    private long costMessageHideAtNanos;
 
     public HUDView(UIState uiState) {
         moneyLabel = new Label("Money: 0");
@@ -37,6 +40,7 @@ public class HUDView extends HBox {
         this.uiState = uiState;
         uiStateLabel = new Label("UI State");
         earnLabel = new Label("");
+        costLabel = new Label("");
         spacer = new Region();
 
         setPadding(new Insets(8, 0, 8, 16));
@@ -49,7 +53,9 @@ public class HUDView extends HBox {
         speedLabel.setStyle(HUD_TEXT_STYLE);
         uiStateLabel.setStyle(HUD_TEXT_STYLE);
         earnLabel.setStyle(EARN_TEXT_STYLE);
+        costLabel.setStyle(COST_TEXT_STYLE);
         earnLabel.setVisible(false);
+        costLabel.setVisible(false);
 
         this.getChildren().addAll(
                 moneyLabel,
@@ -57,7 +63,8 @@ public class HUDView extends HBox {
                 speedLabel,
                 uiStateLabel,
                 spacer,
-                earnLabel
+                earnLabel,
+                costLabel
         );
 
     }
@@ -68,7 +75,16 @@ public class HUDView extends HBox {
         }
         earnLabel.setText("earn +" + amount.amount() + " coins");
         earnLabel.setVisible(true);
-        earnMessageHideAtNanos = System.nanoTime() + EARN_MESSAGE_DURATION_NANOS;
+        earnMessageHideAtNanos = System.nanoTime() + MESSAGE_DURATION_NANOS;
+    }
+
+    public void showCostMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return;
+        }
+        costLabel.setText(message);
+        costLabel.setVisible(true);
+        costMessageHideAtNanos = System.nanoTime() + MESSAGE_DURATION_NANOS;
     }
 
     public void render(Money cash, String time, TimeSpeed speed) {
@@ -80,6 +96,10 @@ public class HUDView extends HBox {
             if (earnLabel.isVisible() && System.nanoTime() >= earnMessageHideAtNanos) {
                 earnLabel.setVisible(false);
                 earnLabel.setText("");
+            }
+            if (costLabel.isVisible() && System.nanoTime() >= costMessageHideAtNanos) {
+                costLabel.setVisible(false);
+                costLabel.setText("");
             }
         }
     }
