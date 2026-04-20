@@ -49,6 +49,7 @@ public class ControlPanes {
     private final VBox buildPane = new VBox(8);
 
     private final Button roadBtn = new Button("Road");
+    private final Button bridgeBtn = new Button("Bridge");
     private final Button stopBtn = new Button("Stop");
     private final Button garageBtn = new Button("Garage");
     private final Button deconstructBtn = new Button("Deconstruct");
@@ -72,6 +73,7 @@ public class ControlPanes {
         buildPane.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 
         configureBuildButton(roadBtn);
+        configureBuildButton(bridgeBtn);
         configureBuildButton(stopBtn);
         configureBuildButton(garageBtn);
         configureBuildButton(deconstructBtn);
@@ -82,6 +84,14 @@ public class ControlPanes {
         configureSpeedButton(veryFastSpeedBtn);
 
         roadBtn.setOnAction(e -> toggleBuildMode(BuildMode.ROAD));
+        bridgeBtn.setOnAction(e -> {
+            if (uiState.getBuildMode() == BuildMode.BRIDGE) {
+                uiState.requestBridgeTypeSelection();
+            } else {
+                uiState.setBuildMode(BuildMode.BRIDGE);
+            }
+            refreshBuildButtonStyles();
+        });
         stopBtn.setOnAction(e -> toggleBuildMode(BuildMode.STOP));
         garageBtn.setOnAction(e -> toggleBuildMode(BuildMode.GARAGE));
         deconstructBtn.setOnAction(e -> toggleBuildMode(BuildMode.DECONSTRUCT));
@@ -127,6 +137,7 @@ public class ControlPanes {
 
         buildPane.getChildren().addAll(
                 roadBtn,
+                bridgeBtn,
                 stopBtn,
                 garageBtn,
                 deconstructBtn,
@@ -186,6 +197,7 @@ public class ControlPanes {
 
     private void refreshBuildButtonStyles() {
         applyBuildSelectionStyle(roadBtn, BuildMode.ROAD);
+        applyBuildSelectionStyle(bridgeBtn, BuildMode.BRIDGE);
         applyBuildSelectionStyle(stopBtn, BuildMode.STOP);
         applyBuildSelectionStyle(garageBtn, BuildMode.GARAGE);
         applyBuildSelectionStyle(deconstructBtn, BuildMode.DECONSTRUCT);
