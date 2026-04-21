@@ -23,8 +23,7 @@ public class FleetController {
     private final Company company;
     private final World world;
 
-    // not sure how to deal with routeId
-    // for now i store here
+    // Store created routes by id so UI can reference and assign them later.
     private final Map<String, Route> routes = new HashMap<>();
 
     public FleetController(Company company, World world) {
@@ -34,20 +33,25 @@ public class FleetController {
         this.world = world;
     }
 
+    //--------- route assignment rules ----------------
+
     public ActionResult assignRoute(String vehicleId, Route route) {
         // step 1: do we have such vehicle in company? -> company is our assets($ + vehicles)
         Vehicle v = findVehicleInCompany(vehicleId);
         if (v == null) return ActionResult.fail("Vehicle not found");
 
-        // step2: find if the route legal(route has 2 stops -> stops are connected in roadNetwork??)
+        // step 2: route must be legal and vehicle must have a usable home garage
         if (!isRouteValid(route)) return ActionResult.fail("Route is not connected");
         if (v.getHomeGarage() == null || v.getHomeGarage().getOccupiedTiles().isEmpty()) {
             return ActionResult.fail("Vehicle must have a home garage before route assignment");
         }
+
+        // step 3: garage must be connected to the first stop of the route
         if (!canReachRouteFromGarage(v, route)) {
             return ActionResult.fail("Vehicle garage is not connected to the route start");
         }
 
+        // step 4: route can now be assigned and vehicle starts operating
         v.setWorld(world);
         v.assignRoute(route);
         v.setState(VehicleState.ON_ROUTE);
@@ -60,12 +64,15 @@ public class FleetController {
         routes.put(route.getId().toString(), route);
     }
 
+    //--------- route creation rules ----------------
+
     public ActionResult createRoute(List<Stop> selectedStops) {
+        // step 1: route needs at least two selected stops from UI
         if (selectedStops == null || selectedStops.size() < 2) {
             return ActionResult.fail("Select at least two stops");
         }
 
-        // Deduplicate the UI selection before creating the route instance.
+        // step 2: deduplicate the UI selection before creating the route instance
         List<Stop> routeStops = new ArrayList<>();
         for (Stop stop : selectedStops) {
             if (stop == null) {
@@ -81,16 +88,19 @@ public class FleetController {
             return ActionResult.fail("Select at least two different stops");
         }
 
+        // step 3: create route object and validate stop-to-stop connectivity
         Route route = new Route(Id.genNew(), routeStops);
         if (!isRouteValid(route)) {
             return ActionResult.fail("Selected stops are not connected by road");
         }
 
+        // step 4: a free garage must exist so vehicles can be attached to this route
         Garage garage = findAvailableGarageForRoute(route);
         if (garage == null) {
             return ActionResult.fail("Build a garage with free space before creating a route");
         }
 
+        // step 5: register route, bind it to garage, and start matching owned vehicles
         registerRoute(route);
         garage.setRoute(route);
         startOwnedVehiclesForGarageRoute(garage, route);
@@ -134,7 +144,6 @@ public class FleetController {
     }
 
     // helper fns for checking if route is legal
-    // vehicle in company??
     private Vehicle findVehicleInCompany(String id) {
         for (Vehicle v : company.getFleet()) {
             if (v.getId().toString().equals(id)) {
@@ -143,7 +152,8 @@ public class FleetController {
         }
         return null;
     }
-    // do we have connected road between stops??
+
+    // Consecutive stops in one route must be connected by the road network.
     private boolean isRouteValid(Route route) {
         List<Stop> stops = route.getStops();
 
@@ -194,6 +204,9 @@ public class FleetController {
 
         return roadTiles;
     }
+
+    //--------- vehicle purchase rules ----------------
+
     private boolean purchaseVehicleInGarageInternal(Vehicle vehicle, Garage garage) {
         if (vehicle == null || garage == null) {
             return false;
@@ -342,6 +355,7 @@ public class FleetController {
         GameMap map = world.getMap();
         Garage bestGarage = null;
         int bestPathLength = Integer.MAX_VALUE;
+        // Prefer the nearest free garage that can reach the route start.
         for (Tile[] column : map.getTiles()) {
             for (Tile tile : column) {
                 Garage garage = tile.getGarage();
@@ -360,6 +374,7 @@ public class FleetController {
         return bestGarage;
     }
 
+    // If a garage already owns a route, newly purchased idle vehicles can start it automatically.
     private boolean autoAssignGarageRoute(Vehicle vehicle, Garage garage) {
         if (vehicle == null || garage == null) {
             return false;
@@ -380,6 +395,7 @@ public class FleetController {
         return true;
     }
 
+    // When a new route is created for a garage, start all compatible idle owned vehicles there.
     private void startOwnedVehiclesForGarageRoute(Garage garage, Route route) {
         if (garage == null || route == null) {
             return;
