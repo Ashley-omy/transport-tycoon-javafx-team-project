@@ -700,9 +700,8 @@ public abstract class Vehicle {
     }
 
     private Stop resolveTargetStopFor(Shipment shipment) {
-        Stop nextStop = assignedRoute.getNextStop(currentStopIndex);
         if (!shipment.isGoods()) {
-            return nextStop;
+            return findNextStopMatching(stop -> stop.getServedPlace() instanceof City);
         }
 
         GoodsType goodsType = shipment.getGoodsType();
