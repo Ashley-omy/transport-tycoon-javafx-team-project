@@ -13,9 +13,12 @@ import java.util.Set;
 public class World {
     // Emit supply in chunks instead of every frame.
     private static final double SUPPLY_EMIT_INTERVAL = 5.0;
-    // Temporary debug marker for revenue lines in the UI.
+    private static final List<BridgeSpec> DEFAULT_BRIDGE_CATALOG = List.of(
+            new BridgeSpec(BridgeType.TYPE_A, 4, Money.of(600), 1.0),
+            new BridgeSpec(BridgeType.TYPE_B, 7, Money.of(1_100), 1.5),
+            new BridgeSpec(BridgeType.TYPE_C, 10, Money.of(1_800), 2.0)
+    );
     private static final String REVENUE_PREFIX = "[REV] ";
-    // Temporary debug marker for maintenance/cost lines in the UI.
     private static final String COST_PREFIX = "[COST] ";
 
     private GameMap map;
@@ -23,23 +26,24 @@ public class World {
     private List<BridgeSpec> bridgeCatalog = new ArrayList<>();
     long rngSeed;
     private double supplyEmitTimer = 0.0;
-    // Temporary debug buffer. Safe to remove when the debug UI is no longer needed.
-    private final List<String> debugMessages = new ArrayList<>();
+    private final List<String> hudMessages = new ArrayList<>();
 
     // later need to modify (bridge + rngspeed)
     public World(int width, int height){
 
         this.map = new GameMap(width, height);
         this.roads = new RoadNetwork();
+        this.bridgeCatalog = new ArrayList<>(DEFAULT_BRIDGE_CATALOG);
 
-        placeInitialEntities();
+        WorldInitializer.initialize(this);
     }
 
-    // place city(3*3) / facility(2*2) FOOTPRINT logic
+    // place city(5*5) / facility(2*2) FOOTPRINT logic
     public void placeEntity(MapEntity entity, GridPos center) {
         int w = entity.getFootprintW();
         int startOffset = -(w / 2);
         int endOffset = startOffset + w - 1;
+        List<Tile> tilesToOccupy = new ArrayList<>(w * w);
 
         for (int dx = startOffset; dx <= endOffset; dx++) {
             for (int dy = startOffset; dy <= endOffset; dy++) {
@@ -55,23 +59,33 @@ public class World {
                 if (t.getEntity() != null) {
                     throw new IllegalStateException("Tile already occupied at: " + p);
                 }
-
-                t.setEntity(entity);
-                entity.getOccupiedTiles().add(t);
+                tilesToOccupy.add(t);
             }
+        }
+
+        for (Tile tile : tilesToOccupy) {
+            tile.setEntity(entity);
+            entity.getOccupiedTiles().add(tile);
+        }
+
+        if (entity instanceof City city) {
+            initializeCityInternalRoads(city);
         }
     }
 
-    // for place some cities and facilities for MS2
-    private void placeInitialEntities() {
-        City c1 = new City(Id.genNew());
-        placeEntity(c1, new GridPos(5, 5));
-
-        Facility steelMill = Factory.createSteelMill(Id.genNew());
-        placeEntity(steelMill, new GridPos(10, 10));
-
-        Facility ironMine = Mine.createIronMine(Id.genNew());
-        placeEntity(ironMine, new GridPos(15, 15));
+    // Initialize fixed city-internal road tiles (center row + center column).
+    private void initializeCityInternalRoads(City city) {
+        for (Tile tile : city.getOccupiedTiles()) {
+            if (!city.hasInternalRoadAt(tile.getPos())) {
+                continue;
+            }
+            if (tile.getRoadPiece() != null) {
+                continue;
+            }
+            RoadPiece internalRoad = new RoadPiece(RoadKind.ROAD, null);
+            internalRoad.addTile(tile);
+            tile.setRoadPiece(internalRoad);
+        }
     }
 
     public static final Money ROAD_BUILD_COST = Money.of(150);
@@ -90,48 +104,41 @@ public class World {
 
     public RoadNetwork getRoadNetwork() { return roads; }
 
-    public List<BridgeSpec> getBridgeCatalog() { return bridgeCatalog; }
+    public List<BridgeSpec> getBridgeCatalog() { return Collections.unmodifiableList(bridgeCatalog); }
 
-    // Temporary debug helper for transport event messages.
-    public void pushDebugMessage(String message) {
+    public void pushMessage(String message) {
         if (message == null || message.isBlank()) return;
-        debugMessages.add(message);
+        hudMessages.add(message);
     }
 
-    // Temporary debug helper for revenue messages.
     public void pushRevenueMessage(String message) {
         if (message == null || message.isBlank()) return;
-        debugMessages.add(REVENUE_PREFIX + message);
+        hudMessages.add(REVENUE_PREFIX + message);
     }
 
-    // Temporary debug helper for maintenance and other cost messages.
     public void pushCostMessage(String message) {
         if (message == null || message.isBlank()) return;
-        debugMessages.add(COST_PREFIX + message);
+        hudMessages.add(COST_PREFIX + message);
     }
 
-    // Temporary debug helper consumed by the right-side debug panel.
-    public List<String> drainDebugMessages() {
-        if (debugMessages.isEmpty()) {
+    public List<String> drainMessages() {
+        if (hudMessages.isEmpty()) {
             return List.of();
         }
-        List<String> drained = new ArrayList<>(debugMessages);
-        debugMessages.clear();
+        List<String> drained = new ArrayList<>(hudMessages);
+        hudMessages.clear();
         return Collections.unmodifiableList(drained);
     }
 
-    // Temporary debug helper for coloring revenue lines.
     public boolean isRevenueMessage(String message) {
         return message != null && message.startsWith(REVENUE_PREFIX);
     }
 
-    // Temporary debug helper for coloring maintenance/cost lines.
     public boolean isCostMessage(String message) {
         return message != null && message.startsWith(COST_PREFIX);
     }
 
-    // Temporary debug helper for hiding the internal revenue prefix from the UI text.
-    public String stripDebugPrefix(String message) {
+    public String stripMessagePrefix(String message) {
         if (isRevenueMessage(message)) {
             return message.substring(REVENUE_PREFIX.length());
         }
@@ -142,6 +149,10 @@ public class World {
     }
 
     public void buildRoad(GridPos pos) {
+        if (!canBuildAt(pos)) {
+            throw new IllegalArgumentException("Cannot build road at: " + pos);
+        }
+
         Tile tile = map.getTile(pos);
 
         RoadPiece piece = new RoadPiece(RoadKind.ROAD, null);
@@ -149,6 +160,29 @@ public class World {
         tile.setRoadPiece(piece);
 
         roads.rebuild(map);
+    }
+
+    public void buildBridge(List<GridPos> line, BridgeType type) {
+        BridgeSpec spec = getBridgeSpec(type);
+        validateBridgeLine(line, spec);
+
+        RoadPiece bridge = new RoadPiece(RoadKind.BRIDGE, spec);
+        for (GridPos pos : line) {
+            Tile tile = map.getTile(pos);
+            bridge.addTile(tile);
+            tile.setRoadPiece(bridge);
+        }
+
+        roads.rebuild(map);
+    }
+
+    public void removeRoad(GridPos pos) {
+        if (!map.inBounds(pos)) return;
+        Tile tile = map.getTile(pos);
+        if (tile != null) {
+            tile.setRoadPiece(null);
+            roads.rebuild(map);
+        }
     }
 
     public void buildStop(GridPos pos, MapEntity servedPlace) {
@@ -159,6 +193,28 @@ public class World {
         servedPlace.attachStop(stop);
     }
 
+    public static final Money GARAGE_BUILD_COST = Money.of(5_000);
+
+    public boolean canBuildGarageAt(GridPos pos) {
+        if (!map.inBounds(pos)) return false;
+        
+        Tile t = map.getTile(pos);
+        
+        return t.getRoadPiece() == null &&
+                t.getStop() == null &&
+                t.getGarage() == null &&
+                t.getEntity() == null &&
+                t.getTerrain().isPassable();
+    }
+
+    public void buildGarage(GridPos pos, int capacity, int serviceBayCount) {
+        Tile tile = map.getTile(pos);
+        
+        List<Tile> occupiedTiles = List.of(tile);
+        Garage garage = new Garage(Id.genNew(), capacity, serviceBayCount, occupiedTiles);
+        tile.setGarage(garage);
+    }
+
     public void tick(double deltaTime) {
         if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
 
@@ -166,11 +222,18 @@ public class World {
         Set<MapEntity> entities = collectEntities();
         for (MapEntity entity : entities) {
             entity.tick(deltaTime);
+            // Keep per-entity floating UI messages in sync with simulation time.
+            entity.tickEventDisplays(deltaTime);
         }
 
         // Stops get their own updates after the entities they serve.
         for (Stop stop : collectStops()) {
             stop.tick(deltaTime);
+        }
+        
+        // Garages also tick (mainly for future maintenance features)
+        for (Garage garage : collectGarages()) {
+            garage.tick(deltaTime);
         }
 
         supplyEmitTimer += deltaTime; //using deltaTime to prevent supply from exploding on a fast PC.
@@ -180,6 +243,33 @@ public class World {
             for (MapEntity entity : entities) {
                 entity.emitSupplyToStops();
             }
+        }
+
+        // 1. all trees grow
+        for (Tile tile : map.getAllTiles()) {
+            Terrain t = tile.getTerrain();
+            if (t instanceof Forest forest) {
+                forest.grow(deltaTime);
+            }
+        }
+
+        // 2. record to tick the new spread forest location
+        Set<GridPos> newForests = new LinkedHashSet<>();
+
+        for (Tile tile : map.getAllTiles()) {
+            Terrain t = tile.getTerrain();
+
+            if (t instanceof Forest forest) {
+                int attempts = forest.consumeSpreadAttempts(deltaTime);
+                for (int i = 0; i < attempts; i++) {
+                    spreadForest(tile.getPos(), newForests);
+                }
+            }
+        }
+
+        // 3. butch update
+        for (GridPos pos : newForests) {
+            map.setTerrain(pos, new Forest());
         }
     }
     //using LinkedHashSet in order to avoid entity duplication
@@ -195,6 +285,91 @@ public class World {
         return entities;
     }
 
+    // Forest tick helper fn
+    private void spreadForest(GridPos origin, Set<GridPos> newForests) {
+
+        int[][] dirs = {
+                {1, 0}, {-1, 0}, {0, 1}, {0, -1}
+        };
+
+        for (int[] d : dirs) {
+            GridPos np = new GridPos(origin.x + d[0], origin.y + d[1]);
+
+            if (!map.inBounds(np)) continue;
+
+            Tile neighbor = map.getTile(np);
+
+            // Forest can only spread onto empty land tiles.
+            if (neighbor.getTerrain().isLand() && isEmptyTile(neighbor)) {
+
+                // the probability of spreading
+                if (Math.random() < 0.10) { // 10%
+                    newForests.add(np);
+                }
+            }
+        }
+    }
+
+    private boolean isEmptyTile(Tile tile) {
+        return tile.getRoadPiece() == null &&
+                tile.getStop() == null &&
+                tile.getGarage() == null &&
+                tile.getEntity() == null;
+    }
+
+    public BridgeSpec getBridgeSpec(BridgeType type) {
+        if (type == null) {
+            throw new IllegalArgumentException("Bridge type cannot be null");
+        }
+
+        for (BridgeSpec spec : bridgeCatalog) {
+            if (spec.getType() == type) {
+                return spec;
+            }
+        }
+        throw new IllegalArgumentException("Unknown bridge type: " + type);
+    }
+
+    private void validateBridgeLine(List<GridPos> line, BridgeSpec spec) {
+        if (line == null || line.isEmpty()) {
+            throw new IllegalArgumentException("Bridge line cannot be empty");
+        }
+        if (line.size() > spec.getMaxSpanTiles()) {
+            throw new IllegalArgumentException("Bridge span exceeds maxSpanTiles for " + spec.getType());
+        }
+
+        boolean touchesWater = false;
+        GridPos previous = null;
+        for (GridPos pos : line) {
+            if (pos == null || !map.inBounds(pos)) {
+                throw new IllegalArgumentException("Bridge tile out of bounds: " + pos);
+            }
+
+            Tile tile = map.getTile(pos);
+            if (!isEmptyTile(tile)) {
+                throw new IllegalArgumentException("Bridge tile is occupied: " + pos);
+            }
+
+            if (tile.getTerrain().isWater()) {
+                touchesWater = true;
+            }
+
+            if (previous != null) {
+                int dx = Math.abs(pos.x - previous.x);
+                int dy = Math.abs(pos.y - previous.y);
+                if (dx + dy != 1) {
+                    throw new IllegalArgumentException("Bridge line must be contiguous: " + previous + " -> " + pos);
+                }
+            }
+            previous = pos;
+        }
+
+        if (!touchesWater) {
+            throw new IllegalArgumentException("Bridge line must cross at least one water tile");
+        }
+    }
+
+
     private List<Stop> collectStops() {
         List<Stop> stops = new ArrayList<>();
         for (Tile[] column : map.getTiles()) {
@@ -206,4 +381,17 @@ public class World {
         }
         return stops;
     }
+    
+    private List<Garage> collectGarages() {
+        Set<Garage> garages = new LinkedHashSet<>();
+        for (Tile[] column : map.getTiles()) {
+            for (Tile tile : column) {
+                if (tile.getGarage() != null) {
+                    garages.add(tile.getGarage());
+                }
+            }
+        }
+        return new ArrayList<>(garages);
+    }
+
 }

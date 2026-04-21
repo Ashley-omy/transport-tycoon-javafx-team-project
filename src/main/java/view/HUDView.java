@@ -6,100 +6,109 @@ package view;
 
 /**
  *
- * @author lenovo
+ * @author asuna
  */
 import common.Money;
-import controller.ActionResult;
-import controller.TimeController;
 import controller.TimeSpeed;
+import javafx.geometry.Insets;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.control.Label;
-import javafx.scene.control.Button;
-
-import javafx.scene.paint.Color;
 
 public class HUDView extends HBox {
+    private static final String HUD_TEXT_STYLE = "-fx-font-size: 16px; -fx-font-weight: bold;";
+    private static final String EARN_TEXT_STYLE = "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #6dff6f;";
+    private static final String COST_TEXT_STYLE = "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #FF4D4D;";
+    private static final long MESSAGE_DURATION_NANOS = 2_000_000_000L;
 
     private Label moneyLabel;
     private Label timeLabel;
     private Label speedLabel;
     private Label uiStateLabel;
+    private Label earnLabel;
+    private Label costLabel;
+    private final Region spacer;
     private UIState uiState;
-    private Button roadBtn;
-    private Button stopBtn;
-    private Button garageBtn;
-    private Button routeBtn;
-    private Button pauseBtn;
-    private Button normalSpeedBtn;
-    private Button fastSpeedBtn;
-    private Button veryFastSpeedBtn;
-    private Label buildResultLabel;
-    String lastMessage;
+    private long earnMessageHideAtNanos;
+    private long costMessageHideAtNanos;
 
-    public HUDView(UIState uiState, TimeController timeController) {
+    public HUDView(UIState uiState) {
         moneyLabel = new Label("Money: 0");
         timeLabel = new Label("Time: 0");
         speedLabel = new Label("Speed: NORMAL");
         this.uiState = uiState;
-        roadBtn = new Button("Road");
-        stopBtn = new Button("Stop");
-        garageBtn = new Button("Garage");
-        routeBtn = new Button("Place Route");
-        pauseBtn = new Button("Pause");
-        normalSpeedBtn = new Button("1x");
-        fastSpeedBtn = new Button("2x");
-        veryFastSpeedBtn = new Button("4x");
         uiStateLabel = new Label("UI State");
-        buildResultLabel = new Label();
-        // Bind actions
-        roadBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.ROAD));
-        stopBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.STOP));
-        garageBtn.setOnAction(e -> uiState.setBuildMode(BuildMode.GARAGE));
-        pauseBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.PAUSE));
-        normalSpeedBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.NORMAL));
-        fastSpeedBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.FAST));
-        veryFastSpeedBtn.setOnAction(e -> timeController.setSpeed(TimeSpeed.VERY_FAST));
-        routeBtn.setOnAction(e -> {
-            if (uiState.getBuildMode() == BuildMode.ROUTE) {
-                uiState.requestRoutePlacement();
-            } else {
-                uiState.setBuildMode(BuildMode.ROUTE);
-            }
-        });
+        earnLabel = new Label("");
+        costLabel = new Label("");
+        spacer = new Region();
+
+        setPadding(new Insets(8, 0, 8, 16));
+        setSpacing(14);
+        setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        moneyLabel.setStyle(HUD_TEXT_STYLE);
+        timeLabel.setStyle(HUD_TEXT_STYLE);
+        speedLabel.setStyle(HUD_TEXT_STYLE);
+        uiStateLabel.setStyle(HUD_TEXT_STYLE);
+        earnLabel.setStyle(EARN_TEXT_STYLE);
+        costLabel.setStyle(COST_TEXT_STYLE);
+        earnLabel.setVisible(false);
+        costLabel.setVisible(false);
 
         this.getChildren().addAll(
                 moneyLabel,
                 timeLabel,
                 speedLabel,
                 uiStateLabel,
-                stopBtn,
-                garageBtn,
-                roadBtn,
-                routeBtn,
-                pauseBtn,
-                normalSpeedBtn,
-                fastSpeedBtn,
-                veryFastSpeedBtn,
-                buildResultLabel
+                earnLabel,
+                costLabel,
+                spacer
         );
 
     }
-    public void displayBuildResult(ActionResult result){
-        if(result == null){ return; }
 
-        lastMessage = result.getMessage();
+    public void showEarnMessage(Money amount) {
+        if (amount == null || !amount.isPositive()) {
+            return;
+        }
+        earnLabel.setText("earn +" + amount.amount() + " coins");
+        earnLabel.setVisible(true);
+        earnMessageHideAtNanos = System.nanoTime() + MESSAGE_DURATION_NANOS;
+    }
 
-        buildResultLabel.setTextFill(
-                result.isSuccess() ? Color.GREEN : Color.RED
-        );
-        buildResultLabel.setText(lastMessage);
+    public void showEarnMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return;
+        }
+        earnLabel.setText(message);
+        earnLabel.setVisible(true);
+        earnMessageHideAtNanos = System.nanoTime() + MESSAGE_DURATION_NANOS;
+    }
+
+    public void showCostMessage(String message) {
+        if (message == null || message.isBlank()) {
+            return;
+        }
+        costLabel.setText(message);
+        costLabel.setVisible(true);
+        costMessageHideAtNanos = System.nanoTime() + MESSAGE_DURATION_NANOS;
     }
 
     public void render(Money cash, String time, TimeSpeed speed) {
 
-            speedLabel.setText(" / Speed: " + speed);
-            moneyLabel.setText(" / Money: " + (cash));
-            timeLabel.setText(" / Time: " + time);
-            uiStateLabel.setText(" / UI State: " + uiState.getBuildMode());
+            speedLabel.setText("  Speed: " + speed);
+            moneyLabel.setText("  Money: " + (cash));
+            timeLabel.setText("  Time: " + time);
+            uiStateLabel.setText("  UI State: " + uiState.getBuildMode());
+            if (earnLabel.isVisible() && System.nanoTime() >= earnMessageHideAtNanos) {
+                earnLabel.setVisible(false);
+                earnLabel.setText("");
+            }
+            if (costLabel.isVisible() && System.nanoTime() >= costMessageHideAtNanos) {
+                costLabel.setVisible(false);
+                costLabel.setText("");
+            }
         }
     }

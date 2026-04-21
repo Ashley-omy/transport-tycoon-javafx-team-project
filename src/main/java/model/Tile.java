@@ -1,12 +1,7 @@
 package model;
 import common.GridPos;
 
-import common.GridPos;
-import model.Terrain;
-import model.RoadPiece;
-import model.Stop;
-import model.Garage;
-import model.MapEntity;
+import java.util.Objects;
 
 public class Tile {
     private GridPos pos;
@@ -18,11 +13,19 @@ public class Tile {
 
     public Tile(GridPos pos, Terrain terrain) {
         this.pos = pos;
-        this.terrain = terrain;
+        setTerrain(terrain);
     }
 
     public GridPos getPos() { return pos; }
     public Terrain getTerrain() { return terrain; }
+    public void setTerrain(Terrain terrain) {
+        Terrain nextTerrain = Objects.requireNonNull(terrain, "terrain");
+        if (this.terrain != null) {
+            this.terrain.removeOccupiedTile(this);
+        }
+        this.terrain = nextTerrain;
+        this.terrain.addOccupiedTile(this);
+    }
 
     public MapEntity getEntity() { return entity; }
     public void setEntity(MapEntity e) { this.entity = e; }

@@ -8,16 +8,12 @@ import java.util.List;
 public class Company {
     private final Economy economy;
     private final List<Vehicle> fleet = new ArrayList<>();
-    private double maintenanceTimer = 0.0; // Timer for 30-second maintenance intervals
-    // Temporary debug hook so maintenance deductions can be shown in the debug window.
     private World world;
 
     public static final Money DEFAULT_STARTING_CAPITAL = Money.of(100_000);
 
     private static final Money DEFAULT_VEHICLE_RESALE_VALUE = Money.of(2_500);
     private static final Money DEFAULT_DELIVERY_INCOME = Money.of(300);
-    private static final double MAINTENANCE_INTERVAL = 30.0; // Deduct maintenance every 30 seconds
-
     // getters for cost constants
     public static Money getVehicleResaleValue() {
         return DEFAULT_VEHICLE_RESALE_VALUE;
@@ -51,6 +47,12 @@ public class Company {
                           "Purchased vehicle " + v.getId())) {
             return false;
         }
+
+        Garage homeGarage = v.getHomeGarage();
+        if (homeGarage != null) {
+            homeGarage.sellVehicle(v);
+        }
+
         v.setOwner(this); // Set this company as owner
         fleet.add(v);
         return true;
@@ -88,6 +90,35 @@ public class Company {
         return economy.spend(amount);
     }
 
+    // have to deal with maintenance from garage
+    public void performVehicleMaintenance(Vehicle vehicle) {
+        if (vehicle == null) return;
+
+        Money cost = vehicle.getMaintenanceCost();
+        boolean paid = economy.spend(
+                cost,
+                TransactionType.VEHICLE_MAINTENANCE,
+                "Maintenance for vehicle " + vehicle.getId()
+        );
+
+        if (world != null) {
+            String maintenanceText = "-" + cost.amount();
+            world.pushCostMessage("Maintenance fee: " + maintenanceText);
+            Garage homeGarage = vehicle.getHomeGarage();
+            if (homeGarage != null) {
+                homeGarage.pushEventDisplay(maintenanceText);
+            }
+        }
+
+        if (!paid) {
+            economy.forceSubtract(
+                    cost,
+                    TransactionType.VEHICLE_MAINTENANCE,
+                    "Forced maintenance for vehicle " + vehicle.getId()
+            );
+        }
+    }
+
     // bankruptcy
     public boolean isBankrupt() {
         return economy.isBankrupt();
@@ -99,34 +130,6 @@ public class Company {
 
         for (Vehicle v : fleet) {
             v.tick(deltaTime);
-        }
-
-        // Deduct maintenance every 30 seconds
-        maintenanceTimer += deltaTime;
-        if (maintenanceTimer >= MAINTENANCE_INTERVAL) {
-            maintenanceTimer -= MAINTENANCE_INTERVAL;
-            
-            // Calculate total maintenance cost for all vehicles
-            long totalCost = 0;
-            for (Vehicle v : fleet) {
-                totalCost += v.getMaintenanceCost().amount();
-            }
-            
-            if (totalCost > 0) {
-                Money cost = Money.of(totalCost);
-                boolean paid = economy.spend(cost, 
-                                            TransactionType.VEHICLE_MAINTENANCE, 
-                                            "Maintenance for " + fleet.size() + " vehicle(s)");
-                if (world != null) {
-                    // Temporary debug message for verifying maintenance deductions.
-                    world.pushCostMessage("Maintenance fee: -" + cost + " for " + fleet.size() + " vehicle(s)");
-                }
-                if (!paid) {
-                    economy.forceSubtract(cost, 
-                                         TransactionType.VEHICLE_MAINTENANCE, 
-                                         "Forced maintenance for " + fleet.size() + " vehicle(s)");
-                }
-            }
         }
     }
 }

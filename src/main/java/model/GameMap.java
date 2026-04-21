@@ -2,6 +2,9 @@ package model;
 
 import common.GridPos;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class GameMap {
     private final int width;
     private final int height;
@@ -34,6 +37,8 @@ public class GameMap {
                 tiles[x][y] = new Tile(new GridPos(x, y), new Land());
             }
         }
+
+        WorldInitializer.initializeMapWater(this);
     }
 
     // #66 Implement map bounds checking
@@ -45,5 +50,22 @@ public class GameMap {
     public Tile getTile(GridPos pos) {
         if (!inBounds(pos)) return null;
         return tiles[pos.x][pos.y];
+    }
+
+    public void setTerrain(GridPos pos, Terrain terrain) {
+        if (!inBounds(pos)) {
+            throw new IllegalArgumentException("Position out of bounds: " + pos);
+        }
+        tiles[pos.x][pos.y].setTerrain(terrain);
+    }
+
+    public List<Tile> getAllTiles() {
+        List<Tile> allTiles = new ArrayList<>(width * height);
+        for (int x = 0; x < width; ++x) {
+            for (int y = 0; y < height; ++y) {
+                allTiles.add(tiles[x][y]);
+            }
+        }
+        return allTiles;
     }
 }

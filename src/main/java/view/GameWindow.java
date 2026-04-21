@@ -8,32 +8,37 @@ package view;
  *
  * @author asuna
  */
-import controller.*;
+import controller.BuildController;
+import controller.FleetController;
+import controller.GameController;
+import controller.InputController;
+import controller.SelectionController;
+import controller.TimeController;
+import common.Money;
 import javafx.geometry.Insets;
-import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.control.ScrollPane.ScrollBarPolicy;
+import javafx.geometry.Pos;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
-import model.*;
-import java.util.ArrayList;
-import java.util.List;
+import model.Company;
+import model.Game;
+import model.GameMap;
+import model.World;
 
 public class GameWindow extends BorderPane {
-    // Temporary debug UI limit for the right-side event list.
-    private static final int MAX_DEBUG_LINES = 40;
+    private static final int MAP_VIEW_WIDTH = 1000;
+    private static final int MAP_VIEW_HEIGHT = 700;
+    private static final int BUILD_PANE_TO_MAP_GAP = 16;
+    private static final String CENTER_BACKGROUND_STYLE = "-fx-background-color: black;";
 
     // --- View ---
     private final MapView mapView;
     private final HUDView hudView;
-    // Temporary debug UI shown on the right side.
-    private final Label latestDebugLabel;
-    private final VBox debugEventList;
-    // Temporary debug UI cache for recent event labels.
-    private final List<Label> debugLabels;
+    private final MinimapView minimapView;
+    private final ControlPanes controlPanes;
     private final UIState uiState;
 
     // --- Controllers ---
@@ -44,11 +49,14 @@ public class GameWindow extends BorderPane {
     private final Company company;
     private final TimeController timeController;
     private final AnimationEngine animationEngine;
+    private Money lastRenderedCash;
 
     public GameWindow(Game game, World world, Company company) {
         this.world = world;
         this.company = company;
         this.animationEngine = new AnimationEngine();
+        this.lastRenderedCash = company.getEconomy().getCash();
+
         // -----------------------------
         // UI State
         // -----------------------------
@@ -57,45 +65,48 @@ public class GameWindow extends BorderPane {
         // -----------------------------
         // Views
         // -----------------------------
-        this.mapView = new MapView(1000, 700);
-        timeController = new TimeController();
-        this.hudView = new HUDView(uiState, timeController);
-        this.latestDebugLabel = new Label("Waiting for debug events...");
-        this.debugEventList = new VBox(6);
-        this.debugLabels = new ArrayList<>();
+        this.mapView = new MapView(MAP_VIEW_WIDTH, MAP_VIEW_HEIGHT, animationEngine);
+        this.timeController = new TimeController();
+        this.hudView = new HUDView(uiState);
+        this.minimapView = new MinimapView(mapView.getCamera(), animationEngine);
+        this.controlPanes = new ControlPanes(uiState, timeController);
 
-        // Temporary debug panel for transport events and revenue checks.
-        Label debugTitle = new Label("Debug Events");
-        debugTitle.setTextFill(Color.WHITE);
-        latestDebugLabel.setWrapText(true);
-        latestDebugLabel.setTextFill(Color.LIGHTGOLDENRODYELLOW);
-        latestDebugLabel.setStyle("-fx-font-weight: bold; -fx-padding: 8; -fx-background-color: #2a2d34;");
-        ScrollPane debugPane = new ScrollPane(debugEventList);
-        debugPane.setFitToWidth(true);
-        debugPane.setHbarPolicy(ScrollBarPolicy.NEVER);
-        debugPane.setVbarPolicy(ScrollBarPolicy.AS_NEEDED);
-        debugPane.setPrefHeight(720);
-        VBox debugContainer = new VBox(8, debugTitle, latestDebugLabel, debugPane);
-        debugContainer.setPadding(new Insets(12));
-        debugContainer.setPrefWidth(380);
-        debugContainer.setMinWidth(320);
-        debugContainer.setStyle("-fx-background-color: #1d1f24;");
+        BorderPane topOverlay = new BorderPane();
+        topOverlay.setLeft(hudView);
+        topOverlay.setRight(controlPanes.getSpeedPane());
+        BorderPane.setAlignment(hudView, Pos.TOP_LEFT);
+        BorderPane.setAlignment(controlPanes.getSpeedPane(), Pos.TOP_RIGHT);
+        BorderPane.setMargin(controlPanes.getSpeedPane(), new Insets(0, 16, 0, 0));
 
         // Layout
-        StackPane center = new StackPane(mapView);
+        HBox leftPlayArea = new HBox(BUILD_PANE_TO_MAP_GAP, controlPanes.getBuildPane(), mapView);
+        leftPlayArea.setAlignment(Pos.TOP_LEFT);
+        leftPlayArea.setFillHeight(false);
+        leftPlayArea.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+
+        VBox rightOverlay = new VBox(12, minimapView);
+        rightOverlay.setAlignment(Pos.TOP_RIGHT);
+        rightOverlay.setFillWidth(false);
+        rightOverlay.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+
+        StackPane center = new StackPane(leftPlayArea, rightOverlay);
+        center.setAlignment(Pos.TOP_LEFT);
+        center.setPadding(new Insets(16));
+        center.setStyle(CENTER_BACKGROUND_STYLE);
+        StackPane.setAlignment(leftPlayArea, Pos.TOP_LEFT);
+        StackPane.setAlignment(rightOverlay, Pos.TOP_RIGHT);
         this.setCenter(center);
-        this.setTop(hudView);
-        this.setRight(debugContainer);
-        appendDebugMessage("Temporary debug window active");
+        this.setTop(topOverlay);
 
         // -----------------------------
-        // Connect Model → View
+        // Connect Model -> View
         // -----------------------------
         GameMap map = game.getWorld().getMap();
-        RoadNetwork roadNetwork = game.getWorld().getRoadNetwork();
         mapView.setMap(map);
         mapView.setCompany(company);
         mapView.setUIState(uiState);
+        minimapView.setMap(map);
+        minimapView.setCompany(company);
 
         // -----------------------------
         // Controllers
@@ -103,11 +114,9 @@ public class GameWindow extends BorderPane {
         this.inputController = new InputController();
         this.selectionController = new SelectionController();
 
-        // Other controllers
         BuildController buildController = new BuildController(game.getWorld(), game.getCompany());
         FleetController fleetController = new FleetController(game.getCompany(), game.getWorld());
 
-        // Main controller
         this.gameController = new GameController(
                 game,
                 this,
@@ -119,7 +128,7 @@ public class GameWindow extends BorderPane {
         );
 
         // -----------------------------
-        // Input binding (JavaFX → Controller)
+        // Input binding (JavaFX -> Controller)
         // -----------------------------
         setupInput();
 
@@ -129,88 +138,89 @@ public class GameWindow extends BorderPane {
         gameController.start();
     }
 
-
     private void setupInput() {
-
-        // Mouse events
-        mapView.setOnMousePressed(inputController::onMousePressed);
+        mapView.setOnMousePressed(event -> {
+            this.requestFocus();
+            inputController.onMousePressed(event);
+        });
         mapView.setOnMouseReleased(inputController::onMouseReleased);
-        mapView.setOnMouseDragged(inputController::onMouseDragged);
+        mapView.setOnMouseDragged(event -> {
+            this.requestFocus();
+            inputController.onMouseDragged(event);
+        });
+        minimapView.setOnMousePressed(event -> {
+            this.requestFocus();
+            gameController.handleMinimapInput(event.getX(), event.getY());
+            event.consume();
+        });
+        minimapView.setOnMouseDragged(event -> {
+            this.requestFocus();
+            gameController.handleMinimapInput(event.getX(), event.getY());
+            event.consume();
+        });
 
-        // Keyboard events
         this.addEventFilter(KeyEvent.KEY_PRESSED, e -> {
             try {
-                // Always forward to InputController from the root capture phase.
-                // This avoids reliance on node focus, since HUD buttons steal focus.
                 inputController.onKeyPressed(e);
-
-                // Prevent further handling that might duplicate or get swallowed by focused buttons.
                 e.consume();
             } catch (Exception ignored) {
             }
         });
 
-        // Enable focus (important for keyboard input)
         this.setFocusTraversable(true);
     }
 
-    // -----------------------------
-    // Called by GameController every frame
-    // -----------------------------
     public void render() {
-
         mapView.render();
-        // Temporary debug rendering path for event messages.
-        for (String event : world.drainDebugMessages()) {
-            appendDebugMessage(event);
+        minimapView.render();
+        boolean showedRevenueMessage = false;
+        boolean showedCostMessage = false;
+        for (String message : world.drainMessages()) {
+            if (world.isCostMessage(message)) {
+                hudView.showCostMessage(world.stripMessagePrefix(message));
+                showedCostMessage = true;
+            } else if (world.isRevenueMessage(message)) {
+                hudView.showEarnMessage(world.stripMessagePrefix(message));
+                showedRevenueMessage = true;
+            }
         }
+        Money currentCash = company.getEconomy().getCash();
+        Money cashDelta = currentCash.subtract(lastRenderedCash);
+        if (cashDelta.isPositive() && !showedRevenueMessage) {
+            hudView.showEarnMessage(cashDelta);
+        } else if (cashDelta.isNegative() && !showedCostMessage) {
+            hudView.showCostMessage("spend -" + cashDelta.abs().amount() + " coins");
+        }
+        lastRenderedCash = currentCash;
         hudView.render(
-                company.getEconomy().getCash(),
+                currentCash,
                 animationEngine.getFormattedTime(),
                 timeController.getSpeed()
         );
+        controlPanes.render();
     }
 
-    // Temporary debug UI helper. Safe to remove with the rest of the debug panel.
-    private void appendDebugMessage(String message) {
-        if (message == null || message.isBlank()) {
-            return;
-        }
-
-        String visibleMessage = world.stripDebugPrefix(message);
-        Label label = new Label(visibleMessage);
-        label.setWrapText(true);
-        label.setStyle("-fx-padding: 6 8; -fx-background-color: #2a2d34;");
-        if (world.isRevenueMessage(message)) {
-            label.setTextFill(Color.LIMEGREEN);
-        } else if (world.isCostMessage(message)) {
-            label.setTextFill(Color.INDIANRED);
-        } else {
-            label.setTextFill(Color.WHITESMOKE);
-        }
-
-        latestDebugLabel.setText(visibleMessage);
-        latestDebugLabel.setTextFill(label.getTextFill());
-        debugLabels.add(0, label);
-        while (debugLabels.size() > MAX_DEBUG_LINES) {
-            debugLabels.remove(debugLabels.size() - 1);
-        }
-
-        debugEventList.getChildren().setAll(debugLabels);
-    }
-
-    // -----------------------------
-    // Getters (used by Controller)
-    // -----------------------------
     public MapView getMapView() {
         return mapView;
+    }
+
+    public MinimapView getMinimapView() {
+        return minimapView;
     }
 
     public UIState getUIState() {
         return uiState;
     }
 
-    public AnimationEngine getAnimationEngine(){return animationEngine;}
+    public AnimationEngine getAnimationEngine() {
+        return animationEngine;
+    }
 
-    public HUDView getHudView(){return hudView;}
+    public HUDView getHudView() {
+        return hudView;
+    }
+
+    public ControlPanes getControlPanes() {
+        return controlPanes;
+    }
 }

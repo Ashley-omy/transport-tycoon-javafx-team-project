@@ -13,6 +13,7 @@ public abstract class Facility extends MapEntity {
     protected final int productionRate;     // units produced per production cycle
     protected final double productionTime;  // time for one production cycle
     protected double productionProgress;
+    private boolean demandShownForCurrentShortage;
 
     public Facility(Id id, GoodsType inputType, GoodsType outputType, int maxStockCapacity, int productionRate, double productionTime) {
         super(id, 2);
@@ -37,6 +38,7 @@ public abstract class Facility extends MapEntity {
         this.inputStock = 0;
         this.outputStock = 0;
         this.productionProgress = 0.0;
+        this.demandShownForCurrentShortage = false;
     }
 
     public GoodsType getInputType() {
@@ -59,12 +61,16 @@ public abstract class Facility extends MapEntity {
         return maxStockCapacity;
     }
 
-    public boolean needsInput() {
-        return inputType != null && inputStock < maxStockCapacity;
+    public int getProductionRate() {
+        return productionRate;
     }
 
-    public boolean hasOutput() {
-        return outputStock > 0;
+    public double getProductionTime() {
+        return productionTime;
+    }
+
+    public double getProductionProgress() {
+        return productionProgress;
     }
 
 
@@ -91,10 +97,25 @@ public abstract class Facility extends MapEntity {
         if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
 
         // can only produce if we have space for output
-        if (outputStock >= maxStockCapacity) return;
+        if (outputStock >= maxStockCapacity) {
+            demandShownForCurrentShortage = false;
+            return;
+        }
 
         // if we need input, check if we have enough
-        if (inputType != null && inputStock < productionRate) return;
+        if (inputType != null && inputStock < productionRate) {
+            if (servedStops.isEmpty()) {
+                demandShownForCurrentShortage = false;
+                return;
+            }
+            if (!demandShownForCurrentShortage) {
+                int shortage = productionRate - inputStock;
+                pushEventDisplay("Demand +" + shortage + " " + inputType);
+                demandShownForCurrentShortage = true;
+            }
+            return;
+        }
+        demandShownForCurrentShortage = false;
 
         productionProgress += deltaTime;
 
@@ -125,6 +146,7 @@ public abstract class Facility extends MapEntity {
         int perStop = outputStock / servedStops.size();
         if (perStop <= 0) return;
 
+        int totalEmitted = 0;
         for (Stop stop : servedStops) {
             if (outputStock <= 0) break;
 
@@ -142,6 +164,12 @@ public abstract class Facility extends MapEntity {
 
             stop.enqueue(shipment);
             outputStock -= toEmit;
+            totalEmitted += toEmit;
+        }
+
+        if (totalEmitted > 0) {
+            // Show production/output supply feedback above facility/mine tiles.
+            pushEventDisplay("Supply +" + totalEmitted + " " + outputType);
         }
     }
 }

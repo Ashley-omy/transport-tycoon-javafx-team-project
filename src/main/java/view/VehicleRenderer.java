@@ -8,17 +8,28 @@ package view;
  *
  * @author asuna
  */
-import common.GridPos;
 import common.Vec2;
+import common.GridPos;
+import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import model.Bus;
 import model.Truck;
 import model.Vehicle;
+import model.VehicleState;
 
 import java.util.List;
 
 public class VehicleRenderer {
+    private final AnimationEngine animationEngine;
+
+    public VehicleRenderer(AnimationEngine animationEngine) {
+        if (animationEngine == null) {
+            throw new IllegalArgumentException("animationEngine cannot be null");
+        }
+        this.animationEngine = animationEngine;
+    }
 
     public void draw(GraphicsContext gc, List<Vehicle> vehicles, Camera camera) {
         if (vehicles == null || vehicles.isEmpty()) {
@@ -34,14 +45,8 @@ public class VehicleRenderer {
                 continue;
             }
 
-            Vec2 worldPos = vehicle.getWorldPos();
-            if (worldPos == null) {
-                GridPos tilePos = vehicle.getTilePos();
-                if (tilePos == null) {
-                    continue;
-                }
-                worldPos = new Vec2(tilePos.x + 0.5, tilePos.y + 0.5);
-            }
+            Vec2 worldPos = animationEngine.getVehicleRenderPos(vehicle);
+            if (worldPos == null) continue;
 
             Vec2 screenPos = worldToScreen(worldPos, camera);
             double drawX = screenPos.x - (size / 2.0);
@@ -51,7 +56,22 @@ public class VehicleRenderer {
             gc.fillOval(drawX, drawY, size, size);
             gc.setStroke(Color.BLACK);
             gc.strokeOval(drawX, drawY, size, size);
+            drawStateLabelIfNeeded(gc, vehicle, screenPos, drawY);
         }
+    }
+    /* Temporal function for debugging */
+    private void drawStateLabelIfNeeded(GraphicsContext gc, Vehicle vehicle, Vec2 screenPos, double vehicleTopY) {
+        VehicleState state = vehicle.getState();
+        if (state != VehicleState.IN_GARAGE && state != VehicleState.BLOCKED) {
+            return;
+        }
+
+        gc.save();
+        gc.setFill(Color.WHITE);
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.BOTTOM);
+        gc.fillText(state.name(), screenPos.x, vehicleTopY - 3.0);
+        gc.restore();
     }
 
     private Vec2 worldToScreen(Vec2 worldPos, Camera camera) {

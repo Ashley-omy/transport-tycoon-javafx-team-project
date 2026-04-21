@@ -5,7 +5,6 @@ import common.Money;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Queue;
 
 public class Stop {
@@ -27,18 +26,11 @@ public class Stop {
     public Tile getOccupiedTile() { return occupiedTile; }
     public MapEntity getServedPlace() { return servedPlace; }
 
-    public void tick(double deltaTime) {
-        if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
-    }
-
     public void enqueue(Shipment s) {
         if (s == null) throw new IllegalArgumentException("shipment cannot be null");
         queue.add(s);
     }
 
-    public List<Shipment> getQueueSnapshot() {
-        return List.copyOf(queue);
-    }
 
     public Shipment dequeueFor(Vehicle vehicle) {
         if (vehicle == null || queue.isEmpty()) return null;
@@ -49,6 +41,10 @@ public class Stop {
         Shipment result = null;
         
         for (Shipment s : new ArrayList<>(queue)) {
+            if (free <= 0) {
+                break;
+            }
+
             if (!vehicle.canLoad(s)) continue;
 
             if (s.getUnits() <= free) {
@@ -93,24 +89,34 @@ public class Stop {
         Shipment cargo = vehicle.getCargo();
         if (cargo == null) return Money.ZERO;
         if (!id.equals(cargo.getToStopId())) return Money.ZERO;
+        if (!canAccept(cargo)) return Money.ZERO;
 
-        World vehicleWorld = vehicle.getWorld();
-        if (vehicleWorld != null) {
-            // Temporary debug messages for verifying unload flow and demand target.
-            vehicleWorld.pushDebugMessage("Demanded MapEntity: " + describeEntity(servedPlace));
-            vehicleWorld.pushDebugMessage("Unload complete: " + vehicle.getId() + " -> " + describeEntity(servedPlace));
-        }
         servedPlace.acceptDelivery(cargo);
-        Money payout = Money.ZERO;
-        if (servedPlace instanceof City) {
-            payout = cargo.getValuePerTile().multiply(cargo.getUnits());
-        }
+        Money payout = cargo.getValuePerTile().multiply(cargo.getUnits());
         vehicle.clearCargo();
         return payout;
     }
 
-    // Temporary debug formatter for the right-side event panel.
-    private String describeEntity(MapEntity entity) {
-        return entity.getClass().getSimpleName() + " (" + entity.getId() + ")";
+    private boolean canAccept(Shipment shipment) {
+        if (shipment == null) return false;
+
+        if (shipment.isPassengers()) {
+            return servedPlace instanceof City;
+        }
+
+        if (servedPlace instanceof City) {
+            GoodsType type = shipment.getGoodsType();
+            return type == GoodsType.STEEL || type == GoodsType.PAPER;
+        }
+
+        if (servedPlace instanceof Facility facility) {
+            return shipment.getGoodsType() == facility.getInputType();
+        }
+
+        return false;
+    }
+    
+    public void tick(double deltaTime) {
+        if (Double.isNaN(deltaTime) || deltaTime <= 0.0) return;
     }
 }

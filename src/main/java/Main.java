@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import view.GameWindow;
@@ -18,11 +19,12 @@ public class Main extends Application {
 
         GameWindow root = new GameWindow(game, world, company);
 
-        Scene scene = new Scene(root, 1200, 800);
+        Scene scene = new Scene(root, 1180, 750);
 
         stage.setTitle("Transport Tycoon");
         stage.setScene(scene);
         stage.show();
+        Platform.runLater(root::requestFocus);
     }
 
     public static void main(String[] args) {

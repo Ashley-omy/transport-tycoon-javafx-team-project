@@ -56,66 +56,148 @@ public class BuildController {
     // step 3: can we build the road?
     // limitations: not on existing road/ infrastructure/ terrain limit(not on water) / first road is ok
     private boolean canPlaceRoad(Tile tile) {
+        if (tile == null) return false;
         if (tile.getRoadPiece()!=null) return false;
         if(tile.getEntity()!=null) return false;
         if (!tile.getTerrain().isPassable()) return false;
         if(!hasAnyRoad()) return true;
 
-        // if we already has road on map, check connectivity for new one and existing roads
-        boolean hasNeighborRoad = false;
-        for (Tile n : getNeighbors(tile)) {
-            if (n.getRoadPiece() != null) {
-                hasNeighborRoad = true;
-                break;
-            }
-        }
-        return hasNeighborRoad;
+        // If roads already exist, new road must connect to an existing road tile.
+        // Adjacent stops alone must not allow road placement.
+        return hasAdjacentRoad(tile);
     }
 
     // step 4: now its ok to build the road
     public ActionResult buildRoad(GridPos pos) {
         Tile tile = world.getMap().getTile(pos);
 
+        if (tile == null) {
+            return ActionResult.fail("Tile out of bounds");
+        }
+
         if (!canPlaceRoad(tile))
             return ActionResult.fail("Cannot place road here");
 
+        Money roadCost = getRoadBuildCost(tile);
         if (!company.getEconomy().spend(
-                World.ROAD_BUILD_COST,
+                roadCost,
                 TransactionType.ROAD_CONSTRUCTION,
                 "Built road at " + pos))
             return ActionResult.fail("Not enough money");
 
-        //world.buildRoad(pos);
         world.buildRoad(pos);
         return ActionResult.success("Build road successfully");
-
-
-        /* wrong codes
-        if (!canPlaceRoad(tile)) return;
-
-        RoadPiece piece = new RoadPiece(RoadKind.ROAD, null);
-        piece.addTile(tile);
-        tile.setRoadPiece(piece);
-
-        world.getRoadNetwork().rebuild(world.getMap());
-
-         */
     }
 
-    /*
-    // road removal
-    public void removeRoad(Tile tile) {
-        tile.setRoadPiece(null);
-        world.getRoadNetwork().rebuild(world.getMap());
+    //--------- bridge build rules --------------------
+
+    // step 1: bridge line must not be empty, and bridge type must exist in world catalog
+    // we use the line to do logic check part: if can build bridge
+    // so controller can know the selected bridge spec before charging money
+    public ActionResult buildBridge(List<GridPos> line, BridgeType type) {
+        if (line == null || line.isEmpty()) {
+            return ActionResult.fail("Bridge line cannot be empty");
+        }
+
+        BridgeSpec spec;
+        try {
+            spec = world.getBridgeSpec(type);
+        } catch (IllegalArgumentException ex) {
+            return ActionResult.fail(ex.getMessage());
+        }
+
+        // step 2: based on the selected bridge line, at least one endpoint
+        // must be anchored to the existing road network
+        if (!hasRoadConnectionAtEitherEnd(line)) {
+            return ActionResult.fail("Bridge must connect to an existing road at one end");
+        }
+
+        // step 3: if placement rule is ok, player still needs enough money to build it
+        if (!company.getEconomy().spend(
+                spec.getCost(),
+                TransactionType.INFRASTRUCTURE,
+                "Built bridge " + type)) {
+            return ActionResult.fail("Not enough money");
+        }
+
+        // step 4: now world tries to place the bridge on map
+        // if world validation fails, refund the money immediately
+        try {
+            world.buildBridge(line, type);
+        } catch (IllegalArgumentException ex) {
+            company.getEconomy().earn(
+                    spec.getCost(),
+                    TransactionType.INFRASTRUCTURE,
+                    "Refund for failed bridge build"
+            );
+            return ActionResult.fail(ex.getMessage());
+        }
+
+        return ActionResult.success("Bridge built successfully");
     }
 
-     */
-    //-------------------------------
+    public ActionResult removeRoad(GridPos pos) {
+        Tile tile = world.getMap().getTile(pos);
+        if (tile == null) {
+            return ActionResult.fail("Tile out of bounds");
+        }
+        if (tile.getRoadPiece() == null) {
+            return ActionResult.fail("No road to remove");
+        }
+        if (tile.getEntity() instanceof City city && city.hasInternalRoadAt(pos)) {
+            return ActionResult.fail("City internal roads cannot be removed");
+        }
+
+        for (Vehicle v : company.getFleet()) {
+            if (v.isUsingTile(pos)) {
+                return ActionResult.fail("Cannot demolish: Road used in active route!");
+            }
+        }
+
+        Money refund = getRoadBuildCost(tile);
+        world.removeRoad(pos);
+        company.getEconomy().earn(
+                refund,
+                TransactionType.ROAD_CONSTRUCTION,
+                "Refund for deconstructed road at " + pos);
+                
+        return ActionResult.success("Deconstructed road successfully");
+    }
+
+    private Money getRoadBuildCost(Tile tile) {
+        if (tile == null) {
+            throw new IllegalArgumentException("tile cannot be null");
+        }
+        return World.ROAD_BUILD_COST.multiply(tile.getTerrain().buildMultiplier());
+    }
+
+    private boolean hasRoadConnectionAtEitherEnd(List<GridPos> line) {
+        return hasAdjacentRoadOutsideLine(line.get(0), line)
+                || hasAdjacentRoadOutsideLine(line.get(line.size() - 1), line);
+    }
+
+    private boolean hasAdjacentRoadOutsideLine(GridPos pos, List<GridPos> line) {
+        Tile tile = world.getMap().getTile(pos);
+        if (tile == null) {
+            return false;
+        }
+
+        for (Tile neighbor : getNeighbors(tile)) {
+            if (neighbor.getRoadPiece() == null) {
+                continue;
+            }
+            if (!line.contains(neighbor.getPos())) {
+                return true;
+            }
+        }
+        return false;
+    }
 
     //--------- Stop placement rules ----------------
 
     // step 1: is the tile empty?
     private boolean isTileEmptyForStop(Tile tile) {
+        if (tile == null) return false;
         if (!tile.getTerrain().isPassable()) return false;
         if (tile.getEntity() != null) return false;
         if (tile.getRoadPiece() != null) return false;
@@ -148,6 +230,10 @@ public class BuildController {
     public ActionResult buildStop(GridPos pos) {
         Tile tile = world.getMap().getTile(pos);
 
+        if (tile == null) {
+            return ActionResult.fail("Tile out of bounds");
+        }
+
         if (!isTileEmptyForStop(tile))
             return ActionResult.fail("Tile not empty");
 
@@ -163,17 +249,50 @@ public class BuildController {
         tile.setStop(stop);
         served.attachStop(stop);
 
-        return ActionResult.success("Build stop sucessfully");
+        return ActionResult.success(
+                "Build stop successfully for "
+                        + served.getClass().getSimpleName()
+                        + " id=" + served.getId()
+                        + " stops=" + served.getServedStopCount()
+        );
+    }
 
-        /* Wrong codes
-        Stop stop = new Stop(Id.genNew(), tile, served);
+    //--------- Garage building rules ----------------
 
-        tile.setStop(stop);
-        served.attachStop(stop);
+    // step 1: garage tile itself must be empty and buildable
+    private boolean isTileEmptyForGarage(Tile tile) {
+        if (tile == null) return false;
+        return tile.getTerrain().isPassable()
+                && tile.getEntity() == null
+                && tile.getRoadPiece() == null
+                && tile.getStop() == null
+                && tile.getGarage() == null;
+    }
 
-        return stop;
+    // step 2: garage must connect to road network from an adjacent tile
+    public ActionResult buildGarage(GridPos pos) {
+        Tile tile = world.getMap().getTile(pos);
 
-         */
+        if (tile == null) {
+            return ActionResult.fail("Tile out of bounds");
+        }
+
+        if (!isTileEmptyForGarage(tile))
+            return ActionResult.fail("Cannot place garage here");
+
+        if (!hasAdjacentRoad(tile))
+            return ActionResult.fail("Garage must be next to a road");
+
+        // step 3: if placement is valid, player still needs enough money
+        if (!company.getEconomy().spend(
+                World.GARAGE_BUILD_COST,
+                TransactionType.INFRASTRUCTURE,
+                "Built garage at " + pos))
+            return ActionResult.fail("Not enough money");
+
+        // step 4: now world can place the garage on selected tile
+        world.buildGarage(pos, 10, 2);  // capacity: 10 vehicles, 2 service bays
+        return ActionResult.success("Garage built successfully");
     }
 
     /*
@@ -184,39 +303,6 @@ public class BuildController {
 
         s.getServedPlace().detachStop(s);
         tile.setStop(null);
-    }
-*/
-
-    /* milestone3
-
-    // garage
-        private boolean isTileEmptyForGarage(Tile tile) {
-        return tile.getTerrain().isPassable()
-                && tile.getEntity() == null
-                && tile.getRoadPiece() == null
-                && tile.getStop() == null
-                && tile.getGarage() == null;
-    }
-
-    public ActionResult buildGarage(GridPos pos) {
-        Tile tile = world.getMap().getTile(pos);
-
-        if (!isTileEmptyForGarage(tile))
-            return ActionResult.failure("Cannot place garage here");
-
-        if (!hasAdjacentRoad(tile))
-            return ActionResult.failure("Garage must be next to a road");
-
-        world.buildGarage(pos);
-        return ActionResult.success();
-    }
-
-
-    // Bridge
-    public ActionResult buildBridge(List<GridPos> line, BridgeType type) {
-        // implement build rules
-        world.buildBridge(line, type);
-        return ActionResult.success();
     }
     */
 }
