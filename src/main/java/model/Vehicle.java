@@ -3,7 +3,6 @@ package model;
 import common.GridPos;
 import common.Id;
 import common.Money;
-import common.Vec2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,12 +27,13 @@ public abstract class Vehicle {
     protected Route assignedRoute;
     protected World world;
     private GridPos tilePos;
-    private Vec2 worldPos;
     private int currentStopIndex = -1;
     private int targetStopIndex = -1;
     private double stopTimerRemaining = 0.0;
     private List<GridPos> currentPath = List.of();
     private int currentPathIndex = 0;
+    // Normalized progress (0..1) inside the current path segment.
+    private double segmentProgress = 0.0;
 
     // Maintenance tracking
     private double age = 0.0; // Total time vehicle has existed
@@ -47,8 +47,9 @@ public abstract class Vehicle {
     private double savedStopTimerRemaining = 0.0;
     private List<GridPos> savedCurrentPath = List.of();
     private int savedCurrentPathIndex = 0;
+    // Snapshot of segmentProgress while the vehicle temporarily returns for maintenance.
+    private double savedSegmentProgress = 0.0;
     private GridPos savedTilePos;
-    private Vec2 savedWorldPos;
     private boolean parkedAfterMaintenance = false;
 
     protected Vehicle(Id id, int capacityUnits, Money purchaseCost, Money maintenanceCost, double speed) {
@@ -112,8 +113,8 @@ public abstract class Vehicle {
         this.stopTimerRemaining = 0.0;
         this.currentPath = List.of();
         this.currentPathIndex = 0;
+        this.segmentProgress = 0.0;
         this.tilePos = null;
-        this.worldPos = null;
     }
 
     public Route getAssignedRoute() {
@@ -133,8 +134,8 @@ public abstract class Vehicle {
         this.stopTimerRemaining = 0.0;
         this.currentPath = List.of();
         this.currentPathIndex = 0;
+        this.segmentProgress = 0.0;
         this.tilePos = null;
-        this.worldPos = null;
     }
 
     // Cargo storage methods
@@ -166,8 +167,25 @@ public abstract class Vehicle {
         return tilePos;
     }
 
-    public Vec2 getWorldPos() {
-        return worldPos;
+    public GridPos getCurrentPathTile() {
+        // Current interpolation start tile used by the view layer.
+        if (currentPath != null && !currentPath.isEmpty() && currentPathIndex < currentPath.size()) {
+            return currentPath.get(currentPathIndex);
+        }
+        return tilePos;
+    }
+
+    public GridPos getNextPathTile() {
+        // Current interpolation end tile used by the view layer.
+        if (currentPath != null && !currentPath.isEmpty() && currentPathIndex < currentPath.size() - 1) {
+            return currentPath.get(currentPathIndex + 1);
+        }
+        return tilePos;
+    }
+
+    public double getSegmentProgress() {
+        // Exposed for animation interpolation; simulation still owns updates.
+        return segmentProgress;
     }
 
     //for deconstruct
@@ -321,7 +339,7 @@ public abstract class Vehicle {
     }
 
     private void ensureInitializedOnRoute() {
-        if (tilePos != null && worldPos != null &&
+        if (tilePos != null &&
                 (!currentPath.isEmpty() || currentStopIndex >= 0 || targetStopIndex >= 0)) {
             return;
         }
@@ -331,11 +349,11 @@ public abstract class Vehicle {
             Stop firstStop = assignedRoute.getStop(0);
 
             tilePos = garagePos;
-            worldPos = toWorldPos(tilePos);
             currentStopIndex = -1;
             targetStopIndex = 0;
             currentPath = buildPathBetweenLocations(garagePos, firstStop.getOccupiedTile().getPos());
             currentPathIndex = 0;
+            segmentProgress = 0.0;
             stopTimerRemaining = 0.0;
 
             if (currentPath.size() < 2) {
@@ -351,10 +369,10 @@ public abstract class Vehicle {
         currentStopIndex = 0;
         Stop firstStop = assignedRoute.getStop(currentStopIndex);
         tilePos = firstStop.getOccupiedTile().getPos();
-        worldPos = toWorldPos(tilePos);
         unloadTo(firstStop);
         loadFrom(firstStop);
         stopTimerRemaining = STOP_DURATION_SECONDS;
+        segmentProgress = 0.0;
         state = VehicleState.LOADING;
     }
 
@@ -380,6 +398,7 @@ public abstract class Vehicle {
         Stop targetStop = assignedRoute.getStop(targetStopIndex);
         currentPath = buildPathBetweenStops(currentStop, targetStop);
         currentPathIndex = 0;
+        segmentProgress = 0.0;
 
         if (currentPath.size() < 2) {
             state = VehicleState.BLOCKED;
@@ -387,54 +406,45 @@ public abstract class Vehicle {
         }
 
         tilePos = currentPath.get(0);
-        worldPos = toWorldPos(tilePos);
         state = VehicleState.ON_ROUTE;
     }
 
     private double moveAlongCurrentPath(double remainingTime) {
+        // Movement is computed in "tile units": each segment length is normalized to 1.0.
+        // This keeps interpolation data (tile pair + progress) independent from rendering.
         double remainingTimeBudget = remainingTime;
 
         while (remainingTimeBudget > EPSILON && currentPathIndex < currentPath.size() - 1) {
             GridPos from = currentPath.get(currentPathIndex);
             GridPos to = currentPath.get(currentPathIndex + 1);
-            Vec2 fromPos = toWorldPos(from);
-            Vec2 toPos = toWorldPos(to);
             double currentSpeed = getEffectiveSpeedForSegment(from, to);
-
-            if (worldPos == null) {
-                worldPos = fromPos;
-            }
-
-            double distanceToSegmentEnd = distance(worldPos, toPos);
-
-            if (distanceToSegmentEnd <= EPSILON) {
+            double remainingSegmentDistance = Math.max(0.0, 1.0 - segmentProgress);
+            if (remainingSegmentDistance <= EPSILON) {
                 currentPathIndex++;
                 tilePos = to;
-                worldPos = toPos;
+                segmentProgress = 0.0;
                 continue;
             }
 
             GridPos myDir = new GridPos(Integer.signum(to.x - from.x), Integer.signum(to.y - from.y));
-
             double maxDistanceThisFrame = currentSpeed * remainingTimeBudget;
-            double step = Math.min(maxDistanceThisFrame, distanceToSegmentEnd);
-            double ratio = step / distanceToSegmentEnd;
-            Vec2 nextPos = Vec2.lerp(worldPos, toPos, ratio);
+            double step = Math.min(maxDistanceThisFrame, remainingSegmentDistance);
+            double nextProgress = segmentProgress + step;
 
-            if (isBlocked(nextPos, myDir)) {
-                // We are blocked from moving fully to nextPos.
+            if (isBlocked(from, to, myDir, nextProgress)) {
                 // Just consume the remaining time for this frame.
                 remainingTimeBudget = 0.0;
                 break;
             }
 
             double timeSpent = step / currentSpeed;
+            segmentProgress = nextProgress;
+            remainingTimeBudget -= timeSpent;
 
-            if (step + EPSILON >= distanceToSegmentEnd) {
-                remainingTimeBudget -= timeSpent;
+            if (segmentProgress + EPSILON >= 1.0) {
                 currentPathIndex++;
                 tilePos = to;
-                worldPos = toPos;
+                segmentProgress = 0.0;
 
                 if (currentPathIndex >= currentPath.size() - 1) {
                     if (returningToGarage) {
@@ -444,9 +454,6 @@ public abstract class Vehicle {
                     }
                     break;
                 }
-            } else {
-                worldPos = nextPos;
-                remainingTimeBudget -= timeSpent;
             }
         }
 
@@ -483,9 +490,9 @@ public abstract class Vehicle {
         Stop stop = assignedRoute.getStop(targetStopIndex);
         currentStopIndex = targetStopIndex;
         tilePos = stop.getOccupiedTile().getPos();
-        worldPos = toWorldPos(tilePos);
         currentPath = List.of();
         currentPathIndex = 0;
+        segmentProgress = 0.0;
         unloadTo(stop);
         loadFrom(stop);
         stopTimerRemaining = STOP_DURATION_SECONDS;
@@ -519,10 +526,10 @@ public abstract class Vehicle {
         GridPos garagePos = homeGarage.getOccupiedTiles().get(0).getPos();
         if (tilePos == null) {
             tilePos = garagePos;
-            worldPos = toWorldPos(tilePos);
             returningToGarage = false;
             state = VehicleState.IN_GARAGE;
             maintenanceTimer = 0.0;
+            segmentProgress = 0.0;
             return true;
         }
 
@@ -537,6 +544,7 @@ public abstract class Vehicle {
         stopTimerRemaining = 0.0;
         currentPath = pathToGarage;
         currentPathIndex = 0;
+        segmentProgress = 0.0;
         targetStopIndex = -1;
         state = VehicleState.ON_ROUTE;
         if (world != null) {
@@ -551,6 +559,7 @@ public abstract class Vehicle {
         returningToGarage = false;
         currentPath = List.of();
         currentPathIndex = 0;
+        segmentProgress = 0.0;
         stopTimerRemaining = 0.0;
         maintenanceTimer = 0.0;
         state = VehicleState.IN_GARAGE;
@@ -559,18 +568,29 @@ public abstract class Vehicle {
         }
     }
 
-    private boolean isBlocked(Vec2 nextPos, GridPos myDir) {
+    private boolean isBlocked(GridPos from, GridPos to, GridPos myDir, double projectedProgress) {
+        // Predict position from path segment + progress and block only when a same-lane
+        // vehicle is ahead in the same tile and direction.
         if (owner == null) return false;
-        GridPos targetTile = new GridPos((int) nextPos.x, (int) nextPos.y);
+        double clampedProgress = clamp01(projectedProgress);
+        double myX = tileCenterX(from) + (to.x - from.x) * clampedProgress;
+        double myY = tileCenterY(from) + (to.y - from.y) * clampedProgress;
+        GridPos targetTile = new GridPos((int) Math.floor(myX), (int) Math.floor(myY));
 
         for (Vehicle other : owner.getFleet()) {
             if (other == this) continue;
             if (other.state == VehicleState.IN_GARAGE || other.state == VehicleState.IDLE) continue;
 
-            Vec2 otherPos = other.worldPos != null ? other.worldPos : (other.tilePos != null ? toWorldPos(other.tilePos) : null);
-            if (otherPos == null) continue;
+            if (other.tilePos == null) continue;
 
-            GridPos otherTile = new GridPos((int) otherPos.x, (int) otherPos.y);
+            GridPos otherFrom = other.getCurrentPathTile();
+            GridPos otherTo = other.getNextPathTile();
+            double otherProgress = (otherFrom != null && otherTo != null && !otherFrom.equals(otherTo))
+                    ? clamp01(other.segmentProgress)
+                    : 0.0;
+            double otherX = tileCenterX(otherFrom) + (otherTo.x - otherFrom.x) * otherProgress;
+            double otherY = tileCenterY(otherFrom) + (otherTo.y - otherFrom.y) * otherProgress;
+            GridPos otherTile = new GridPos((int) Math.floor(otherX), (int) Math.floor(otherY));
             if (!targetTile.equals(otherTile)) continue;
 
             GridPos otherDir = other.getDirectionVec();
@@ -578,8 +598,8 @@ public abstract class Vehicle {
 
             // They are in the same tile, moving the same direction.
             // Check if other is ahead of me.
-            double dx = otherPos.x - nextPos.x;
-            double dy = otherPos.y - nextPos.y;
+            double dx = otherX - myX;
+            double dy = otherY - myY;
             double dot = dx * myDir.x + dy * myDir.y;
 
             if (dot > 0) {
@@ -592,6 +612,18 @@ public abstract class Vehicle {
             }
         }
         return false;
+    }
+
+    private double clamp01(double value) {
+        return Math.max(0.0, Math.min(1.0, value));
+    }
+
+    private double tileCenterX(GridPos pos) {
+        return pos.x + 0.5;
+    }
+
+    private double tileCenterY(GridPos pos) {
+        return pos.y + 0.5;
     }
 
     public GridPos getDirectionVec() {
@@ -622,8 +654,8 @@ public abstract class Vehicle {
         savedStopTimerRemaining = stopTimerRemaining;
         savedCurrentPath = currentPath == null ? List.of() : new ArrayList<>(currentPath);
         savedCurrentPathIndex = currentPathIndex;
+        savedSegmentProgress = segmentProgress;
         savedTilePos = tilePos;
-        savedWorldPos = worldPos;
     }
 
     private void restoreProgressAfterMaintenance() {
@@ -632,8 +664,8 @@ public abstract class Vehicle {
         stopTimerRemaining = savedStopTimerRemaining;
         currentPath = savedCurrentPath.isEmpty() ? List.of() : new ArrayList<>(savedCurrentPath);
         currentPathIndex = savedCurrentPathIndex;
+        segmentProgress = savedSegmentProgress;
         tilePos = savedTilePos;
-        worldPos = savedWorldPos;
         state = hasRoute() ? savedStateBeforeMaintenance : VehicleState.IDLE;
         returningToGarage = false;
         clearSavedMaintenanceProgress();
@@ -646,8 +678,8 @@ public abstract class Vehicle {
         savedStopTimerRemaining = 0.0;
         savedCurrentPath = List.of();
         savedCurrentPathIndex = 0;
+        savedSegmentProgress = 0.0;
         savedTilePos = null;
-        savedWorldPos = null;
     }
 
     private void parkInGarageAfterMaintenance() {
@@ -656,26 +688,16 @@ public abstract class Vehicle {
         stopTimerRemaining = 0.0;
         currentPath = List.of();
         currentPathIndex = 0;
+        segmentProgress = 0.0;
         returningToGarage = false;
 
         if (homeGarage != null && !homeGarage.getOccupiedTiles().isEmpty()) {
             tilePos = homeGarage.getOccupiedTiles().get(0).getPos();
-            worldPos = toWorldPos(tilePos);
         }
 
         state = VehicleState.IDLE;
         parkedAfterMaintenance = true;
         clearSavedMaintenanceProgress();
-    }
-
-    private Vec2 toWorldPos(GridPos pos) {
-        return new Vec2(pos.x + 0.5, pos.y + 0.5);
-    }
-
-    private double distance(Vec2 a, Vec2 b) {
-        double dx = a.x - b.x;
-        double dy = a.y - b.y;
-        return Math.sqrt(dx * dx + dy * dy);
     }
 
     // mine -> factory -> city.

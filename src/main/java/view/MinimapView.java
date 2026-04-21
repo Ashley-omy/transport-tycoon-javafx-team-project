@@ -26,11 +26,19 @@ public class MinimapView extends StackPane {
 
     private final Canvas canvas;
     private final Camera camera;
+    private final AnimationEngine animationEngine;
     private GameMap map;
     private Company company;
 
-    public MinimapView(Camera camera) {
+    public MinimapView(Camera camera, AnimationEngine animationEngine) {
+        if (camera == null) {
+            throw new IllegalArgumentException("camera cannot be null");
+        }
+        if (animationEngine == null) {
+            throw new IllegalArgumentException("animationEngine cannot be null");
+        }
         this.camera = camera;
+        this.animationEngine = animationEngine;
         this.canvas = new Canvas(WIDTH, HEIGHT);
 
         getChildren().add(canvas);
@@ -72,7 +80,8 @@ public class MinimapView extends StackPane {
 
         if (company != null) {
             for (Vehicle vehicle : company.getFleet()) {
-                if (vehicle == null || vehicle.getWorldPos() == null) {
+                Vec2 worldPos = animationEngine.getVehicleRenderPos(vehicle);
+                if (vehicle == null || worldPos == null) {
                     continue;
                 }
 
@@ -80,8 +89,8 @@ public class MinimapView extends StackPane {
                         : vehicle instanceof Truck ? Color.DARKORANGE
                         : Color.LIGHTGRAY);
                 gc.fillOval(
-                        (vehicle.getWorldPos().x * scaleX) - 1.5,
-                        (vehicle.getWorldPos().y * scaleY) - 1.5,
+                        (worldPos.x * scaleX) - 1.5,
+                        (worldPos.y * scaleY) - 1.5,
                         3,
                         3
                 );

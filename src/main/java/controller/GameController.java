@@ -111,9 +111,9 @@ public class GameController {
         // 3. Sync UI state
         window.getUIState().syncFromSelection(selection);
 
-        // 4. Trigger render
+        // 4. Update animation-side clocks/positions and render
+        window.getAnimationEngine().update(game.getSimDelta());
         window.render();
-        window.getAnimationEngine().update(game.getSimDelta(),time);
 
     }
 

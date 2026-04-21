@@ -65,10 +65,10 @@ public class GameWindow extends BorderPane {
         // -----------------------------
         // Views
         // -----------------------------
-        this.mapView = new MapView(MAP_VIEW_WIDTH, MAP_VIEW_HEIGHT);
+        this.mapView = new MapView(MAP_VIEW_WIDTH, MAP_VIEW_HEIGHT, animationEngine);
         this.timeController = new TimeController();
         this.hudView = new HUDView(uiState);
-        this.minimapView = new MinimapView(mapView.getCamera());
+        this.minimapView = new MinimapView(mapView.getCamera(), animationEngine);
         this.controlPanes = new ControlPanes(uiState, timeController);
 
         BorderPane topOverlay = new BorderPane();

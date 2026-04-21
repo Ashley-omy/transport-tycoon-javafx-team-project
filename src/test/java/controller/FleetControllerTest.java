@@ -3,7 +3,6 @@ package controller;
 import common.GridPos;
 import common.Id;
 import common.Money;
-import common.Vec2;
 import model.City;
 import model.Company;
 import model.Garage;
@@ -160,15 +159,13 @@ class FleetControllerTest {
         vehicle.tick(0.1);
 
         assertEquals(garageTile.getPos(), vehicle.getTilePos());
-        assertNotNull(vehicle.getWorldPos());
+        assertNotNull(vehicle.getCurrentPathTile());
         assertTrue(vehicle.getState() == VehicleState.ON_ROUTE || vehicle.getState() == VehicleState.LOADING);
 
-        Vec2 garageCenter = new Vec2(garageTile.getPos().x + 0.5, garageTile.getPos().y + 0.5);
         vehicle.tick(1.0);
-        assertFalse(
-                Math.abs(vehicle.getWorldPos().x - garageCenter.x) < 1e-9 &&
-                Math.abs(vehicle.getWorldPos().y - garageCenter.y) < 1e-9
-        );
+        boolean stillCenteredInGarage = garageTile.getPos().equals(vehicle.getTilePos())
+                && vehicle.getSegmentProgress() <= 1e-9;
+        assertFalse(stillCenteredInGarage);
     }
 
     @Test
@@ -200,12 +197,10 @@ class FleetControllerTest {
         assertEquals(garageTile.getPos(), vehicle.getTilePos());
         assertTrue(vehicle.getState() == VehicleState.ON_ROUTE || vehicle.getState() == VehicleState.LOADING);
 
-        Vec2 garageCenter = new Vec2(garageTile.getPos().x + 0.5, garageTile.getPos().y + 0.5);
         vehicle.tick(1.0);
-        assertFalse(
-                Math.abs(vehicle.getWorldPos().x - garageCenter.x) < 1e-9 &&
-                Math.abs(vehicle.getWorldPos().y - garageCenter.y) < 1e-9
-        );
+        boolean stillCenteredInGarage = garageTile.getPos().equals(vehicle.getTilePos())
+                && vehicle.getSegmentProgress() <= 1e-9;
+        assertFalse(stillCenteredInGarage);
     }
 
     @Test
