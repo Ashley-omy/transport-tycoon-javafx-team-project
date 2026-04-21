@@ -199,6 +199,10 @@ public abstract class Vehicle {
         Shipment loaded = stop.dequeueFor(this);
         if (loaded == null) return false;
         Shipment routedShipment = routeShipmentToNextStop(loaded);
+        if (routedShipment == null) {
+            stop.enqueue(loaded);
+            return false;
+        }
 
         if (cargo == null) {
             cargo = routedShipment;
@@ -229,7 +233,7 @@ public abstract class Vehicle {
         boolean isDeliveringToThisStop = unloading != null && stop.getId().equals(unloading.getToStopId());
         Money payout = stop.deliverFrom(this);
 
-        if (isDeliveringToThisStop && unloading != null) {
+        if (isDeliveringToThisStop && unloading != null && payout.isPositive()) {
             MapEntity servedPlace = stop.getServedPlace();
             if (servedPlace != null) {
                 // Display immediate unload feedback where delivery happened.
@@ -681,6 +685,10 @@ public abstract class Vehicle {
         }
 
         Stop targetStop = resolveTargetStopFor(shipment);
+        if (targetStop == null) {
+            return null;
+        }
+
         return new Shipment(
                 shipment.getKind(),
                 shipment.getGoodsType(),
@@ -707,20 +715,16 @@ public abstract class Vehicle {
                 MapEntity served = stop.getServedPlace();
                 return served instanceof Facility facility && facility.getInputType() == goodsType;
             });
-            if (factoryStop != null) {
-                return factoryStop;
-            }
+            return factoryStop;
         }
 
         // Goods loaded at factories must go to a city.
         if (sourcePlace instanceof Factory) {
             Stop cityStop = findNextStopMatching(stop -> stop.getServedPlace() instanceof City);
-            if (cityStop != null) {
-                return cityStop;
-            }
+            return cityStop;
         }
 
-        return nextStop;
+        return null;
     }
 
     private String describeShipment(Shipment shipment) {

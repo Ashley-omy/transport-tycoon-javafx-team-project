@@ -41,6 +41,10 @@ public class Stop {
         Shipment result = null;
         
         for (Shipment s : new ArrayList<>(queue)) {
+            if (free <= 0) {
+                break;
+            }
+
             if (!vehicle.canLoad(s)) continue;
 
             if (s.getUnits() <= free) {
@@ -85,15 +89,31 @@ public class Stop {
         Shipment cargo = vehicle.getCargo();
         if (cargo == null) return Money.ZERO;
         if (!id.equals(cargo.getToStopId())) return Money.ZERO;
+        if (!canAccept(cargo)) return Money.ZERO;
 
-        World vehicleWorld = vehicle.getWorld();
         servedPlace.acceptDelivery(cargo);
-        Money payout = Money.ZERO;
-        if (servedPlace instanceof City) {
-            payout = cargo.getValuePerTile().multiply(cargo.getUnits());
-        }
+        Money payout = cargo.getValuePerTile().multiply(cargo.getUnits());
         vehicle.clearCargo();
         return payout;
+    }
+
+    private boolean canAccept(Shipment shipment) {
+        if (shipment == null) return false;
+
+        if (shipment.isPassengers()) {
+            return servedPlace instanceof City;
+        }
+
+        if (servedPlace instanceof City) {
+            GoodsType type = shipment.getGoodsType();
+            return type == GoodsType.STEEL || type == GoodsType.PAPER;
+        }
+
+        if (servedPlace instanceof Facility facility) {
+            return shipment.getGoodsType() == facility.getInputType();
+        }
+
+        return false;
     }
     
     public void tick(double deltaTime) {
