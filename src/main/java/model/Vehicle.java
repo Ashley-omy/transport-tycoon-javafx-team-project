@@ -49,6 +49,7 @@ public abstract class Vehicle {
     private int savedCurrentPathIndex = 0;
     private GridPos savedTilePos;
     private Vec2 savedWorldPos;
+    private boolean parkedAfterMaintenance = false;
 
     protected Vehicle(Id id, int capacityUnits, Money purchaseCost, Money maintenanceCost, double speed) {
         if (id == null) throw new IllegalArgumentException("id cannot be null");
@@ -106,6 +107,7 @@ public abstract class Vehicle {
     public void assignRoute(Route route) {
         if (route == null) throw new IllegalArgumentException("route cannot be null");
         this.assignedRoute = route;
+        this.parkedAfterMaintenance = false;
         this.currentStopIndex = -1;
         this.targetStopIndex = -1;
         this.stopTimerRemaining = 0.0;
@@ -125,6 +127,7 @@ public abstract class Vehicle {
 
     public void clearRoute() {
         this.assignedRoute = null;
+        this.parkedAfterMaintenance = false;
         this.state = VehicleState.IDLE;
         this.currentStopIndex = -1;
         this.targetStopIndex = -1;
@@ -154,6 +157,9 @@ public abstract class Vehicle {
 
     public void setState(VehicleState state) {
         if (state == null) throw new IllegalArgumentException("state cannot be null");
+        if (state != VehicleState.IDLE) {
+            parkedAfterMaintenance = false;
+        }
         this.state = state;
     }
 
@@ -260,8 +266,13 @@ public abstract class Vehicle {
             return;
         }
 
-        // Check if maintenance is needed
-        if (needsMaintenance() && state != VehicleState.BLOCKED) {
+        if (state == VehicleState.IDLE && parkedAfterMaintenance) {
+            return;
+        }
+
+        // Check if maintenance is needed. Once a vehicle has started heading back to the garage,
+        // do not restart that process every tick or the return path keeps getting reset.
+        if (needsMaintenance() && !returningToGarage && state != VehicleState.BLOCKED) {
             if (!startReturnToGarage()) {
                 state = VehicleState.BLOCKED;
             }
@@ -301,6 +312,9 @@ public abstract class Vehicle {
             }
 
             remainingTime = moveAlongCurrentPath(remainingTime);
+            if (state == VehicleState.IN_GARAGE || state == VehicleState.IDLE) {
+                return;
+            }
         }
     }
 
@@ -593,7 +607,7 @@ public abstract class Vehicle {
         }
         timeSinceLastMaintenance = 0.0;
         maintenanceTimer = 0.0;
-        restoreProgressAfterMaintenance();
+        parkInGarageAfterMaintenance();
         if (world != null) {
             world.pushDebugMessage("Maintenance complete: " + id);
         }
@@ -632,6 +646,24 @@ public abstract class Vehicle {
         savedCurrentPathIndex = 0;
         savedTilePos = null;
         savedWorldPos = null;
+    }
+
+    private void parkInGarageAfterMaintenance() {
+        currentStopIndex = -1;
+        targetStopIndex = -1;
+        stopTimerRemaining = 0.0;
+        currentPath = List.of();
+        currentPathIndex = 0;
+        returningToGarage = false;
+
+        if (homeGarage != null && !homeGarage.getOccupiedTiles().isEmpty()) {
+            tilePos = homeGarage.getOccupiedTiles().get(0).getPos();
+            worldPos = toWorldPos(tilePos);
+        }
+
+        state = VehicleState.IDLE;
+        parkedAfterMaintenance = true;
+        clearSavedMaintenanceProgress();
     }
 
     private Vec2 toWorldPos(GridPos pos) {
