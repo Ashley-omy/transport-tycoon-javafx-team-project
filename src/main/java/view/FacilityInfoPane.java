@@ -29,7 +29,7 @@ public class FacilityInfoPane extends Stage {
         VBox root = new VBox(6, nameLabel, detailsBox);
         root.setPadding(new Insets(12));
 
-        Scene scene = new Scene(root, 320, 230);
+        Scene scene = new Scene(root, 320, 150);
         setScene(scene);
     }
 
@@ -42,17 +42,19 @@ public class FacilityInfoPane extends Stage {
         }
 
         nameLabel.setText(buildFacilityName(facility));
-        detailsBox.getChildren().setAll(
-                row("Production Type", productionTypeLabel(facility)),
-                row("Input Type", formatGoodsType(facility.getInputType())),
-                row("Output Type", formatGoodsType(facility.getOutputType())),
-                row("Input Stock", facility.getInputStock() + " / " + facility.getMaxStockCapacity()),
-                row("Output Stock", facility.getOutputStock() + " / " + facility.getMaxStockCapacity()),
-                row("Units / Cycle", String.valueOf(facility.getProductionRate())),
-                row("Cycle Time", String.format(Locale.ROOT, "%.1f s", facility.getProductionTime())),
-                row("Cycle Progress", String.format(Locale.ROOT, "%.1f / %.1f s",
-                        facility.getProductionProgress(), facility.getProductionTime()))
-        );
+        if (facility instanceof Factory) {
+            int shortage = Math.max(0, facility.getProductionRate() - facility.getInputStock());
+            detailsBox.getChildren().setAll(
+                    row("Input Type", formatGoodsType(facility.getInputType())),
+                    row("Output Type", formatGoodsType(facility.getOutputType())),
+                    row("Shortage (Demand)", shortage + " " + formatGoodsType(facility.getInputType()))
+            );
+        } else {
+            detailsBox.getChildren().setAll(
+                    row("Input Type", formatGoodsType(facility.getInputType())),
+                    row("Output Type", formatGoodsType(facility.getOutputType()))
+            );
+        }
 
         if (!isShowing()) {
             show();
@@ -75,16 +77,6 @@ public class FacilityInfoPane extends Stage {
             return outputName + " Factory";
         }
         return outputName + " Facility";
-    }
-
-    private String productionTypeLabel(Facility facility) {
-        if (facility instanceof Mine) {
-            return "Mine";
-        }
-        if (facility instanceof Factory) {
-            return "Factory";
-        }
-        return "Facility";
     }
 
     private String formatGoodsType(GoodsType type) {
