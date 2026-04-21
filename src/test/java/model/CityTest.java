@@ -47,7 +47,7 @@ class CityTest {
         assertEquals(ShipmentKind.PASSENGERS, emittedB.getKind());
 
         // Assert: each stop receives the same number of passengers.
-        int expectedPerStop = (city.getPopulation() / 10) / 2;
+        int expectedPerStop = (city.getPopulation() / 100) / 2;
         assertEquals(expectedPerStop, emittedA.getUnits());
         assertEquals(expectedPerStop, emittedB.getUnits());
         int expectedTotalEmitted = expectedPerStop * 2;
