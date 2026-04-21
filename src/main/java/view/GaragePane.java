@@ -131,10 +131,15 @@ public class GaragePane extends Stage {
     private VBox createVehicleCard(Vehicle vehicle) {
         boolean owned = isOwned(vehicle);
         boolean selected = isSelected(vehicle);
+        boolean overAged = vehicle.isOverAged();
 
         Label ownedLabel = new Label(owned ? "OWNED" : "");
         ownedLabel.setTextFill(owned ? Color.FORESTGREEN : Color.TRANSPARENT);
         ownedLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold;");
+
+        Label overagedLabel = new Label(overAged ? "OVERAGED" : "");
+        overagedLabel.setTextFill(overAged ? Color.CRIMSON : Color.TRANSPARENT);
+        overagedLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold;");
 
         Rectangle vehicleBody = new Rectangle(88, 42);
         vehicleBody.setArcWidth(8);
@@ -148,7 +153,7 @@ public class GaragePane extends Stage {
         Label idLabel = new Label(vehicle.getId().toString());
         idLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #555555;");
 
-        VBox card = new VBox(6, ownedLabel, vehicleBody, typeLabel, idLabel);
+        VBox card = new VBox(6, ownedLabel, overagedLabel, vehicleBody, typeLabel, idLabel);
         card.setAlignment(Pos.TOP_CENTER);
         card.setPadding(new Insets(8));
         card.setPrefWidth(130);
@@ -176,7 +181,7 @@ public class GaragePane extends Stage {
 
         boolean owned = isOwned(selectedVehicle);
         buyButton.setDisable(owned);
-        sellButton.setDisable(!owned);
+        sellButton.setDisable(!owned || !selectedVehicle.isOverAged());
         resumeButton.setDisable(!canResume(selectedVehicle, owned));
         detailsLabel.setText(buildDetails(selectedVehicle, owned));
     }
