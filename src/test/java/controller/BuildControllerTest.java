@@ -23,18 +23,81 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BuildControllerTest {
 
     @Test
-    void buildGarageShouldSucceedOnEmptyTileNextToRoad() {
+    // requirement coverage:
+    // happy path: player can build road on one valid empty tile and gets charged for it
+    void buildRoadShouldSucceedOnValidEmptyTile() {
+        // step 1: make one valid empty tile that is next to an existing road
         World world = new World(25, 25);
         Company company = new Company();
         BuildController buildController = new BuildController(world, company);
-        // Do not depend on hard-coded coordinates because world initialization changes often.
-        // Instead, find a valid candidate tile from the current map state.
+        GridPos roadPos = findBuildableRoadTile(world);
+
+        Money cashBefore = company.getEconomy().getCash();
+
+        // step 2: build road on that tile
+        ActionResult result = buildController.buildRoad(roadPos);
+
+        // step 3: road should be placed and company should pay standard road cost
+        assertTrue(result.isSuccess());
+        assertEquals("Build road successfully", result.getMessage());
+        assertTrue(world.getMap().getTile(roadPos).hasRoad());
+        assertEquals(cashBefore.subtract(World.ROAD_BUILD_COST), company.getEconomy().getCash());
+    }
+
+    @Test
+    // requirement coverage:
+    // error path: player with no money should not be able to build road
+    void buildRoadShouldFailWhenPlayerHasNoMoney() {
+        // step 1: prepare one valid road position but give company zero starting cash
+        World world = new World(25, 25);
+        Company company = new Company(Money.ZERO);
+        BuildController buildController = new BuildController(world, company);
+        GridPos roadPos = findBuildableRoadTile(world);
+
+        // step 2: try to build road anyway
+        ActionResult result = buildController.buildRoad(roadPos);
+
+        // step 3: build should fail and cash should stay unchanged
+        assertFalse(result.isSuccess());
+        assertEquals("Not enough money", result.getMessage());
+        assertNull(world.getMap().getTile(roadPos).getRoadPiece());
+        assertEquals(Money.ZERO, company.getEconomy().getCash());
+    }
+
+    @Test
+    // requirement coverage:
+    // error path: blocked tile such as water or entity tile should reject road building
+    void buildRoadShouldFailOnBlockedTile() {
+        // step 1: find one blocked tile from the initialized world
+        World world = new World(25, 25);
+        Company company = new Company();
+        BuildController buildController = new BuildController(world, company);
+        GridPos blockedPos = findBlockedRoadTile(world);
+
+        // step 2: try to build road on blocked tile
+        ActionResult result = buildController.buildRoad(blockedPos);
+
+        // step 3: controller should reject build and tile should stay unchanged
+        assertFalse(result.isSuccess());
+        assertEquals("Cannot place road here", result.getMessage());
+        assertNull(world.getMap().getTile(blockedPos).getRoadPiece());
+    }
+
+    @Test
+    // happy path: player can build garage on one empty tile next to road
+    void buildGarageShouldSucceedOnEmptyTileNextToRoad() {
+        // step 1: find one valid empty tile next to existing road
+        World world = new World(25, 25);
+        Company company = new Company();
+        BuildController buildController = new BuildController(world, company);
         GridPos garagePos = findEmptyTileNextToRoad(world);
 
         Money cashBefore = company.getEconomy().getCash();
 
+        // step 2: build garage on that tile
         ActionResult result = buildController.buildGarage(garagePos);
 
+        // step 3: garage should be placed and company should pay garage cost
         assertTrue(result.isSuccess());
         assertEquals("Garage built successfully", result.getMessage());
         assertTrue(world.getMap().getTile(garagePos).hasGarage());
@@ -42,29 +105,35 @@ class BuildControllerTest {
     }
 
     @Test
+    // error path: garage cannot be built if tile is not connected to road
     void buildGarageShouldFailWhenTileIsNotAdjacentToRoad() {
+        // step 1: find one empty tile that is not next to any road
         World world = new World(25, 25);
         Company company = new Company();
         BuildController buildController = new BuildController(world, company);
-        // Pick a tile that is buildable in general but intentionally not connected to roads.
         GridPos garagePos = findEmptyTileNotAdjacentToRoad(world);
 
+        // step 2: try to build garage anyway
         ActionResult result = buildController.buildGarage(garagePos);
 
+        // step 3: build should fail and no garage should appear on tile
         assertFalse(result.isSuccess());
         assertNull(world.getMap().getTile(garagePos).getGarage());
     }
 
     @Test
+    // error path: player without enough money cannot build garage
     void buildGarageShouldFailWhenPlayerCannotAffordIt() {
+        // step 1: use same valid garage tile but give company too little money
         World world = new World(25, 25);
         Company company = new Company(Money.of(1_000));
         BuildController buildController = new BuildController(world, company);
-        // Reuse the same placement precondition as the success case and isolate only "money" failure.
         GridPos garagePos = findEmptyTileNextToRoad(world);
 
+        // step 2: try to build garage
         ActionResult result = buildController.buildGarage(garagePos);
 
+        // step 3: build should fail and cash should not change
         assertFalse(result.isSuccess());
         assertEquals("Not enough money", result.getMessage());
         assertNull(world.getMap().getTile(garagePos).getGarage());
@@ -72,7 +141,9 @@ class BuildControllerTest {
     }
 
     @Test
+    // happy path: bridge should spend money and place one bridge road piece
     void buildBridgeShouldSpendMoneyAndPlaceBridgeRoadPiece() {
+        // step 1: prepare one road anchor and one water tile for bridge
         World world = new World(25, 25);
         Company company = new Company();
         BuildController buildController = new BuildController(world, company);
@@ -85,8 +156,10 @@ class BuildControllerTest {
         Money cashBefore = company.getEconomy().getCash();
         Money expectedCost = world.getBridgeSpec(BridgeType.TYPE_A).getCost();
 
+        // step 2: build bridge on selected bridge tile
         ActionResult result = buildController.buildBridge(List.of(bridgeTile), BridgeType.TYPE_A);
 
+        // step 3: bridge should be placed and company should pay bridge cost
         assertTrue(result.isSuccess());
         assertEquals("Bridge built successfully", result.getMessage());
         assertEquals(cashBefore.subtract(expectedCost), company.getEconomy().getCash());
@@ -94,7 +167,9 @@ class BuildControllerTest {
     }
 
     @Test
+    // error path: bridge must connect to existing road from at least one end
     void buildBridgeShouldFailWithoutAdjacentRoadConnection() {
+        // step 1: prepare one water tile that has no road anchor
         World world = new World(25, 25);
         Company company = new Company();
         BuildController buildController = new BuildController(world, company);
@@ -102,15 +177,19 @@ class BuildControllerTest {
 
         world.getMap().setTerrain(bridgeTile, new Water(WaterType.RIVER));
 
+        // step 2: try to build bridge without road connection
         ActionResult result = buildController.buildBridge(List.of(bridgeTile), BridgeType.TYPE_A);
 
+        // step 3: build should fail and no bridge road should appear
         assertFalse(result.isSuccess());
         assertEquals("Bridge must connect to an existing road at one end", result.getMessage());
         assertNull(world.getMap().getTile(bridgeTile).getRoadPiece());
     }
 
     @Test
+    // happy path: stop should attach to adjacent city when tile is valid
     void buildStopShouldAttachToAdjacentCity() {
+        // step 1: prepare one empty stop tile, one road tile, and one city tile
         World world = new World(25, 25);
         Company company = new Company();
         BuildController buildController = new BuildController(world, company);
@@ -127,8 +206,10 @@ class BuildControllerTest {
         cityTile.setEntity(city);
         city.getOccupiedTiles().add(cityTile);
 
+        // step 2: build stop on tile next to road and city
         ActionResult result = buildController.buildStop(new GridPos(6, 4));
 
+        // step 3: stop should be attached to that city
         assertTrue(result.isSuccess());
         assertTrue(result.getMessage().startsWith("Build stop successfully for City id="));
         assertTrue(result.getMessage().endsWith(" stops=1"));
@@ -137,8 +218,7 @@ class BuildControllerTest {
     }
 
     private GridPos findEmptyTileNextToRoad(World world) {
-        // Find a tile that satisfies garage tile constraints and is road-adjacent.
-        // This keeps the test stable even if map layout changes.
+        // helper for finding one empty tile next to road
         for (int x = 0; x < world.getMap().getWidth(); x++) {
             for (int y = 0; y < world.getMap().getHeight(); y++) {
                 GridPos pos = new GridPos(x, y);
@@ -150,9 +230,40 @@ class BuildControllerTest {
         throw new AssertionError("No empty tile adjacent to road found in test world");
     }
 
+    private GridPos findBuildableRoadTile(World world) {
+        // helper for finding one valid road tile
+        for (int x = 0; x < world.getMap().getWidth(); x++) {
+            for (int y = 0; y < world.getMap().getHeight(); y++) {
+                GridPos pos = new GridPos(x, y);
+                var tile = world.getMap().getTile(pos);
+                if (tile.getTerrain().isPassable()
+                        && tile.getEntity() == null
+                        && tile.getRoadPiece() == null
+                        && tile.getStop() == null
+                        && hasAdjacentRoad(world, pos)) {
+                    return pos;
+                }
+            }
+        }
+        throw new AssertionError("No valid empty tile found for road building");
+    }
+
+    private GridPos findBlockedRoadTile(World world) {
+        // helper for finding one blocked road tile
+        for (int x = 0; x < world.getMap().getWidth(); x++) {
+            for (int y = 0; y < world.getMap().getHeight(); y++) {
+                GridPos pos = new GridPos(x, y);
+                Tile tile = world.getMap().getTile(pos);
+                if (!tile.getTerrain().isPassable() || tile.getEntity() != null) {
+                    return pos;
+                }
+            }
+        }
+        throw new AssertionError("No blocked tile found for road building");
+    }
+
     private GridPos findEmptyTileNotAdjacentToRoad(World world) {
-        // Find a tile that is otherwise valid for garage placement but has no road neighbor.
-        // Used to verify the "must be next to a road" validation path.
+        // helper for finding one empty tile away from roads
         for (int x = 0; x < world.getMap().getWidth(); x++) {
             for (int y = 0; y < world.getMap().getHeight(); y++) {
                 GridPos pos = new GridPos(x, y);
@@ -165,7 +276,7 @@ class BuildControllerTest {
     }
 
     private boolean isEmptyGarageCandidate(World world, GridPos pos) {
-        // Mirrors BuildController#isTileEmptyForGarage conditions so test expectations are explicit.
+        // helper for checking if tile matches garage build conditions
         var tile = world.getMap().getTile(pos);
         return tile.getTerrain().isPassable()
                 && tile.getEntity() == null
@@ -175,7 +286,7 @@ class BuildControllerTest {
     }
 
     private boolean hasAdjacentRoad(World world, GridPos pos) {
-        // 4-neighbor check, same connectivity model used by production build logic.
+        // helper for checking 4-neighbor road connection
         GridPos[] neighbors = {
                 new GridPos(pos.x + 1, pos.y),
                 new GridPos(pos.x - 1, pos.y),
@@ -194,6 +305,7 @@ class BuildControllerTest {
     }
 
     private void prepareOpenTile(World world, GridPos pos) {
+        // helper for making one tile empty first
         Tile tile = world.getMap().getTile(pos);
         tile.setTerrain(new Land());
         tile.setEntity(null);
@@ -203,6 +315,7 @@ class BuildControllerTest {
     }
 
     private void placeRoad(World world, GridPos pos) {
+        // helper for placing one simple road tile
         Tile tile = world.getMap().getTile(pos);
         model.RoadPiece road = new model.RoadPiece(model.RoadKind.ROAD, null);
         road.addTile(tile);

@@ -2,6 +2,7 @@ package controller;
 
 import common.GridPos;
 import common.Id;
+import common.Money;
 import common.Vec2;
 import model.City;
 import model.Company;
@@ -27,7 +28,77 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class FleetControllerTest {
 
     @Test
+    // happy path: player can buy one small truck from garage
+    void buyTruckShouldSucceedForKnownSmallSpec() {
+        // step 1: create one dummy garage on map for vehicle purchase
+        World world = new World(25, 25);
+        Company company = new Company();
+        FleetController fleet = new FleetController(company, world);
+        Tile garageTile = world.getMap().getTile(new GridPos(5, 5));
+        Garage garage = new Garage(Id.genNew(), 10, 2, List.of(garageTile));
+        garageTile.setGarage(garage);
+
+        Money cashBefore = company.getEconomy().getCash();
+
+        // step 2: buy one small truck
+        ActionResult result = fleet.buyTruck(garage, "small");
+
+        // step 3: company should own one vehicle and cash should go down
+        assertTrue(result.isSuccess());
+        assertEquals(1, company.getFleet().size());
+        assertTrue(company.getEconomy().getCash().lessThan(cashBefore));
+    }
+
+    @Test
+    // error path: unknown truck spec should be rejected
+    void buyTruckShouldFailForUnknownSpec() {
+        // step 1: create one garage and use invalid truck spec name
+        World world = new World(25, 25);
+        Company company = new Company();
+        FleetController fleet = new FleetController(company, world);
+        Tile garageTile = world.getMap().getTile(new GridPos(5, 5));
+        Garage garage = new Garage(Id.genNew(), 10, 2, List.of(garageTile));
+        garageTile.setGarage(garage);
+
+        // step 2: try to buy unknown truck spec
+        ActionResult result = fleet.buyTruck(garage, "spaceship");
+
+        // step 3: build should fail and fleet size should stay zero
+        assertFalse(result.isSuccess());
+        assertEquals("Unknown truck spec: spaceship", result.getMessage());
+        assertTrue(company.getFleet().isEmpty());
+    }
+
+    @Test
+    // happy path: bought vehicle can be sold back and company gets resale money
+    void sellVehicleShouldSucceedAfterBuyingVehicle() {
+        // step 1: buy one vehicle first from dummy garage
+        World world = new World(25, 25);
+        Company company = new Company();
+        FleetController fleet = new FleetController(company, world);
+        Tile garageTile = world.getMap().getTile(new GridPos(5, 5));
+        Garage garage = new Garage(Id.genNew(), 10, 2, List.of(garageTile));
+        garageTile.setGarage(garage);
+
+        assertTrue(fleet.buyTruck(garage, "small").isSuccess());
+        Vehicle vehicle = company.getFleet().get(0);
+        Money cashAfterPurchase = company.getEconomy().getCash();
+
+        // step 2: sell the bought vehicle by id
+        ActionResult result = fleet.sellVehicle(vehicle.getId().toString());
+
+        // step 3: fleet should go back to zero and company should earn resale money
+        assertTrue(result.isSuccess());
+        assertEquals(0, company.getFleet().size());
+        assertEquals(
+                cashAfterPurchase.add(Company.getVehicleResaleValue()),
+                company.getEconomy().getCash()
+        );
+    }
+
+    @Test
     void createRouteDoesNotAutoPurchaseOrCreateVehicle() {
+        // step 1: create one valid route and one reachable garage
         World world = new World(25, 25);
         Company company = new Company();
         FleetController fleet = new FleetController(company, world);
@@ -38,6 +109,7 @@ class FleetControllerTest {
 
         ActionResult result = fleet.createRoute(route.getStops());
 
+        // step 2: route creation should not auto-buy or auto-create company vehicles
         assertTrue(result.isSuccess());
         assertEquals("Route created with 2 stops", result.getMessage());
         assertTrue(company.getFleet().isEmpty());
@@ -45,6 +117,7 @@ class FleetControllerTest {
 
     @Test
     void createRouteAssignsItToReachableGarage() {
+        // step 1: create one valid route and one reachable garage
         World world = new World(25, 25);
         Company company = new Company();
         FleetController fleet = new FleetController(company, world);
@@ -56,6 +129,7 @@ class FleetControllerTest {
 
         ActionResult result = fleet.createRoute(route.getStops());
 
+        // step 2: created route should be assigned to that garage
         assertTrue(result.isSuccess());
         assertNotNull(garage.getRoute());
         assertEquals(2, garage.getRoute().getStopCount());
@@ -63,6 +137,7 @@ class FleetControllerTest {
 
     @Test
     void purchasedVehicleStartsRouteFromGarage() {
+        // step 1: create route first, then buy one garage vehicle
         World world = new World(25, 25);
         Company company = new Company();
         FleetController fleet = new FleetController(company, world);
@@ -76,10 +151,12 @@ class FleetControllerTest {
         Vehicle vehicle = garage.getVehicles().get(0);
         ActionResult purchaseResult = fleet.purchaseVehicleInGarage(garage, vehicle);
 
+        // step 2: purchased vehicle should now belong to route-garage setup
         assertTrue(purchaseResult.isSuccess());
         assertNotNull(garage.getRoute());
         assertEquals(2, garage.getRoute().getStopCount());
 
+        // step 3: after ticking, vehicle should start from garage and move out
         vehicle.tick(0.1);
 
         assertEquals(garageTile.getPos(), vehicle.getTilePos());
@@ -96,6 +173,7 @@ class FleetControllerTest {
 
     @Test
     void vehicleBoughtBeforeRouteStartsAfterRouteCreation() {
+        // step 1: buy one garage vehicle before any route exists
         World world = new World(25, 25);
         Company company = new Company();
         FleetController fleet = new FleetController(company, world);
@@ -114,6 +192,7 @@ class FleetControllerTest {
         ActionResult routeResult = fleet.createRoute(route.getStops());
         assertTrue(routeResult.isSuccess());
 
+        // step 2: after route creation, already-owned idle vehicle should start using that route
         vehicle.tick(0.1);
 
         assertNotNull(garage.getRoute());
@@ -131,6 +210,7 @@ class FleetControllerTest {
 
     @Test
     void assignRouteFailsWhenGarageCannotReachRouteStart() {
+        // step 1: create one valid route but place garage on isolated area
         World world = new World(25, 25);
         Company company = new Company();
         FleetController fleet = new FleetController(company, world);
@@ -152,12 +232,14 @@ class FleetControllerTest {
 
         ActionResult result = fleet.assignRoute(vehicle.getId().toString(), route);
 
+        // step 2: route assignment should fail because garage cannot reach route start
         assertFalse(result.isSuccess());
         assertEquals("Vehicle garage is not connected to the route start", result.getMessage());
     }
 
     @Test
     void createRouteFailsWithoutReachableGarage() {
+        // step 1: create valid route but do not create any reachable garage
         World world = new World(25, 25);
         Company company = new Company();
         FleetController fleet = new FleetController(company, world);
@@ -165,11 +247,47 @@ class FleetControllerTest {
 
         ActionResult result = fleet.createRoute(route.getStops());
 
+        // step 2: route creation should fail without available garage
         assertFalse(result.isSuccess());
         assertEquals("Build a garage with free space before creating a route", result.getMessage());
     }
 
+    @Test
+    void resumeVehicleRestartsOwnedVehicleAfterMaintenance() {
+        // step 1: create route, buy vehicle, and let time pass until maintenance is finished
+        World world = new World(25, 25);
+        Company company = new Company();
+        FleetController fleet = new FleetController(company, world);
+        Route route = buildSimpleRoute(world);
+
+        Tile garageTile = world.getMap().getTile(new GridPos(5, 5));
+        Garage garage = new Garage(Id.genNew(), 10, 2, List.of(garageTile));
+        garageTile.setGarage(garage);
+        assertTrue(fleet.createRoute(route.getStops()).isSuccess());
+
+        Vehicle vehicle = garage.getVehicles().get(0);
+        assertTrue(fleet.purchaseVehicleInGarage(garage, vehicle).isSuccess());
+
+        for (int i = 0; i < 320; i++) {
+            company.tick(1.0);
+            if (vehicle.getState() == VehicleState.IDLE && vehicle.hasRoute()) {
+                break;
+            }
+        }
+
+        assertEquals(VehicleState.IDLE, vehicle.getState());
+        assertTrue(vehicle.hasRoute());
+        assertEquals(garageTile.getPos(), vehicle.getTilePos());
+
+        // step 2: resume should restart vehicle from garage back onto route
+        ActionResult resumeResult = fleet.resumeVehicle(vehicle.getId().toString());
+
+        assertTrue(resumeResult.isSuccess());
+        assertEquals(VehicleState.ON_ROUTE, vehicle.getState());
+    }
+
     private Route buildSimpleRoute(World world) {
+        // helper for building one simple two-stop route on straight road
         prepareOpenTile(world, new GridPos(5, 4));
         prepareOpenTile(world, new GridPos(6, 4));
         prepareOpenTile(world, new GridPos(7, 4));
@@ -189,6 +307,7 @@ class FleetControllerTest {
 
 
     private void prepareOpenTile(World world, GridPos pos) {
+        // helper for making tile empty first
         Tile tile = world.getMap().getTile(pos);
         tile.setTerrain(new Land());
         tile.setEntity(null);
@@ -198,6 +317,7 @@ class FleetControllerTest {
     }
 
     private void placeRoad(World world, GridPos pos) {
+        // helper for placing one simple road tile
         Tile tile = world.getMap().getTile(pos);
         RoadPiece road = new RoadPiece(RoadKind.ROAD, null);
         road.addTile(tile);
