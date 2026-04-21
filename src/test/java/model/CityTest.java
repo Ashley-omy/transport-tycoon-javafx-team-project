@@ -50,5 +50,6 @@ class CityTest {
         int expectedPerStop = (city.getPopulation() / 10) / 2;
         assertEquals(expectedPerStop, emittedA.getUnits());
         assertEquals(expectedPerStop, emittedB.getUnits());
+        assertTrue(city.getActiveEventDisplayTexts().contains("Supply +500 PASSENGERS"));
     }
 }

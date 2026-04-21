@@ -11,7 +11,7 @@ import java.util.Map;
 public class City extends MapEntity {
     private static final int STANDARD_POPULATION = 5000;
     private static final int CITY_FOOTPRINT = 5;
-    private static final double DEMAND_INCREASE_RATE = 0.5; // Units per second
+    private static final double DEMAND_INCREASE_RATE = 0.2; // Units per second
     private static final int INITIAL_DEMAND = 50;
     private static final int MAX_DEMAND = 500;
     
@@ -134,8 +134,8 @@ public class City extends MapEntity {
         }
         int totalEmitted = perStop * servedStops.size();
         if (totalEmitted > 0) {
-            // Show demand generation feedback above the city for a short time.
-            pushEventDisplay("Demand +" + totalEmitted + " PASSENGERS");
+            // This is generated passenger supply, not demand.
+            pushEventDisplay("Supply +" + totalEmitted + " PASSENGERS");
         }
     }
 
