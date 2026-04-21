@@ -8,8 +8,8 @@ package view;
  *
  * @author asuna
  */
-import common.GridPos;
 import common.Vec2;
+import common.GridPos;
 import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
@@ -22,6 +22,14 @@ import model.VehicleState;
 import java.util.List;
 
 public class VehicleRenderer {
+    private final AnimationEngine animationEngine;
+
+    public VehicleRenderer(AnimationEngine animationEngine) {
+        if (animationEngine == null) {
+            throw new IllegalArgumentException("animationEngine cannot be null");
+        }
+        this.animationEngine = animationEngine;
+    }
 
     public void draw(GraphicsContext gc, List<Vehicle> vehicles, Camera camera) {
         if (vehicles == null || vehicles.isEmpty()) {
@@ -37,14 +45,8 @@ public class VehicleRenderer {
                 continue;
             }
 
-            Vec2 worldPos = vehicle.getWorldPos();
-            if (worldPos == null) {
-                GridPos tilePos = vehicle.getTilePos();
-                if (tilePos == null) {
-                    continue;
-                }
-                worldPos = new Vec2(tilePos.x + 0.5, tilePos.y + 0.5);
-            }
+            Vec2 worldPos = animationEngine.getVehicleRenderPos(vehicle);
+            if (worldPos == null) continue;
 
             Vec2 screenPos = worldToScreen(worldPos, camera);
             double drawX = screenPos.x - (size / 2.0);

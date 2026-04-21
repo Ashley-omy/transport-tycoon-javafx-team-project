@@ -29,7 +29,10 @@ public class MapView extends Pane {
     private GameMap map; // injected later
     private Company company;
 
-    public MapView(int width, int height) {
+    public MapView(int width, int height, AnimationEngine animationEngine) {
+        if (animationEngine == null) {
+            throw new IllegalArgumentException("animationEngine cannot be null");
+        }
         this.canvas = new Canvas(width, height);
         this.gc = canvas.getGraphicsContext2D();
 
@@ -42,7 +45,7 @@ public class MapView extends Pane {
         camera = new Camera(new GridPos(0,0),
                 (int) canvas.getWidth(),
                 (int) canvas.getHeight());
-        this.renderer = new Renderer();
+        this.renderer = new Renderer(animationEngine);
     }
 
     public void setMap(GameMap map) {

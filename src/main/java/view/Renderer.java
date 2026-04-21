@@ -19,13 +19,14 @@ public class Renderer {
     private final TileRenderer tileRenderer;
     private final EntityRenderer entityRenderer;
     private final VehicleRenderer vehicleRenderer;
-    private final AnimationEngine anim;
 
-    public Renderer() {
+    public Renderer(AnimationEngine animationEngine) {
+        if (animationEngine == null) {
+            throw new IllegalArgumentException("animationEngine cannot be null");
+        }
         this.tileRenderer = new TileRenderer();
         this.entityRenderer = new EntityRenderer();
-        this.vehicleRenderer = new VehicleRenderer();
-        this.anim = new AnimationEngine();
+        this.vehicleRenderer = new VehicleRenderer(animationEngine);
     }
 
     public void render(GraphicsContext gc, GameMap map, Camera camera, UIState uiState, List<Vehicle> vehicles) {

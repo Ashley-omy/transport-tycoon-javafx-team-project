@@ -3,7 +3,6 @@ package model;
 import common.GridPos;
 import common.Id;
 import common.Money;
-import common.Vec2;
 import controller.FleetController;
 import org.junit.jupiter.api.Test;
 
@@ -147,16 +146,16 @@ class VehicleTest {
         setVehicleField(movingTruck, "currentPathIndex", 1);
         setVehicleField(blockedTruck, "tilePos", new GridPos(2, 4));
         setVehicleField(movingTruck, "tilePos", new GridPos(3, 4));
-        setVehicleField(blockedTruck, "worldPos", new Vec2(2.5, 4.5));
-        setVehicleField(movingTruck, "worldPos", new Vec2(3.2, 4.5));
+        setVehicleField(blockedTruck, "segmentProgress", 0.0);
+        setVehicleField(movingTruck, "segmentProgress", 0.1);
 
         // step 3: behind truck should stay because next tile is already occupied by ahead truck
         blockedTruck.tick(0.5);
         movingTruck.tick(0.5);
 
-        assertEquals(2.5, blockedTruck.getWorldPos().x, 1e-9);
-        assertEquals(4.5, blockedTruck.getWorldPos().y, 1e-9);
-        assertTrue(movingTruck.getWorldPos().x > 2.5);
+        assertEquals(new GridPos(2, 4), blockedTruck.getTilePos());
+        assertEquals(0.0, blockedTruck.getSegmentProgress(), 1e-9);
+        assertTrue(movingTruck.getSegmentProgress() > 0.1);
     }
 
     // helper for making tile empty first

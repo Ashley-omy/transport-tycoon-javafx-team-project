@@ -113,7 +113,7 @@ public class City extends MapEntity {
     public void emitSupplyToStops() {
         if (servedStops.isEmpty()) return;
         
-        int passengersToEmit = population / 10; //
+        int passengersToEmit = population / 100; //
         if (passengersToEmit <= 0) return;
 
         // Distribute evenly to all stops
