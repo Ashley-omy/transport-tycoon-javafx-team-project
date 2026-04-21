@@ -21,6 +21,7 @@ import model.Company;
 import model.Garage;
 import model.Truck;
 import model.Vehicle;
+import model.VehicleState;
 
 import java.util.function.Consumer;
 
@@ -34,6 +35,7 @@ public class GaragePane extends Stage {
     private final Label detailsLabel = new Label("Select a vehicle to see details.");
     private final Button buyButton = new Button("Buy");
     private final Button sellButton = new Button("Sell");
+    private final Button resumeButton = new Button("Resume");
 
     private Garage currentGarage;
     private Vehicle selectedVehicle;
@@ -63,10 +65,12 @@ public class GaragePane extends Stage {
 
         buyButton.setDisable(true);
         sellButton.setDisable(true);
+        resumeButton.setDisable(true);
         buyButton.setOnAction(e -> handleBuy());
         sellButton.setOnAction(e -> handleSell());
+        resumeButton.setOnAction(e -> handleResume());
 
-        HBox actions = new HBox(8, buyButton, sellButton);
+        HBox actions = new HBox(8, buyButton, sellButton, resumeButton);
         actions.setAlignment(Pos.CENTER_LEFT);
 
         VBox bottom = new VBox(10, detailsLabel, actions);
@@ -166,12 +170,14 @@ public class GaragePane extends Stage {
             detailsLabel.setText("Select a vehicle to see details.");
             buyButton.setDisable(true);
             sellButton.setDisable(true);
+            resumeButton.setDisable(true);
             return;
         }
 
         boolean owned = isOwned(selectedVehicle);
         buyButton.setDisable(owned);
         sellButton.setDisable(!owned);
+        resumeButton.setDisable(!canResume(selectedVehicle, owned));
         detailsLabel.setText(buildDetails(selectedVehicle, owned));
     }
 
@@ -197,6 +203,17 @@ public class GaragePane extends Stage {
         updateSelectionUI();
     }
 
+    private void handleResume() {
+        if (selectedVehicle == null) {
+            return;
+        }
+
+        ActionResult result = fleetController.resumeVehicle(selectedVehicle.getId().toString());
+        reportAction(result);
+        refreshVehicleTiles();
+        updateSelectionUI();
+    }
+
     private void reportAction(ActionResult result) {
         if (actionReporter != null && result != null) {
             actionReporter.accept(result);
@@ -214,10 +231,18 @@ public class GaragePane extends Stage {
     private String buildDetails(Vehicle vehicle, boolean owned) {
         return "Type: " + typeOf(vehicle)
                 + "   Status: " + (owned ? "Owned" : "On sale")
+                + "\nState: " + vehicle.getState()
+                + "   Route: " + (vehicle.hasRoute() ? "Assigned" : "None")
                 + "\nSpeed: " + vehicle.getSpeed() + " tiles/s"
                 + "   Capacity: " + vehicle.getCapacityUnits()
                 + "\nPrice: " + vehicle.getPurchaseCost()
                 + "   Maintenance: " + vehicle.getMaintenanceCost();
+    }
+
+    private boolean canResume(Vehicle vehicle, boolean owned) {
+        return owned
+                && vehicle.hasRoute()
+                && vehicle.getState() == VehicleState.IDLE;
     }
 
     private String typeOf(Vehicle vehicle) {

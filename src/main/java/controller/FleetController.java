@@ -106,6 +106,33 @@ public class FleetController {
         return assignRoute(vehicleId, r);
     }
 
+    public ActionResult resumeVehicle(String vehicleId) {
+        if (vehicleId == null || vehicleId.isEmpty()) {
+            return ActionResult.fail("Vehicle ID cannot be null or empty");
+        }
+
+        Vehicle vehicle = findVehicleInCompany(vehicleId);
+        if (vehicle == null) {
+            return ActionResult.fail("Vehicle not found");
+        }
+        if (!vehicle.hasRoute()) {
+            return ActionResult.fail("Vehicle has no assigned route");
+        }
+        if (vehicle.getState() != VehicleState.IDLE) {
+            return ActionResult.fail("Vehicle is not ready to resume");
+        }
+        if (vehicle.getHomeGarage() == null || vehicle.getHomeGarage().getOccupiedTiles().isEmpty()) {
+            return ActionResult.fail("Vehicle must have a home garage before resuming");
+        }
+        if (!canReachRouteFromGarage(vehicle, vehicle.getAssignedRoute())) {
+            return ActionResult.fail("Vehicle garage is not connected to the route start");
+        }
+
+        vehicle.setWorld(world);
+        vehicle.setState(VehicleState.ON_ROUTE);
+        return ActionResult.success("Vehicle resumed: " + vehicle.getId());
+    }
+
     // helper fns for checking if route is legal
     // vehicle in company??
     private Vehicle findVehicleInCompany(String id) {
@@ -338,6 +365,10 @@ public class FleetController {
             return false;
         }
 
+        if (vehicle.getState() != VehicleState.IDLE) {
+            return false;
+        }
+
         Route route = garage.getRoute();
         if (route == null || !canReachRouteFromGarage(vehicle, route)) {
             return false;
@@ -356,6 +387,9 @@ public class FleetController {
 
         for (Vehicle vehicle : company.getFleet()) {
             if (vehicle.getHomeGarage() != garage) {
+                continue;
+            }
+            if (vehicle.getState() != VehicleState.IDLE) {
                 continue;
             }
             if (vehicle.hasRoute() && vehicle.getAssignedRoute() != route) {
