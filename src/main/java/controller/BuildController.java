@@ -98,6 +98,11 @@ public class BuildController {
         return ActionResult.success("Build road successfully");
     }
 
+    //--------- bridge build rules --------------------
+
+    // step 1: bridge line must not be empty, and bridge type must exist in world catalog
+    // we use the line to do logic check part: if can build bridge
+    // so controller can know the selected bridge spec before charging money
     public ActionResult buildBridge(List<GridPos> line, BridgeType type) {
         if (line == null || line.isEmpty()) {
             return ActionResult.fail("Bridge line cannot be empty");
@@ -110,10 +115,13 @@ public class BuildController {
             return ActionResult.fail(ex.getMessage());
         }
 
+        // step 2: based on the selected bridge line, at least one endpoint
+        // must be anchored to the existing road network
         if (!hasRoadConnectionAtEitherEnd(line)) {
             return ActionResult.fail("Bridge must connect to an existing road at one end");
         }
 
+        // step 3: if placement rule is ok, player still needs enough money to build it
         if (!company.getEconomy().spend(
                 spec.getCost(),
                 TransactionType.INFRASTRUCTURE,
@@ -121,6 +129,8 @@ public class BuildController {
             return ActionResult.fail("Not enough money");
         }
 
+        // step 4: now world tries to place the bridge on map
+        // if world validation fails, refund the money immediately
         try {
             world.buildBridge(line, type);
         } catch (IllegalArgumentException ex) {
@@ -256,7 +266,9 @@ public class BuildController {
         );
     }
 
-    // Garage building
+    //--------- Garage building rules ----------------
+
+    // step 1: garage tile itself must be empty and buildable
     private boolean isTileEmptyForGarage(Tile tile) {
         if (tile == null) return false;
         return tile.getTerrain().isPassable()
@@ -266,6 +278,7 @@ public class BuildController {
                 && tile.getGarage() == null;
     }
 
+    // step 2: garage must connect to road network from an adjacent tile
     public ActionResult buildGarage(GridPos pos) {
         Tile tile = world.getMap().getTile(pos);
 
@@ -279,12 +292,14 @@ public class BuildController {
         if (!hasAdjacentRoad(tile))
             return ActionResult.fail("Garage must be next to a road");
 
+        // step 3: if placement is valid, player still needs enough money
         if (!company.getEconomy().spend(
                 World.GARAGE_BUILD_COST,
                 TransactionType.INFRASTRUCTURE,
                 "Built garage at " + pos))
             return ActionResult.fail("Not enough money");
 
+        // step 4: now world can place the garage on selected tile
         world.buildGarage(pos, 10, 2);  // capacity: 10 vehicles, 2 service bays
         return ActionResult.success("Garage built successfully");
     }
