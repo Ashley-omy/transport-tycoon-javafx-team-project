@@ -14,6 +14,7 @@ class CityTest {
 
     @Test
     void tickIncreasesDemandAndPassengersAreSplitEvenlyAcrossStops() {
+        // Checks: city demand rises over time and emitted passengers are evenly split across attached stops.
         City city = new City(Id.genNew());
 
         Stop stopA = new Stop(Id.genNew(), new Tile(new GridPos(1, 1), new Land()), city);
@@ -25,9 +26,11 @@ class CityTest {
         int paperDemandBefore = city.getGoodsDemand(GoodsType.PAPER);
         int passengerDemandBefore = city.getPassengerDemand();
 
+        // Action: advance city simulation and emit passenger supply.
         city.tick(4.0);
         city.emitSupplyToStops();
 
+        // Assert: all demands increased.
         assertTrue(city.getGoodsDemand(GoodsType.STEEL) > steelDemandBefore);
         assertTrue(city.getGoodsDemand(GoodsType.PAPER) > paperDemandBefore);
         assertTrue(city.getPassengerDemand() > passengerDemandBefore);
@@ -43,6 +46,7 @@ class CityTest {
         assertEquals(ShipmentKind.PASSENGERS, emittedA.getKind());
         assertEquals(ShipmentKind.PASSENGERS, emittedB.getKind());
 
+        // Assert: each stop receives the same number of passengers.
         int expectedPerStop = (city.getPopulation() / 10) / 2;
         assertEquals(expectedPerStop, emittedA.getUnits());
         assertEquals(expectedPerStop, emittedB.getUnits());

@@ -16,6 +16,7 @@ class VehicleTest {
 
     @Test
     void bridgeSpeedLimitSlowsVehicleMovement() {
+        // Checks: bridge speed limit constrains movement speed on a route segment.
         World world = new World(30, 30);
 
         GridPos roadLeft = new GridPos(0, 0);
@@ -37,8 +38,10 @@ class VehicleTest {
         truck.setWorld(world);
         truck.assignRoute(route);
 
+        // Action: move long enough to traverse one segment.
         truck.tick(2.5);
 
+        // Assert: truck reaches bridge tile but not beyond due to bridge speed limit.
         assertEquals(new GridPos(0, 0), truck.getTilePos());
         assertTrue(truck.getWorldPos().x > 0.9);
         assertTrue(truck.getWorldPos().x < 1.1);
@@ -46,6 +49,7 @@ class VehicleTest {
 
     @Test
     void busDeliveryIncreasesCompanyCash() {
+        // Checks: passenger delivery payout is credited to company economy.
         World world = new World(25, 25);
         Company company = new Company();
         company.setWorld(world);
@@ -83,16 +87,19 @@ class VehicleTest {
         Money cashBeforeDelivery = company.getEconomy().getCash();
         stopA.enqueue(new Shipment(ShipmentKind.PASSENGERS, null, 10, stopA.getId(), stopA.getId(), Money.of(2)));
 
+        // Action: tick company to let bus load, travel, and deliver.
         for (int i = 0; i < 8; i++) {
             company.tick(0.5);
         }
 
+        // Assert: company cash increased by delivered passenger value.
         assertTrue(company.getEconomy().getCash().greaterThan(cashBeforeDelivery));
         assertEquals(Money.of(20), company.getEconomy().getCash().subtract(cashBeforeDelivery));
     }
 
     @Test
     void truckRoutesMineCargoToFactoryMergesAndPaysOutOnDelivery() {
+        // Checks: truck merges queued cargo, routes it to factory, unloads, and triggers payout.
         World world = new World(25, 25);
         Company company = new Company();
         company.setWorld(world);
@@ -117,15 +124,17 @@ class VehicleTest {
 
         Money cashBefore = company.getEconomy().getCash();
 
-        // First tick initializes the route at stop A and performs unload/load there.
+        // Action: initialize on route and load at mine stop.
         truck.tick(0.1);
 
         Shipment loadedCargo = truck.getCargo();
+        // Assert: cargo merged and destination rerouted to factory stop.
         assertNotNull(loadedCargo);
         assertEquals(10, loadedCargo.getUnits());
         assertEquals(stopB.getId(), loadedCargo.getToStopId());
         assertEquals(5, truck.getFreeCapacityUnits());
 
+        // Action + Assert: unloading at factory transfers goods and credits delivery payout.
         Money payout = truck.unloadTo(stopB);
 
         assertEquals(Money.of(30), payout);
