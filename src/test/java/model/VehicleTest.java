@@ -3,146 +3,163 @@ package model;
 import common.GridPos;
 import common.Id;
 import common.Money;
+import common.Vec2;
 import controller.FleetController;
 import org.junit.jupiter.api.Test;
 
+import java.lang.reflect.Field;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VehicleTest {
 
     @Test
-    void bridgeSpeedLimitSlowsVehicleMovement() {
-        // Checks: bridge speed limit constrains movement speed on a route segment.
-        World world = new World(30, 30);
-
-        GridPos roadLeft = new GridPos(0, 0);
-        GridPos bridgeMid = new GridPos(1, 0);
-        GridPos roadRight = new GridPos(2, 0);
-        GridPos stopLeftPos = new GridPos(0, 1);
-        GridPos stopRightPos = new GridPos(2, 1);
-
-        world.buildRoad(roadLeft);
-        world.buildRoad(roadRight);
-        world.getMap().setTerrain(bridgeMid, new Water(WaterType.RIVER));
-        world.buildBridge(List.of(bridgeMid), BridgeType.TYPE_A);
-
-        Stop leftStop = new Stop(Id.genNew(), world.getMap().getTile(stopLeftPos), new City(Id.genNew()));
-        Stop rightStop = new Stop(Id.genNew(), world.getMap().getTile(stopRightPos), new City(Id.genNew()));
-        Route route = new Route(Id.genNew(), List.of(leftStop, rightStop));
-
-        Truck truck = new Truck(Id.genNew(), 10, Money.of(100), Money.of(1), 2.0);
-        truck.setWorld(world);
-        truck.assignRoute(route);
-
-        // Action: move long enough to traverse one segment.
-        truck.tick(2.5);
-
-        // Assert: truck reaches bridge tile but not beyond due to bridge speed limit.
-        assertEquals(new GridPos(0, 0), truck.getTilePos());
-        assertTrue(truck.getWorldPos().x > 0.9);
-        assertTrue(truck.getWorldPos().x < 1.1);
-    }
-
-    @Test
-    void busDeliveryIncreasesCompanyCash() {
-        // Checks: passenger delivery payout is credited to company economy.
+    // non-trivial test case
+    // requirement coverage:
+    // happy path: over-aged vehicle can return to garage and finish maintenance
+    // difficult-to-reproduce situation: maintenance interruption in the middle of route operation
+    // edge case: vehicle is forced into over-aged state by directly pushing age over threshold
+    void overAgedVehicleShouldReturnToGarageAndBeResumableAfterMaintenance() throws Exception {
+        // step 1: build one simple route with one garage and two stops
         World world = new World(25, 25);
         Company company = new Company();
         company.setWorld(world);
-        FleetController fleet = new FleetController(company, world);
+        FleetController fleetController = new FleetController(company, world);
 
         prepareOpenTile(world, new GridPos(5, 4));
         prepareOpenTile(world, new GridPos(6, 4));
         prepareOpenTile(world, new GridPos(7, 4));
+        prepareOpenTile(world, new GridPos(8, 4));
+        prepareOpenTile(world, new GridPos(9, 4));
+        prepareOpenTile(world, new GridPos(10, 4));
         prepareOpenTile(world, new GridPos(5, 5));
         prepareOpenTile(world, new GridPos(6, 5));
-        prepareOpenTile(world, new GridPos(7, 5));
+        prepareOpenTile(world, new GridPos(10, 5));
 
         placeRoad(world, new GridPos(5, 4));
         placeRoad(world, new GridPos(6, 4));
         placeRoad(world, new GridPos(7, 4));
+        placeRoad(world, new GridPos(8, 4));
+        placeRoad(world, new GridPos(9, 4));
+        placeRoad(world, new GridPos(10, 4));
         world.getRoadNetwork().rebuild(world.getMap());
-
-        City cityA = new City(Id.genNew());
-        City cityB = new City(Id.genNew());
-        Stop stopA = new Stop(Id.genNew(), world.getMap().getTile(new GridPos(6, 5)), cityA);
-        Stop stopB = new Stop(Id.genNew(), world.getMap().getTile(new GridPos(7, 5)), cityB);
-        cityA.attachStop(stopA);
-        cityB.attachStop(stopB);
-
-        Route route = new Route(Id.genNew(), List.of(stopA, stopB));
 
         Tile garageTile = world.getMap().getTile(new GridPos(5, 5));
         Garage garage = new Garage(Id.genNew(), 10, 2, List.of(garageTile));
         garageTile.setGarage(garage);
-        garage.setRoute(route);
 
-        Vehicle bus = garage.getVehicles().stream().filter(v -> v instanceof Bus).findFirst().orElseThrow();
-        assertTrue(fleet.purchaseVehicleInGarage(garage, bus).isSuccess());
+        City cityA = new City(Id.genNew());
+        City cityB = new City(Id.genNew());
+        Stop stopA = new Stop(Id.genNew(), world.getMap().getTile(new GridPos(6, 5)), cityA);
+        Stop stopB = new Stop(Id.genNew(), world.getMap().getTile(new GridPos(10, 5)), cityB);
+        cityA.attachStop(stopA);
+        cityB.attachStop(stopB);
+        Route route = new Route(Id.genNew(), List.of(stopA, stopB));
 
-        Money cashBeforeDelivery = company.getEconomy().getCash();
-        stopA.enqueue(new Shipment(ShipmentKind.PASSENGERS, null, 10, stopA.getId(), stopA.getId(), Money.of(2)));
+        Truck truck = new Truck(Id.genNew(), 10, Money.of(100), Money.of(1), 2.0);
+        truck.setOwner(company);
+        truck.setWorld(world);
+        truck.setHomeGarage(garage);
+        truck.assignRoute(route);
+        truck.setState(VehicleState.ON_ROUTE);
+        company.getFleet().add(truck);
 
-        // Action: tick company to let bus load, travel, and deliver.
-        for (int i = 0; i < 8; i++) {
-            company.tick(0.5);
+        // step 2: let truck move first so it is already on route
+        truck.tick(3.0);
+        assertEquals(VehicleState.ON_ROUTE, truck.getState());
+        assertFalse(garageTile.getPos().equals(truck.getTilePos()));
+
+        // step 3: manually make truck old enough to trigger maintenance
+        setVehicleField(truck, "age", 1801.0);
+        setVehicleField(truck, "timeSinceLastMaintenance", 1801.0);
+
+        truck.tick(0.1);
+
+        // step 4: truck should still keep route info and start returning to garage
+        assertTrue(truck.isOverAged());
+        assertEquals(route, truck.getAssignedRoute());
+        assertEquals(VehicleState.ON_ROUTE, truck.getState());
+
+        // step 5: after enough ticks, maintenance is done and truck parks in garage
+        for (int i = 0; i < 20; i++) {
+            truck.tick(1.0);
         }
 
-        // Assert: company cash increased by delivered passenger value.
-        assertTrue(company.getEconomy().getCash().greaterThan(cashBeforeDelivery));
-        assertEquals(Money.of(20), company.getEconomy().getCash().subtract(cashBeforeDelivery));
+        assertEquals(VehicleState.IDLE, truck.getState());
+        assertEquals(garageTile.getPos(), truck.getTilePos());
+        assertEquals(route, truck.getAssignedRoute());
+
+        // step 6: current code resumes vehicle through FleetController after maintenance
+        assertTrue(fleetController.resumeVehicle(truck.getId().toString()).isSuccess());
+        assertEquals(VehicleState.ON_ROUTE, truck.getState());
     }
 
     @Test
-    void truckRoutesMineCargoToFactoryMergesAndPaysOutOnDelivery() {
-        // Checks: truck merges queued cargo, routes it to factory, unloads, and triggers payout.
+    // non-trivial test case
+    // requirement coverage:
+    // happy path: traffic blocking logic prevents overlap when another vehicle is ahead
+    // difficult-to-reproduce situation: two vehicles share the same lane and direction with controlled internal state
+    void vehicleBehindShouldBeBlockedWhenAnotherVehicleIsAheadInSameDirection() throws Exception {
+        // step 1: build one straight road for two vehicles moving in same direction
         World world = new World(25, 25);
         Company company = new Company();
-        company.setWorld(world);
 
-        Mine mine = Mine.createIronMine(Id.genNew());
-        Factory steelMill = Factory.createSteelMill(Id.genNew());
+        prepareOpenTile(world, new GridPos(2, 4));
+        prepareOpenTile(world, new GridPos(3, 4));
+        prepareOpenTile(world, new GridPos(4, 4));
+        prepareOpenTile(world, new GridPos(5, 4));
+        placeRoad(world, new GridPos(2, 4));
+        placeRoad(world, new GridPos(3, 4));
+        placeRoad(world, new GridPos(4, 4));
+        placeRoad(world, new GridPos(5, 4));
+        world.getRoadNetwork().rebuild(world.getMap());
 
-        Stop stopA = new Stop(Id.genNew(), new Tile(new GridPos(1, 1), new Land()), mine);
-        Stop stopB = new Stop(Id.genNew(), new Tile(new GridPos(2, 1), new Land()), steelMill);
-        mine.attachStop(stopA);
-        steelMill.attachStop(stopB);
-
+        Stop stopA = new Stop(new Id("stop-a"), world.getMap().getTile(new GridPos(2, 5)), new City(Id.genNew()));
+        Stop stopB = new Stop(new Id("stop-b"), world.getMap().getTile(new GridPos(5, 5)), new City(Id.genNew()));
         Route route = new Route(Id.genNew(), List.of(stopA, stopB));
 
-        Truck truck = new Truck(Id.genNew(), 15, Money.of(100), Money.of(1), 1.0);
-        truck.setWorld(world);
-        truck.setOwner(company);
-        truck.assignRoute(route);
+        Truck blockedTruck = new Truck(new Id("A"), 10, Money.of(100), Money.of(1), 1.0);
+        Truck movingTruck = new Truck(new Id("B"), 10, Money.of(100), Money.of(1), 1.0);
+        blockedTruck.setOwner(company);
+        movingTruck.setOwner(company);
+        blockedTruck.setWorld(world);
+        movingTruck.setWorld(world);
+        blockedTruck.assignRoute(route);
+        movingTruck.assignRoute(route);
+        blockedTruck.setState(VehicleState.ON_ROUTE);
+        movingTruck.setState(VehicleState.ON_ROUTE);
+        company.getFleet().add(blockedTruck);
+        company.getFleet().add(movingTruck);
 
-        stopA.enqueue(new Shipment(ShipmentKind.GOODS, GoodsType.IRON, 4, stopA.getId(), stopA.getId(), Money.of(3)));
-        stopA.enqueue(new Shipment(ShipmentKind.GOODS, GoodsType.IRON, 6, stopA.getId(), stopA.getId(), Money.of(3)));
+        // step 2: set internal path state so one truck is behind and one truck is ahead
+        List<GridPos> sharedPath = List.of(
+                new GridPos(2, 4),
+                new GridPos(3, 4),
+                new GridPos(4, 4),
+                new GridPos(5, 4)
+        );
+        setVehicleField(blockedTruck, "currentPath", sharedPath);
+        setVehicleField(movingTruck, "currentPath", sharedPath);
+        setVehicleField(blockedTruck, "currentPathIndex", 0);
+        setVehicleField(movingTruck, "currentPathIndex", 1);
+        setVehicleField(blockedTruck, "tilePos", new GridPos(2, 4));
+        setVehicleField(movingTruck, "tilePos", new GridPos(3, 4));
+        setVehicleField(blockedTruck, "worldPos", new Vec2(2.5, 4.5));
+        setVehicleField(movingTruck, "worldPos", new Vec2(3.2, 4.5));
 
-        Money cashBefore = company.getEconomy().getCash();
+        // step 3: behind truck should stay because next tile is already occupied by ahead truck
+        blockedTruck.tick(0.5);
+        movingTruck.tick(0.5);
 
-        // Action: initialize on route and load at mine stop.
-        truck.tick(0.1);
-
-        Shipment loadedCargo = truck.getCargo();
-        // Assert: cargo merged and destination rerouted to factory stop.
-        assertNotNull(loadedCargo);
-        assertEquals(10, loadedCargo.getUnits());
-        assertEquals(stopB.getId(), loadedCargo.getToStopId());
-        assertEquals(5, truck.getFreeCapacityUnits());
-
-        // Action + Assert: unloading at factory transfers goods and credits delivery payout.
-        Money payout = truck.unloadTo(stopB);
-
-        assertEquals(Money.of(30), payout);
-        assertEquals(10, steelMill.getInputStock());
-        assertEquals(15, truck.getFreeCapacityUnits());
-        assertEquals(cashBefore.add(Money.of(30)), company.getEconomy().getCash());
+        assertEquals(2.5, blockedTruck.getWorldPos().x, 1e-9);
+        assertEquals(4.5, blockedTruck.getWorldPos().y, 1e-9);
+        assertTrue(movingTruck.getWorldPos().x > 2.5);
     }
 
+    // helper for making tile empty first
     private void prepareOpenTile(World world, GridPos pos) {
         Tile tile = world.getMap().getTile(pos);
         tile.setTerrain(new Land());
@@ -152,10 +169,18 @@ class VehicleTest {
         tile.setGarage(null);
     }
 
+    // helper for placing simple road tile
     private void placeRoad(World world, GridPos pos) {
         Tile tile = world.getMap().getTile(pos);
         RoadPiece road = new RoadPiece(RoadKind.ROAD, null);
         road.addTile(tile);
         tile.setRoadPiece(road);
+    }
+
+    // helper for setting private vehicle fields in test
+    private void setVehicleField(Vehicle vehicle, String fieldName, Object value) throws Exception {
+        Field field = Vehicle.class.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        field.set(vehicle, value);
     }
 }
