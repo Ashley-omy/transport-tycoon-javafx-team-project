@@ -16,6 +16,7 @@ import javafx.animation.AnimationTimer;
 import model.Game;
 import view.BuildMode;
 import view.BridgeTypePane;
+import view.FacilityInfoPane;
 import view.GaragePane;
 import view.GameWindow;
 import view.UIState;
@@ -37,6 +38,7 @@ public class GameController {
     private BuildController build;
     private FleetController fleet;
     private final GaragePane garagePane;
+    private final FacilityInfoPane facilityInfoPane;
     private final BridgeTypePane bridgeTypePane;
     private final List<Stop> pendingRouteStops = new ArrayList<>();
     // Shared drag state used by both camera panning and drag-build interactions.
@@ -64,6 +66,7 @@ public class GameController {
         this.build = build;
         this.fleet = fleet;
         this.garagePane = new GaragePane(game.getCompany(), fleet, window.getControlPanes()::displayBuildResult);
+        this.facilityInfoPane = new FacilityInfoPane();
         this.bridgeTypePane = new BridgeTypePane(
                 game.getWorld().getBridgeCatalog(),
                 this::placePendingBridge
@@ -157,12 +160,21 @@ public class GameController {
         if (window.getUIState().getBuildMode() == BuildMode.NONE) {
             Tile clickedTile = game.getWorld().getMap().getTile(tile);
             if (clickedTile != null && clickedTile.getGarage() != null) {
+                facilityInfoPane.close();
                 garagePane.showForGarage(
                         clickedTile.getGarage(),
                         window.getScene() == null ? null : window.getScene().getWindow()
                 );
                 return;
             }
+            if (clickedTile != null && clickedTile.getEntity() instanceof Facility facility) {
+                facilityInfoPane.showForFacility(
+                        facility,
+                        window.getScene() == null ? null : window.getScene().getWindow()
+                );
+                return;
+            }
+            facilityInfoPane.close();
         }
 
         /* Logic to trigger Build Controller */

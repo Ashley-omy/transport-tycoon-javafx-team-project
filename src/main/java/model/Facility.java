@@ -43,6 +43,34 @@ public abstract class Facility extends MapEntity {
         return inputType;
     }
 
+    public GoodsType getOutputType() {
+        return outputType;
+    }
+
+    public int getInputStock() {
+        return inputStock;
+    }
+
+    public int getOutputStock() {
+        return outputStock;
+    }
+
+    public int getMaxStockCapacity() {
+        return maxStockCapacity;
+    }
+
+    public int getProductionRate() {
+        return productionRate;
+    }
+
+    public double getProductionTime() {
+        return productionTime;
+    }
+
+    public double getProductionProgress() {
+        return productionProgress;
+    }
+
 
     @Override
     public void acceptDelivery(Shipment shipment) {
