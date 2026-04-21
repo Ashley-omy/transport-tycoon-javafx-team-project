@@ -26,8 +26,8 @@ class CityTest {
         int paperDemandBefore = city.getGoodsDemand(GoodsType.PAPER);
         int passengerDemandBefore = city.getPassengerDemand();
 
-        // Action: advance city simulation and emit passenger supply.
-        city.tick(4.0);
+        // Action: advance city simulation enough to observe integer demand growth.
+        city.tick(6.0);
         city.emitSupplyToStops();
 
         // Assert: all demands increased.
@@ -50,5 +50,7 @@ class CityTest {
         int expectedPerStop = (city.getPopulation() / 10) / 2;
         assertEquals(expectedPerStop, emittedA.getUnits());
         assertEquals(expectedPerStop, emittedB.getUnits());
+        int expectedTotalEmitted = expectedPerStop * 2;
+        assertTrue(city.getActiveEventDisplayTexts().contains("Supply +" + expectedTotalEmitted + " PASSENGERS"));
     }
 }
