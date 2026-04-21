@@ -10,11 +10,14 @@ package view;
  */
 import common.GridPos;
 import common.Vec2;
+import javafx.geometry.VPos;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
+import javafx.scene.text.TextAlignment;
 import model.Bus;
 import model.Truck;
 import model.Vehicle;
+import model.VehicleState;
 
 import java.util.List;
 
@@ -51,7 +54,22 @@ public class VehicleRenderer {
             gc.fillOval(drawX, drawY, size, size);
             gc.setStroke(Color.BLACK);
             gc.strokeOval(drawX, drawY, size, size);
+            drawStateLabelIfNeeded(gc, vehicle, screenPos, drawY);
         }
+    }
+    /* Temporal function for debugging */
+    private void drawStateLabelIfNeeded(GraphicsContext gc, Vehicle vehicle, Vec2 screenPos, double vehicleTopY) {
+        VehicleState state = vehicle.getState();
+        if (state != VehicleState.IN_GARAGE && state != VehicleState.BLOCKED) {
+            return;
+        }
+
+        gc.save();
+        gc.setFill(Color.WHITE);
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.BOTTOM);
+        gc.fillText(state.name(), screenPos.x, vehicleTopY - 3.0);
+        gc.restore();
     }
 
     private Vec2 worldToScreen(Vec2 worldPos, Camera camera) {
