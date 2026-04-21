@@ -130,7 +130,8 @@ class BuildControllerTest {
         ActionResult result = buildController.buildStop(new GridPos(6, 4));
 
         assertTrue(result.isSuccess());
-        assertEquals("Build stop successfully for City", result.getMessage());
+        assertTrue(result.getMessage().startsWith("Build stop successfully for City id="));
+        assertTrue(result.getMessage().endsWith(" stops=1"));
         Stop stop = world.getMap().getTile(new GridPos(6, 4)).getStop();
         assertEquals(city, stop.getServedPlace());
     }
