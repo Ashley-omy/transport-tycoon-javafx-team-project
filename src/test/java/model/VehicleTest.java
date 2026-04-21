@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VehicleTest {
@@ -88,6 +89,49 @@ class VehicleTest {
 
         assertTrue(company.getEconomy().getCash().greaterThan(cashBeforeDelivery));
         assertEquals(Money.of(20), company.getEconomy().getCash().subtract(cashBeforeDelivery));
+    }
+
+    @Test
+    void truckRoutesMineCargoToFactoryMergesAndPaysOutOnDelivery() {
+        World world = new World(25, 25);
+        Company company = new Company();
+        company.setWorld(world);
+
+        Mine mine = Mine.createIronMine(Id.genNew());
+        Factory steelMill = Factory.createSteelMill(Id.genNew());
+
+        Stop stopA = new Stop(Id.genNew(), new Tile(new GridPos(1, 1), new Land()), mine);
+        Stop stopB = new Stop(Id.genNew(), new Tile(new GridPos(2, 1), new Land()), steelMill);
+        mine.attachStop(stopA);
+        steelMill.attachStop(stopB);
+
+        Route route = new Route(Id.genNew(), List.of(stopA, stopB));
+
+        Truck truck = new Truck(Id.genNew(), 15, Money.of(100), Money.of(1), 1.0);
+        truck.setWorld(world);
+        truck.setOwner(company);
+        truck.assignRoute(route);
+
+        stopA.enqueue(new Shipment(ShipmentKind.GOODS, GoodsType.IRON, 4, stopA.getId(), stopA.getId(), Money.of(3)));
+        stopA.enqueue(new Shipment(ShipmentKind.GOODS, GoodsType.IRON, 6, stopA.getId(), stopA.getId(), Money.of(3)));
+
+        Money cashBefore = company.getEconomy().getCash();
+
+        // First tick initializes the route at stop A and performs unload/load there.
+        truck.tick(0.1);
+
+        Shipment loadedCargo = truck.getCargo();
+        assertNotNull(loadedCargo);
+        assertEquals(10, loadedCargo.getUnits());
+        assertEquals(stopB.getId(), loadedCargo.getToStopId());
+        assertEquals(5, truck.getFreeCapacityUnits());
+
+        Money payout = truck.unloadTo(stopB);
+
+        assertEquals(Money.of(30), payout);
+        assertEquals(10, steelMill.getInputStock());
+        assertEquals(15, truck.getFreeCapacityUnits());
+        assertEquals(cashBefore.add(Money.of(30)), company.getEconomy().getCash());
     }
 
     private void prepareOpenTile(World world, GridPos pos) {
