@@ -97,8 +97,8 @@ public class TileRenderer {
 
         if (!bridgeTileDrawn) {
             // Grid border
-            gc.setStroke(t.isWater() ? Color.LIGHTBLUE : Color.DARKGREEN);
-            gc.setLineWidth(1.0);
+            gc.setStroke(t.isWater() ? Color.LIGHTBLUE : Color.rgb(98, 107, 2));
+            gc.setLineWidth(0.4);
             gc.strokeRect(pos.x, pos.y, size, size);
         }
     }
