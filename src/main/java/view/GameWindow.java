@@ -40,6 +40,11 @@ public class GameWindow extends BorderPane {
     private final MinimapView minimapView;
     private final ControlPanes controlPanes;
     private final UIState uiState;
+    private final Game game;
+    private final Runnable onRestartRequested;
+    private final Runnable onLeaveRequested;
+    private final GameOverPane gameOverOverlay;
+    private boolean gameOverOverlayShown;
 
     // --- Controllers ---
     private final InputController inputController;
@@ -51,11 +56,15 @@ public class GameWindow extends BorderPane {
     private final AnimationEngine animationEngine;
     private Money lastRenderedCash;
 
-    public GameWindow(Game game, World world, Company company) {
+    public GameWindow(Game game, World world, Company company, Runnable onRestartRequested, Runnable onLeaveRequested) {
+        this.game = game;
         this.world = world;
         this.company = company;
+        this.onRestartRequested = onRestartRequested == null ? () -> { } : onRestartRequested;
+        this.onLeaveRequested = onLeaveRequested == null ? () -> { } : onLeaveRequested;
         this.animationEngine = new AnimationEngine();
         this.lastRenderedCash = company.getEconomy().getCash();
+        this.gameOverOverlayShown = false;
 
         // -----------------------------
         // UI State
@@ -83,6 +92,8 @@ public class GameWindow extends BorderPane {
         leftPlayArea.setAlignment(Pos.TOP_LEFT);
         leftPlayArea.setFillHeight(false);
         leftPlayArea.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        controlPanes.getBuildPane().setMinHeight(MAP_VIEW_HEIGHT);
+        controlPanes.getBuildPane().setPrefHeight(MAP_VIEW_HEIGHT);
 
         VBox rightOverlay = new VBox(12, minimapView);
         rightOverlay.setAlignment(Pos.TOP_RIGHT);
@@ -95,6 +106,9 @@ public class GameWindow extends BorderPane {
         center.setStyle(CENTER_BACKGROUND_STYLE);
         StackPane.setAlignment(leftPlayArea, Pos.TOP_LEFT);
         StackPane.setAlignment(rightOverlay, Pos.TOP_RIGHT);
+        this.gameOverOverlay = new GameOverPane(this.onRestartRequested, this.onLeaveRequested);
+        center.getChildren().add(gameOverOverlay);
+        StackPane.setAlignment(gameOverOverlay, Pos.CENTER);
         this.setCenter(center);
         this.setTop(topOverlay);
 
@@ -198,6 +212,10 @@ public class GameWindow extends BorderPane {
                 timeController.getSpeed()
         );
         controlPanes.render();
+
+        if (game.isGameOver()) {
+            showGameOverOverlay();
+        }
     }
 
     public MapView getMapView() {
@@ -222,5 +240,19 @@ public class GameWindow extends BorderPane {
 
     public ControlPanes getControlPanes() {
         return controlPanes;
+    }
+
+    public void dispose() {
+        gameController.stop();
+    }
+
+    private void showGameOverOverlay() {
+        if (gameOverOverlayShown) {
+            return;
+        }
+        gameOverOverlayShown = true;
+        gameOverOverlay.setManaged(true);
+        gameOverOverlay.setVisible(true);
+        gameOverOverlay.toFront();
     }
 }

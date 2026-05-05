@@ -96,7 +96,7 @@ public class GaragePane extends Stage {
 
         currentGarage = garage;
         selectedVehicle = null;
-        titleLabel.setText("Garage " + garage.getId());
+        titleLabel.setText(garage.getDisplayName());
         refreshVehicleTiles();
         updateSelectionUI();
 
@@ -150,7 +150,7 @@ public class GaragePane extends Stage {
         Label typeLabel = new Label(typeOf(vehicle));
         typeLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold;");
 
-        Label idLabel = new Label(vehicle.getId().toString());
+        Label idLabel = new Label(vehicle.getDisplayName());
         idLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #555555;");
 
         VBox card = new VBox(6, ownedLabel, overagedLabel, vehicleBody, typeLabel, idLabel);
@@ -234,7 +234,8 @@ public class GaragePane extends Stage {
     }
 
     private String buildDetails(Vehicle vehicle, boolean owned) {
-        return "Type: " + typeOf(vehicle)
+        return "Name: " + vehicle.getDisplayName()
+                + "\nType: " + typeOf(vehicle)
                 + "   Status: " + (owned ? "Owned" : "On sale")
                 + "\nState: " + vehicle.getState()
                 + "   Route: " + (vehicle.hasRoute() ? "Assigned" : "None")

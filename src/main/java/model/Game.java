@@ -23,6 +23,7 @@ public class Game {
     }
 
     public void update(double deltaTime) {
+        simDelta = 0.0;
         if (gameOver) return;
         if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
 

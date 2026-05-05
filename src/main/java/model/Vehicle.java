@@ -15,8 +15,10 @@ public abstract class Vehicle {
     private static final double MIN_MAINTENANCE_INTERVAL = 120.0; // 2 minutes minimum
     private static final double AGE_FOR_MIN_INTERVAL = 1200.0; // 20 minutes to reach minimum
     private static final double OVER_AGED_THRESHOLD = 1800.0; // 30 minutes before the vehicle is considered over-aged
+    private static int nextDisplayNumber = 1;
 
     protected final Id id;
+    protected final int displayNumber;
     protected final int capacityUnits;
     protected final Money purchaseCost;
     protected final Money maintenanceCost;
@@ -59,6 +61,7 @@ public abstract class Vehicle {
         if (maintenanceCost == null) throw new IllegalArgumentException("maintenanceCost cannot be null");
         if (speed <= 0) throw new IllegalArgumentException("speed must be > 0");
         this.id = id;
+        this.displayNumber = allocateDisplayNumber();
         this.capacityUnits = capacityUnits;
         this.purchaseCost = purchaseCost;
         this.maintenanceCost = maintenanceCost;
@@ -67,6 +70,8 @@ public abstract class Vehicle {
     }
 
     public Id getId() { return id; }
+    public int getDisplayNumber() { return displayNumber; }
+    public String getDisplayName() { return "Vehicle #" + displayNumber; }
     public Money getPurchaseCost() { return purchaseCost; }
     public Money getMaintenanceCost() { return maintenanceCost; }
     public double getSpeed() { return speed; }
@@ -548,7 +553,7 @@ public abstract class Vehicle {
         targetStopIndex = -1;
         state = VehicleState.ON_ROUTE;
         if (world != null) {
-            world.pushMessage("Vehicle " + id + " returning to garage (age: " +
+            world.pushMessage(getDisplayName() + " returning to garage (age: " +
                     String.format("%.0f", age) + "s, interval: " +
                     String.format("%.0f", getMaintenanceInterval()) + "s)");
         }
@@ -564,7 +569,7 @@ public abstract class Vehicle {
         maintenanceTimer = 0.0;
         state = VehicleState.IN_GARAGE;
         if (world != null) {
-            world.pushMessage("Vehicle " + id + " arrived at garage");
+            world.pushMessage(getDisplayName() + " arrived at garage");
         }
     }
 
@@ -643,8 +648,12 @@ public abstract class Vehicle {
         maintenanceTimer = 0.0;
         parkInGarageAfterMaintenance();
         if (world != null) {
-            world.pushMessage("Maintenance complete: " + id);
+            world.pushMessage("Maintenance complete: " + getDisplayName());
         }
+    }
+
+    private static synchronized int allocateDisplayNumber() {
+        return nextDisplayNumber++;
     }
 
     private void saveProgressForMaintenance() {

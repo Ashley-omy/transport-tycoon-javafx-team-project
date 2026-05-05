@@ -7,24 +7,44 @@ import view.GameWindow;
 import model.*;
 
 public class Main extends Application {
+    private static final int WORLD_WIDTH = 100;
+    private static final int WORLD_HEIGHT = 100;
+    private static final int SCENE_WIDTH = 1180;
+    private static final int SCENE_HEIGHT = 750;
+
+    private GameWindow currentGameWindow;
 
     @Override
     public void start(Stage stage) {
-
-        World world = new World(100,100);
-        Company company = new Company();
-
-        // Create model here (single instance)
-        Game game = new Game(world, company);;
-
-        GameWindow root = new GameWindow(game, world, company);
-
-        Scene scene = new Scene(root, 1180, 750);
-
         stage.setTitle("Transport Tycoon");
-        stage.setScene(scene);
+        restartGame(stage);
         stage.show();
-        Platform.runLater(root::requestFocus);
+    }
+
+    private void restartGame(Stage stage) {
+        if (currentGameWindow != null) {
+            currentGameWindow.dispose();
+        }
+
+        World world = new World(WORLD_WIDTH, WORLD_HEIGHT);
+        Company company = new Company();
+        Game game = new Game(world, company);
+
+        GameWindow nextWindow = new GameWindow(
+                game,
+                world,
+                company,
+                () -> restartGame(stage),
+                Platform::exit
+        );
+        currentGameWindow = nextWindow;
+
+        if (stage.getScene() == null) {
+            stage.setScene(new Scene(nextWindow, SCENE_WIDTH, SCENE_HEIGHT));
+        } else {
+            stage.getScene().setRoot(nextWindow);
+        }
+        Platform.runLater(nextWindow::requestFocus);
     }
 
     public static void main(String[] args) {

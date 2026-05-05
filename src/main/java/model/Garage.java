@@ -15,8 +15,10 @@ public class Garage {
     private static final int DEFAULT_STOCK_PER_TYPE = 2;
     private static final int DEFAULT_INITIAL_STOCK_SIZE = DEFAULT_STOCK_PER_TYPE * 2;
     private static final double DEFAULT_EVENT_DISPLAY_SECONDS = 2.0;
+    private static int nextDisplayNumber = 1;
 
     private final Id id;
+    private final int displayNumber;
     private final int capacity;
     private final int serviceBayCount;
 
@@ -27,6 +29,7 @@ public class Garage {
 
     public Garage(Id id, int capacity, int serviceBayCount, List<Tile> occupiedTiles) {
         this.id = Objects.requireNonNull(id, "id cannot be null");
+        this.displayNumber = allocateDisplayNumber();
         if (capacity <= 0) {
             throw new IllegalArgumentException("capacity must be > 0");
         }
@@ -47,6 +50,14 @@ public class Garage {
 
     public Id getId() {
         return id;
+    }
+
+    public int getDisplayNumber() {
+        return displayNumber;
+    }
+
+    public String getDisplayName() {
+        return "Garage #" + displayNumber;
     }
 
     public int getCapacity() {
@@ -172,5 +183,9 @@ public class Garage {
             this.text = text;
             this.remainingSeconds = remainingSeconds;
         }
+    }
+
+    private static synchronized int allocateDisplayNumber() {
+        return nextDisplayNumber++;
     }
 }
