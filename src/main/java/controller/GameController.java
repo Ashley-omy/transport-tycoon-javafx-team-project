@@ -50,6 +50,7 @@ public class GameController {
     private final Set<GridPos> dragRoadVisitedTiles = new HashSet<>();
 
     private long lastTime = 0;
+    private AnimationTimer gameLoopTimer;
 
     public GameController(Game game, GameWindow window,
                           InputController input,
@@ -75,7 +76,10 @@ public class GameController {
 
     // Start game loop
     public void start() {
-        new AnimationTimer() {
+        if (gameLoopTimer != null) {
+            gameLoopTimer.stop();
+        }
+        gameLoopTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
 
@@ -89,7 +93,16 @@ public class GameController {
 
                 update(deltaTime);
             }
-        }.start();
+        };
+        gameLoopTimer.start();
+    }
+
+    public void stop() {
+        if (gameLoopTimer != null) {
+            gameLoopTimer.stop();
+            gameLoopTimer = null;
+        }
+        lastTime = 0;
     }
 
     // Main update loop
