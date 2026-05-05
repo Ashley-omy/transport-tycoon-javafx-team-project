@@ -83,6 +83,8 @@ public class GameWindow extends BorderPane {
         leftPlayArea.setAlignment(Pos.TOP_LEFT);
         leftPlayArea.setFillHeight(false);
         leftPlayArea.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        controlPanes.getBuildPane().setMinHeight(MAP_VIEW_HEIGHT);
+        controlPanes.getBuildPane().setPrefHeight(MAP_VIEW_HEIGHT);
 
         VBox rightOverlay = new VBox(12, minimapView);
         rightOverlay.setAlignment(Pos.TOP_RIGHT);

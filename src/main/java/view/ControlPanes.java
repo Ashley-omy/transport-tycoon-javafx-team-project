@@ -3,11 +3,16 @@ package view;
 import controller.ActionResult;
 import controller.TimeController;
 import controller.TimeSpeed;
+import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 
@@ -55,10 +60,12 @@ public class ControlPanes {
     private final Button deconstructBtn = new Button("Deconstruct");
     private final Button routeBtn = new Button("Place Route");
     private final Button pauseBtn = new Button("Pause");
+    private final Button saveBtn = new Button("Save");
     private final Button normalSpeedBtn = new Button("1x");
     private final Button fastSpeedBtn = new Button("2x");
     private final Button veryFastSpeedBtn = new Button("4x");
     private final Label buildResultLabel = new Label();
+    private final Region buildPaneSpacer = new Region();
 
     public ControlPanes(UIState uiState, TimeController timeController) {
         this.uiState = uiState;
@@ -68,7 +75,7 @@ public class ControlPanes {
         speedPane.setFillHeight(false);
         speedPane.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 
-        buildPane.setAlignment(Pos.TOP_RIGHT);
+        buildPane.setAlignment(Pos.TOP_LEFT);
         buildPane.setFillWidth(false);
         buildPane.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
 
@@ -78,6 +85,7 @@ public class ControlPanes {
         configureBuildButton(garageBtn);
         configureBuildButton(deconstructBtn);
         configureBuildButton(routeBtn);
+        configureBuildButton(saveBtn);
         configureSpeedButton(pauseBtn);
         configureSpeedButton(normalSpeedBtn);
         configureSpeedButton(fastSpeedBtn);
@@ -121,6 +129,7 @@ public class ControlPanes {
             timeController.setSpeed(TimeSpeed.VERY_FAST);
             refreshSpeedButtonStyles();
         });
+        saveBtn.setOnAction(e -> showSaveConfirmDialog());
 
         speedPane.getChildren().addAll(
                 pauseBtn,
@@ -134,6 +143,8 @@ public class ControlPanes {
         buildResultLabel.setPrefWidth(BUILD_BUTTON_WIDTH);
         buildResultLabel.setMaxWidth(BUILD_BUTTON_WIDTH);
         buildResultLabel.setStyle(BUILD_RESULT_STYLE);
+        VBox.setVgrow(buildPaneSpacer, Priority.ALWAYS);
+        VBox.setMargin(saveBtn, new Insets(0, 0, 15, 0));
 
         buildPane.getChildren().addAll(
                 roadBtn,
@@ -142,7 +153,9 @@ public class ControlPanes {
                 garageBtn,
                 deconstructBtn,
                 routeBtn,
-                buildResultLabel
+                buildResultLabel,
+                buildPaneSpacer,
+                saveBtn
         );
 
         refreshBuildButtonStyles();
@@ -214,5 +227,19 @@ public class ControlPanes {
 
     private void applyBuildSelectionStyle(Button button, BuildMode mode) {
         button.setStyle(uiState.getBuildMode() == mode ? ACTIVE_BUILD_STYLE : BASE_BUILD_BUTTON_STYLE);
+    }
+
+    private void showSaveConfirmDialog() {
+        Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
+        dialog.setTitle("Save");
+        dialog.setHeaderText(null);
+        dialog.setContentText("Do you want to save?");
+        ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.YES);
+        ButtonType no = new ButtonType("No", ButtonBar.ButtonData.NO);
+        dialog.getButtonTypes().setAll(yes, no);
+        if (buildPane.getScene() != null && buildPane.getScene().getWindow() != null) {
+            dialog.initOwner(buildPane.getScene().getWindow());
+        }
+        dialog.showAndWait();
     }
 }

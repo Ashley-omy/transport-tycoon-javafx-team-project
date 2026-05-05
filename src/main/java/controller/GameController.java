@@ -104,9 +104,7 @@ public class GameController {
         handlePendingBridgeTypeSelection();
 
         // 2. Update game logic
-        if (time.getSpeed() != TimeSpeed.PAUSE) {
-            game.update(scaledDelta);
-        }
+        game.update(scaledDelta);
 
         // 3. Sync UI state
         window.getUIState().syncFromSelection(selection);
