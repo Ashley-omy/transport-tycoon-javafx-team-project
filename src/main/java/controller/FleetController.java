@@ -140,7 +140,7 @@ public class FleetController {
 
         vehicle.setWorld(world);
         vehicle.setState(VehicleState.ON_ROUTE);
-        return ActionResult.success("Vehicle resumed: " + vehicle.getId());
+        return ActionResult.success("Vehicle resumed: " + vehicle.getDisplayName());
     }
 
     // helper fns for checking if route is legal
@@ -251,7 +251,7 @@ public class FleetController {
         if (!purchaseVehicleInGarageInternal(vehicle, garage)) {
             return ActionResult.fail("Not enough money to buy vehicle");
         }
-        return ActionResult.success("Vehicle purchased: " + vehicle.getId());
+        return ActionResult.success("Vehicle purchased: " + vehicle.getDisplayName());
     }
 
     public ActionResult buyTruck(Garage garage, String specName) {
@@ -269,7 +269,7 @@ public class FleetController {
         if (!purchaseVehicleInGarageInternal(truck, garage)) {
             return ActionResult.fail("Not enough money to buy truck");
         }
-        return ActionResult.success("Truck purchased: " + truck.getId());
+        return ActionResult.success("Truck purchased: " + truck.getDisplayName());
     }
 
     public ActionResult buyBus(Garage garage, String specName) {
@@ -287,7 +287,7 @@ public class FleetController {
         if (!purchaseVehicleInGarageInternal(bus, garage)) {
             return ActionResult.fail("Not enough money to buy bus");
         }
-        return ActionResult.success("Bus purchased: " + bus.getId());
+        return ActionResult.success("Bus purchased: " + bus.getDisplayName());
     }
 
     public ActionResult sellVehicle(String vehicleId) {
@@ -302,7 +302,7 @@ public class FleetController {
 
         // Keep vehicle in garage stock list so it can appear as on-sale in the garage pane.
         company.sellVehicle(vehicle);
-        return ActionResult.success("Vehicle sold: " + vehicleId);
+        return ActionResult.success("Vehicle sold: " + vehicle.getDisplayName());
     }
 
     public ActionResult sellOverAgedVehicle(String vehicleId) {
