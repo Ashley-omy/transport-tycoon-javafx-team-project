@@ -248,7 +248,7 @@ class FleetControllerTest {
     }
 
     @Test
-    void resumeVehicleRestartsOwnedVehicleAfterMaintenance() {
+    void vehicleAutomaticallyRestartsAfterMaintenance() {
         // step 1: create route, buy vehicle, and let time pass until maintenance is finished
         World world = new World(25, 25);
         Company company = new Company();
@@ -265,20 +265,17 @@ class FleetControllerTest {
 
         for (int i = 0; i < 320; i++) {
             company.tick(1.0);
-            if (vehicle.getState() == VehicleState.IDLE && vehicle.hasRoute()) {
+            // wait until vehicle finishes maintenance and auto-resumes
+            if (vehicle.getState() == VehicleState.ON_ROUTE && vehicle.hasRoute() && garageTile.getPos().equals(vehicle.getTilePos())) {
                 break;
             }
         }
 
-        assertEquals(VehicleState.IDLE, vehicle.getState());
-        assertTrue(vehicle.hasRoute());
-        assertEquals(garageTile.getPos(), vehicle.getTilePos());
-
-        // step 2: resume should restart vehicle from garage back onto route
-        ActionResult resumeResult = fleet.resumeVehicle(vehicle.getId().toString());
-
-        assertTrue(resumeResult.isSuccess());
         assertEquals(VehicleState.ON_ROUTE, vehicle.getState());
+        assertTrue(vehicle.hasRoute());
+        
+        ActionResult resumeResult = fleet.resumeVehicle(vehicle.getId().toString());
+        assertFalse(resumeResult.isSuccess());
     }
 
     private Route buildSimpleRoute(World world) {
@@ -286,13 +283,6 @@ class FleetControllerTest {
         prepareOpenTile(world, new GridPos(5, 4));
         prepareOpenTile(world, new GridPos(6, 4));
         prepareOpenTile(world, new GridPos(7, 4));
-        prepareOpenTile(world, new GridPos(5, 5));
-        prepareOpenTile(world, new GridPos(6, 5));
-        prepareOpenTile(world, new GridPos(7, 5));
-
-        placeRoad(world, new GridPos(5, 4));
-        placeRoad(world, new GridPos(6, 4));
-        placeRoad(world, new GridPos(7, 4));
         world.getRoadNetwork().rebuild(world.getMap());
 
         Stop first = new Stop(Id.genNew(), world.getMap().getTile(new GridPos(6, 5)), new City(Id.genNew()));

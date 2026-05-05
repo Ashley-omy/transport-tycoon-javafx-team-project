@@ -87,12 +87,13 @@ class VehicleTest {
             truck.tick(1.0);
         }
 
-        assertEquals(VehicleState.IDLE, truck.getState());
+        assertEquals(VehicleState.ON_ROUTE, truck.getState());
         assertEquals(garageTile.getPos(), truck.getTilePos());
         assertEquals(route, truck.getAssignedRoute());
 
         // step 6: current code resumes vehicle through FleetController after maintenance
-        assertTrue(fleetController.resumeVehicle(truck.getId().toString()).isSuccess());
+        // (now it is already ON_ROUTE, so we can test that calling resume manually fails or just remove the line)
+        assertFalse(fleetController.resumeVehicle(truck.getId().toString()).isSuccess());
         assertEquals(VehicleState.ON_ROUTE, truck.getState());
     }
 
