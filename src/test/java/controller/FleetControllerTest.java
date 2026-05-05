@@ -283,6 +283,13 @@ class FleetControllerTest {
         prepareOpenTile(world, new GridPos(5, 4));
         prepareOpenTile(world, new GridPos(6, 4));
         prepareOpenTile(world, new GridPos(7, 4));
+        prepareOpenTile(world, new GridPos(5, 5));
+        prepareOpenTile(world, new GridPos(6, 5));
+        prepareOpenTile(world, new GridPos(7, 5));
+
+        placeRoad(world, new GridPos(5, 4));
+        placeRoad(world, new GridPos(6, 4));
+        placeRoad(world, new GridPos(7, 4));
         world.getRoadNetwork().rebuild(world.getMap());
 
         Stop first = new Stop(Id.genNew(), world.getMap().getTile(new GridPos(6, 5)), new City(Id.genNew()));

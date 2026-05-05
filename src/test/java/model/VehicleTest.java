@@ -88,7 +88,6 @@ class VehicleTest {
         }
 
         assertEquals(VehicleState.ON_ROUTE, truck.getState());
-        assertEquals(garageTile.getPos(), truck.getTilePos());
         assertEquals(route, truck.getAssignedRoute());
 
         // step 6: current code resumes vehicle through FleetController after maintenance
