@@ -650,6 +650,9 @@ public abstract class Vehicle {
         if (world != null) {
             world.pushMessage("Maintenance complete: " + getDisplayName());
         }
+        if (hasRoute()) {
+            setState(VehicleState.ON_ROUTE);
+        }
     }
 
     private static synchronized int allocateDisplayNumber() {
