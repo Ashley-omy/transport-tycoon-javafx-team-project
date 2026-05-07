@@ -38,7 +38,7 @@ This project is still in progress. Core functionalities and system architecture 
 
 ## Screenshots and Design Documents
 
-### 1. UML Class Diagram
+### 1. UML Class Diagrams
 
 ![Package Diagram](images/package_UML.png)
 ![Model Diagram](images/model_UML.png)
