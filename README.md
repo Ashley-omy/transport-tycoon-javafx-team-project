@@ -1,4 +1,4 @@
-# Transport Tycoon JavaFX Team Project
+# 🚚🚗Transport Tycoon JavaFX Team Project 🛣🌳💶
 
 A team-based Java game project inspired by Transport Tycoon, developed as part of a university software development course.
 
@@ -11,7 +11,6 @@ This project is a transport simulation game where players build and manage trans
 ## My Contributions
 
 - Designed UML diagrams to clarify the system architecture
-- Focused on making class relationships and method responsibilities easy to understand
 - Contributed to the JavaFX-based UI implementation
 - Implemented vehicle movement logic
 - Worked in a team development environment using GitLab
@@ -39,28 +38,28 @@ This project is still in progress. Core functionalities and system architecture 
 
 ## Screenshots and Design Documents
 
-### UML Class Diagram
+### 1. UML Class Diagram
 
 ![Package Diagram](images/package_UML.png)
 ![Model Diagram](images/model_UML.png)
 ![View Diagram](images/view_UML.png)
 ![Controller Diagram](images/controller_UML.png)
 
-This UML diagram was created to make the relationships between classes and the responsibilities of methods clear at a glance. It follows the MVC structure and was used to support smoother team collaboration.
+These UML diagrams were created to make the relationships between classes and the responsibilities of methods clear at a glance. It follows the MVC structure and was used to support smoother team collaboration.
 
-### Current UI
+### 2. Current UI
 
 ![Current UI](images/current_UI.png)
 
 This screenshot shows the current JavaFX user interface. The UI is still under development, but it demonstrates the basic layout and visual direction of the game.
 
-### CI/CD Pipeline
+### 3. CI/CD Pipeline
 
 ![CI Pipeline](images/pipeline.png)
 
 Used GitLab CI pipelines to support automated testing and collaborative development.
 
-### GitLab Team Development
+### 4. GitLab Team Development
 
 ![GitLab IssueBoard](images/issue_board.png)
 ![GitLab RepositoryGraph](images/repository_graph.png)
