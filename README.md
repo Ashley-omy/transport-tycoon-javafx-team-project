@@ -45,7 +45,7 @@ This project is still in progress. Core functionalities and system architecture 
 ![View Diagram](images/view_UML.png)
 ![Controller Diagram](images/controller_UML.png)
 
-These UML diagrams were created to make the relationships between classes and the responsibilities of methods clear at a glance. It follows the MVC structure and was used to support smoother team collaboration.
+These UML diagrams were designed to clearly visualize class relationships and method responsibilities at a glance. Following the MVC architecture, they were used to support smoother team collaboration and system design.
 
 ### 2. Current UI
 
