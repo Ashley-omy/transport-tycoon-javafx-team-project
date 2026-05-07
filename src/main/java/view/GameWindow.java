@@ -43,6 +43,8 @@ public class GameWindow extends BorderPane {
     private final Game game;
     private final Runnable onRestartRequested;
     private final Runnable onLeaveRequested;
+    private final Runnable onSaveRequested;
+    private final Runnable onLoadRequested;
     private final GameOverPane gameOverOverlay;
     private boolean gameOverOverlayShown;
 
@@ -56,12 +58,14 @@ public class GameWindow extends BorderPane {
     private final AnimationEngine animationEngine;
     private Money lastRenderedCash;
 
-    public GameWindow(Game game, World world, Company company, Runnable onRestartRequested, Runnable onLeaveRequested) {
+    public GameWindow(Game game, World world, Company company, Runnable onRestartRequested, Runnable onLeaveRequested, Runnable onSaveRequested, Runnable onLoadRequested) {
         this.game = game;
         this.world = world;
         this.company = company;
         this.onRestartRequested = onRestartRequested == null ? () -> { } : onRestartRequested;
         this.onLeaveRequested = onLeaveRequested == null ? () -> { } : onLeaveRequested;
+        this.onSaveRequested = onSaveRequested == null ? () -> { } : onSaveRequested;
+        this.onLoadRequested = onLoadRequested == null ? () -> { } : onLoadRequested;
         this.animationEngine = new AnimationEngine();
         this.lastRenderedCash = company.getEconomy().getCash();
         this.gameOverOverlayShown = false;
@@ -78,7 +82,7 @@ public class GameWindow extends BorderPane {
         this.timeController = new TimeController();
         this.hudView = new HUDView(uiState);
         this.minimapView = new MinimapView(mapView.getCamera(), animationEngine);
-        this.controlPanes = new ControlPanes(uiState, timeController);
+        this.controlPanes = new ControlPanes(uiState, timeController, onSaveRequested, onLoadRequested);
 
         BorderPane topOverlay = new BorderPane();
         topOverlay.setLeft(hudView);
