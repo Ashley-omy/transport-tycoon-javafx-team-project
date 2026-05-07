@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class Stop {
+public class Stop implements java.io.Serializable {
     private final Id id;
     private final Tile occupiedTile;
     private final MapEntity servedPlace;

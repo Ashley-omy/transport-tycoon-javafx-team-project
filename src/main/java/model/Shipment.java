@@ -3,7 +3,7 @@ package model;
 import common.Id;
 import common.Money;
 
-public class Shipment {
+public class Shipment implements java.io.Serializable {
     private final ShipmentKind kind;
     private final GoodsType goodsType; // null when kind == PASSENGERS
     private int units;

@@ -16,6 +16,12 @@ out/
 # Compiled files
 *.class
 
+# Local game saves
+saves/
+
+# Local debug output
+tmp-debug/
+
 # Logs
 *.log
 

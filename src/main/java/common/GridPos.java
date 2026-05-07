@@ -2,7 +2,7 @@ package common;
 
 import java.util.Objects;
 
-public class GridPos {
+public class GridPos implements java.io.Serializable {
     public final int x;
     public final int y;
 

@@ -7,7 +7,7 @@ import common.Money;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Vehicle {
+public abstract class Vehicle implements java.io.Serializable {
     private static final double STOP_DURATION_SECONDS = 1.5;
     private static final double EPSILON = 1e-9;
     private static final double BASE_MAINTENANCE_INTERVAL = 300.0; // 5 minutes for new vehicles

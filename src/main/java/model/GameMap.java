@@ -5,7 +5,9 @@ import common.GridPos;
 import java.util.ArrayList;
 import java.util.List;
 
-public class GameMap {
+public class GameMap implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
     private final int width;
     private final int height;
 

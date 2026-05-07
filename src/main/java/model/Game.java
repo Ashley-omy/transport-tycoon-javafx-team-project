@@ -1,6 +1,9 @@
 package model;
 
-public class Game {
+public class Game implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
+
     private final World world;
     private final Company company;
 

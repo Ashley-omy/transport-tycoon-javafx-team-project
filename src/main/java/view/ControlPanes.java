@@ -49,6 +49,8 @@ public class ControlPanes {
 
     private final UIState uiState;
     private final TimeController timeController;
+    private final Runnable onSaveRequested;
+    private final Runnable onLoadRequested;
 
     private final HBox speedPane = new HBox(6);
     private final VBox buildPane = new VBox(8);
@@ -61,15 +63,18 @@ public class ControlPanes {
     private final Button routeBtn = new Button("Place Route");
     private final Button pauseBtn = new Button("Pause");
     private final Button saveBtn = new Button("Save");
+    private final Button loadBtn = new Button("Load");
     private final Button normalSpeedBtn = new Button("1x");
     private final Button fastSpeedBtn = new Button("2x");
     private final Button veryFastSpeedBtn = new Button("4x");
     private final Label buildResultLabel = new Label();
     private final Region buildPaneSpacer = new Region();
 
-    public ControlPanes(UIState uiState, TimeController timeController) {
+    public ControlPanes(UIState uiState, TimeController timeController, Runnable onSaveRequested, Runnable onLoadRequested) {
         this.uiState = uiState;
         this.timeController = timeController;
+        this.onSaveRequested = onSaveRequested == null ? () -> { } : onSaveRequested;
+        this.onLoadRequested = onLoadRequested == null ? () -> { } : onLoadRequested;
 
         speedPane.setAlignment(Pos.CENTER_RIGHT);
         speedPane.setFillHeight(false);
@@ -84,9 +89,10 @@ public class ControlPanes {
         configureBuildButton(stopBtn);
         configureBuildButton(garageBtn);
         configureBuildButton(deconstructBtn);
-        configureBuildButton(routeBtn);
-        configureBuildButton(saveBtn);
-        configureSpeedButton(pauseBtn);
+         configureBuildButton(routeBtn);
+         configureBuildButton(saveBtn);
+         configureBuildButton(loadBtn);
+         configureSpeedButton(pauseBtn);
         configureSpeedButton(normalSpeedBtn);
         configureSpeedButton(fastSpeedBtn);
         configureSpeedButton(veryFastSpeedBtn);
@@ -129,7 +135,8 @@ public class ControlPanes {
             timeController.setSpeed(TimeSpeed.VERY_FAST);
             refreshSpeedButtonStyles();
         });
-        saveBtn.setOnAction(e -> showSaveConfirmDialog());
+        saveBtn.setOnAction(e -> onSaveRequested.run());
+        loadBtn.setOnAction(e -> onLoadRequested.run());
 
         speedPane.getChildren().addAll(
                 pauseBtn,
@@ -146,17 +153,18 @@ public class ControlPanes {
         VBox.setVgrow(buildPaneSpacer, Priority.ALWAYS);
         VBox.setMargin(saveBtn, new Insets(0, 0, 15, 0));
 
-        buildPane.getChildren().addAll(
-                roadBtn,
-                bridgeBtn,
-                stopBtn,
-                garageBtn,
-                deconstructBtn,
-                routeBtn,
-                buildResultLabel,
-                buildPaneSpacer,
-                saveBtn
-        );
+         buildPane.getChildren().addAll(
+                 roadBtn,
+                 bridgeBtn,
+                 stopBtn,
+                 garageBtn,
+                 deconstructBtn,
+                 routeBtn,
+                 buildResultLabel,
+                 buildPaneSpacer,
+                 saveBtn,
+                 loadBtn
+         );
 
         refreshBuildButtonStyles();
         refreshSpeedButtonStyles();

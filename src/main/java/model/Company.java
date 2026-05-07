@@ -5,7 +5,10 @@ import common.Money;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Company {
+public class Company implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
+    
     private final Economy economy;
     private final List<Vehicle> fleet = new ArrayList<>();
     private World world;

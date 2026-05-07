@@ -4,7 +4,7 @@ import common.Money;
 
 import java.util.Objects;
 
-public final class BridgeSpec {
+public final class BridgeSpec implements java.io.Serializable {
     private final BridgeType type;
     private final int maxSpanTiles;
     private final Money cost;
