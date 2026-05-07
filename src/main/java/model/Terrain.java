@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public abstract class Terrain {
+public abstract class Terrain implements java.io.Serializable {
     private final List<Tile> occupiedTiles;
 
     protected Terrain() {

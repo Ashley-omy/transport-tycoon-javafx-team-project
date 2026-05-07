@@ -10,7 +10,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class World {
+public class World implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
+
     // Emit supply in chunks instead of every frame.
     private static final double SUPPLY_EMIT_INTERVAL = 5.0;
     private static final List<BridgeSpec> DEFAULT_BRIDGE_CATALOG = List.of(

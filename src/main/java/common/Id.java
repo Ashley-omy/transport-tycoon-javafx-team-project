@@ -6,7 +6,7 @@ package common;
 
 import java.util.UUID;
 
-public final class Id {
+public final class Id implements java.io.Serializable {
     private final String value;
 
     public Id(String value) {

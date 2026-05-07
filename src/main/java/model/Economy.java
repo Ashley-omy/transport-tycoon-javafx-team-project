@@ -4,7 +4,10 @@ import common.Money;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Economy {
+public class Economy implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
+
     private Money cash;
     private final List<Transaction> transactionHistory = new ArrayList<>();
     private Money totalEarned = Money.ZERO;
@@ -83,7 +86,10 @@ public class Economy {
         transactionHistory.add(new Transaction(type, amount, description, cash));
     }
 
-    public static class Transaction {
+    public static class Transaction implements java.io.Serializable {
+        @java.io.Serial
+        private static final long serialVersionUID = 1L;
+
         private final TransactionType type;
         private final Money amount;
         private final String description;

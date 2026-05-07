@@ -11,7 +11,10 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-public class Garage {
+public class Garage implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
+
     private static final int DEFAULT_STOCK_PER_TYPE = 2;
     private static final int DEFAULT_INITIAL_STOCK_SIZE = DEFAULT_STOCK_PER_TYPE * 2;
     private static final double DEFAULT_EVENT_DISPLAY_SECONDS = 2.0;
@@ -175,7 +178,10 @@ public class Garage {
         vehicles.add(vehicle);
     }
 
-    private static final class GarageEventDisplay {
+    private static final class GarageEventDisplay implements java.io.Serializable {
+        @java.io.Serial
+        private static final long serialVersionUID = 1L;
+
         private final String text;
         private double remainingSeconds;
 

@@ -2,7 +2,7 @@ package common;
 
 import java.util.Objects;
 
-public final class Money implements Comparable<Money> {
+public final class Money implements Comparable<Money>, java.io.Serializable {
     private final long amount;
     private final String currency;
 

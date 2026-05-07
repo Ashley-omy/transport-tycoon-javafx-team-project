@@ -4,7 +4,7 @@ import common.Id;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Route {
+public class Route implements java.io.Serializable {
     private final Id id;
     private final List<Stop> stops;
 

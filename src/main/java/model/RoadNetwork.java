@@ -7,7 +7,10 @@ package model;
 import common.*;
 import java.util.*;
 
-public class RoadNetwork {
+public class RoadNetwork implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
+
     private final Set<GridPos> roadTiles = new HashSet<>();
     // Predefined, unmodifiable intra-city roads represented by city footprint tiles.
     private final Set<GridPos> cityRoadTiles = new HashSet<>();
