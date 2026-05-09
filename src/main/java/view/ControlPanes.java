@@ -50,7 +50,6 @@ public class ControlPanes {
     private final UIState uiState;
     private final TimeController timeController;
     private final Runnable onSaveRequested;
-    private final Runnable onLoadRequested;
 
     private final HBox speedPane = new HBox(6);
     private final VBox buildPane = new VBox(8);
@@ -63,18 +62,16 @@ public class ControlPanes {
     private final Button routeBtn = new Button("Place Route");
     private final Button pauseBtn = new Button("Pause");
     private final Button saveBtn = new Button("Save");
-    private final Button loadBtn = new Button("Load");
     private final Button normalSpeedBtn = new Button("1x");
     private final Button fastSpeedBtn = new Button("2x");
     private final Button veryFastSpeedBtn = new Button("4x");
     private final Label buildResultLabel = new Label();
     private final Region buildPaneSpacer = new Region();
 
-    public ControlPanes(UIState uiState, TimeController timeController, Runnable onSaveRequested, Runnable onLoadRequested) {
+    public ControlPanes(UIState uiState, TimeController timeController, Runnable onSaveRequested) {
         this.uiState = uiState;
         this.timeController = timeController;
         this.onSaveRequested = onSaveRequested == null ? () -> { } : onSaveRequested;
-        this.onLoadRequested = onLoadRequested == null ? () -> { } : onLoadRequested;
 
         speedPane.setAlignment(Pos.CENTER_RIGHT);
         speedPane.setFillHeight(false);
@@ -91,7 +88,6 @@ public class ControlPanes {
         configureBuildButton(deconstructBtn);
          configureBuildButton(routeBtn);
          configureBuildButton(saveBtn);
-         configureBuildButton(loadBtn);
          configureSpeedButton(pauseBtn);
         configureSpeedButton(normalSpeedBtn);
         configureSpeedButton(fastSpeedBtn);
@@ -136,7 +132,6 @@ public class ControlPanes {
             refreshSpeedButtonStyles();
         });
         saveBtn.setOnAction(e -> onSaveRequested.run());
-        loadBtn.setOnAction(e -> onLoadRequested.run());
 
         speedPane.getChildren().addAll(
                 pauseBtn,
@@ -162,8 +157,7 @@ public class ControlPanes {
                  routeBtn,
                  buildResultLabel,
                  buildPaneSpacer,
-                 saveBtn,
-                 loadBtn
+                 saveBtn
          );
 
         refreshBuildButtonStyles();

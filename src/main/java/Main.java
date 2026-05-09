@@ -1,11 +1,16 @@
 import javafx.application.Application;
 import javafx.application.Platform;
+import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ChoiceDialog;
 import javafx.scene.control.TextInputDialog;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import view.GameWindow;
+import view.StartMenuPane;
 
 import model.*;
 import java.io.IOException;
@@ -21,14 +26,44 @@ public class Main extends Application {
     private static final DateTimeFormatter SAVE_NAME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
 
     private final SaveService saveService = new SaveService();
+    private final Region startMenuDimmer = new Region();
     private GameWindow currentGameWindow;
     private Game currentGame;
+    private StackPane rootContainer;
+    private Parent baseContent;
+    private StartMenuPane startMenuPane;
+    private boolean startMenuVisible;
 
     @Override
     public void start(Stage stage) {
         stage.setTitle("Transport Tycoon");
         restartGame(stage);
+        showStartMenu(stage);
         stage.show();
+    }
+
+    private void showStartMenu(Stage stage) {
+        startMenuPane = new StartMenuPane(
+                hasSavedGames(),
+                () -> {
+                    restartGame(stage);
+                    hideStartMenu();
+                },
+                () -> chooseAndLoadGame(stage)
+        );
+        startMenuDimmer.setStyle("-fx-background-color: rgba(0, 0, 0, 0.45);");
+        startMenuDimmer.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        startMenuVisible = true;
+        updateRoot(stage);
+        Platform.runLater(startMenuPane::requestFocus);
+    }
+
+    private void hideStartMenu() {
+        startMenuVisible = false;
+        updateRoot(null);
+        if (currentGameWindow != null) {
+            Platform.runLater(currentGameWindow::requestFocus);
+        }
     }
 
     private void restartGame(Stage stage) {
@@ -49,17 +84,13 @@ public class Main extends Application {
                 game.getCompany(),
                 () -> restartGame(stage),
                 Platform::exit,
-                () -> saveCurrentGame(stage),
-                () -> chooseAndLoadGame(stage)
+                () -> saveCurrentGame(stage)
         );
         currentGameWindow = nextWindow;
         currentGame = game;
 
-        if (stage.getScene() == null) {
-            stage.setScene(new Scene(nextWindow, SCENE_WIDTH, SCENE_HEIGHT));
-        } else {
-            stage.getScene().setRoot(nextWindow);
-        }
+        baseContent = nextWindow;
+        updateRoot(stage);
         Platform.runLater(nextWindow::requestFocus);
     }
 
@@ -86,6 +117,14 @@ public class Main extends Application {
         });
     }
 
+    private boolean hasSavedGames() {
+        try {
+            return !saveService.listSaves().isEmpty();
+        } catch (IOException ex) {
+            return false;
+        }
+    }
+
     private void chooseAndLoadGame(Stage stage) {
         List<String> saves;
         try {
@@ -110,10 +149,28 @@ public class Main extends Application {
             try {
                 Game loadedGame = saveService.load(saveName);
                 loadGame(stage, loadedGame);
+                hideStartMenu();
             } catch (IOException | ClassNotFoundException | IllegalArgumentException ex) {
                 showError(stage, "Load failed", ex.getMessage());
             }
         });
+    }
+
+    private void updateRoot(Stage stage) {
+        if (stage != null && rootContainer == null) {
+            rootContainer = new StackPane();
+            stage.setScene(new Scene(rootContainer, SCENE_WIDTH, SCENE_HEIGHT));
+        }
+        if (rootContainer == null || baseContent == null) {
+            return;
+        }
+
+        rootContainer.getChildren().setAll(baseContent);
+        if (startMenuVisible && startMenuPane != null) {
+            rootContainer.getChildren().add(startMenuDimmer);
+            rootContainer.getChildren().add(startMenuPane);
+            StackPane.setAlignment(startMenuPane, Pos.CENTER);
+        }
     }
 
     private void showInfo(Stage stage, String title, String message) {
