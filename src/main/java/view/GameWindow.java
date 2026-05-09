@@ -32,6 +32,8 @@ public class GameWindow extends BorderPane {
     private static final int MAP_VIEW_WIDTH = 1000;
     private static final int MAP_VIEW_HEIGHT = 700;
     private static final int BUILD_PANE_TO_MAP_GAP = 16;
+    private static final int HUD_TOP_MARGIN = 10;
+    private static final int SPEED_PANE_TOP_MARGIN = 18;
     private static final String CENTER_BACKGROUND_STYLE = "-fx-background-color: black;";
 
     // --- View ---
@@ -44,7 +46,6 @@ public class GameWindow extends BorderPane {
     private final Runnable onRestartRequested;
     private final Runnable onLeaveRequested;
     private final Runnable onSaveRequested;
-    private final Runnable onLoadRequested;
     private final GameOverPane gameOverOverlay;
     private boolean gameOverOverlayShown;
 
@@ -58,14 +59,13 @@ public class GameWindow extends BorderPane {
     private final AnimationEngine animationEngine;
     private Money lastRenderedCash;
 
-    public GameWindow(Game game, World world, Company company, Runnable onRestartRequested, Runnable onLeaveRequested, Runnable onSaveRequested, Runnable onLoadRequested) {
+    public GameWindow(Game game, World world, Company company, Runnable onRestartRequested, Runnable onLeaveRequested, Runnable onSaveRequested) {
         this.game = game;
         this.world = world;
         this.company = company;
         this.onRestartRequested = onRestartRequested == null ? () -> { } : onRestartRequested;
         this.onLeaveRequested = onLeaveRequested == null ? () -> { } : onLeaveRequested;
         this.onSaveRequested = onSaveRequested == null ? () -> { } : onSaveRequested;
-        this.onLoadRequested = onLoadRequested == null ? () -> { } : onLoadRequested;
         this.animationEngine = new AnimationEngine();
         this.lastRenderedCash = company.getEconomy().getCash();
         this.gameOverOverlayShown = false;
@@ -82,14 +82,15 @@ public class GameWindow extends BorderPane {
         this.timeController = new TimeController();
         this.hudView = new HUDView(uiState);
         this.minimapView = new MinimapView(mapView.getCamera(), animationEngine);
-        this.controlPanes = new ControlPanes(uiState, timeController, onSaveRequested, onLoadRequested);
+        this.controlPanes = new ControlPanes(uiState, timeController, onSaveRequested);
 
         BorderPane topOverlay = new BorderPane();
         topOverlay.setLeft(hudView);
         topOverlay.setRight(controlPanes.getSpeedPane());
         BorderPane.setAlignment(hudView, Pos.TOP_LEFT);
         BorderPane.setAlignment(controlPanes.getSpeedPane(), Pos.TOP_RIGHT);
-        BorderPane.setMargin(controlPanes.getSpeedPane(), new Insets(0, 16, 0, 0));
+        BorderPane.setMargin(hudView, new Insets(HUD_TOP_MARGIN, 0, 0, 0));
+        BorderPane.setMargin(controlPanes.getSpeedPane(), new Insets(SPEED_PANE_TOP_MARGIN, 16, 0, 0));
 
         // Layout
         HBox leftPlayArea = new HBox(BUILD_PANE_TO_MAP_GAP, controlPanes.getBuildPane(), mapView);
