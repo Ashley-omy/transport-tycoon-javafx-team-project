@@ -6,7 +6,6 @@ import controller.TimeSpeed;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
-import javafx.scene.control.ButtonBar;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.layout.HBox;
@@ -15,6 +14,9 @@ import javafx.scene.layout.VBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
+
+import java.util.Optional;
+import java.util.function.BooleanSupplier;
 
 public class ControlPanes {
     private static final double BASE_BUTTON_WIDTH = 72.0;
@@ -49,7 +51,8 @@ public class ControlPanes {
 
     private final UIState uiState;
     private final TimeController timeController;
-    private final Runnable onSaveRequested;
+    private final BooleanSupplier onSaveRequested;
+    private final Runnable onExitRequested;
 
     private final HBox speedPane = new HBox(6);
     private final VBox buildPane = new VBox(8);
@@ -62,16 +65,18 @@ public class ControlPanes {
     private final Button routeBtn = new Button("Place Route");
     private final Button pauseBtn = new Button("Pause");
     private final Button saveBtn = new Button("Save");
+    private final Button exitBtn = new Button("EXIT");
     private final Button normalSpeedBtn = new Button("1x");
     private final Button fastSpeedBtn = new Button("2x");
     private final Button veryFastSpeedBtn = new Button("4x");
     private final Label buildResultLabel = new Label();
     private final Region buildPaneSpacer = new Region();
 
-    public ControlPanes(UIState uiState, TimeController timeController, Runnable onSaveRequested) {
+    public ControlPanes(UIState uiState, TimeController timeController, BooleanSupplier onSaveRequested, Runnable onExitRequested) {
         this.uiState = uiState;
         this.timeController = timeController;
-        this.onSaveRequested = onSaveRequested == null ? () -> { } : onSaveRequested;
+        this.onSaveRequested = onSaveRequested == null ? () -> false : onSaveRequested;
+        this.onExitRequested = onExitRequested == null ? () -> { } : onExitRequested;
 
         speedPane.setAlignment(Pos.CENTER_RIGHT);
         speedPane.setFillHeight(false);
@@ -88,6 +93,7 @@ public class ControlPanes {
         configureBuildButton(deconstructBtn);
          configureBuildButton(routeBtn);
          configureBuildButton(saveBtn);
+         configureBuildButton(exitBtn);
          configureSpeedButton(pauseBtn);
         configureSpeedButton(normalSpeedBtn);
         configureSpeedButton(fastSpeedBtn);
@@ -131,7 +137,8 @@ public class ControlPanes {
             timeController.setSpeed(TimeSpeed.VERY_FAST);
             refreshSpeedButtonStyles();
         });
-        saveBtn.setOnAction(e -> onSaveRequested.run());
+        saveBtn.setOnAction(e -> onSaveRequested.getAsBoolean());
+        exitBtn.setOnAction(e -> handleExitRequested());
 
         speedPane.getChildren().addAll(
                 pauseBtn,
@@ -146,7 +153,7 @@ public class ControlPanes {
         buildResultLabel.setMaxWidth(BUILD_BUTTON_WIDTH);
         buildResultLabel.setStyle(BUILD_RESULT_STYLE);
         VBox.setVgrow(buildPaneSpacer, Priority.ALWAYS);
-        VBox.setMargin(saveBtn, new Insets(0, 0, 15, 0));
+        VBox.setMargin(exitBtn, new Insets(0, 0, 15, 0));
 
          buildPane.getChildren().addAll(
                  roadBtn,
@@ -157,7 +164,8 @@ public class ControlPanes {
                  routeBtn,
                  buildResultLabel,
                  buildPaneSpacer,
-                 saveBtn
+                 saveBtn,
+                 exitBtn
          );
 
         refreshBuildButtonStyles();
@@ -231,17 +239,30 @@ public class ControlPanes {
         button.setStyle(uiState.getBuildMode() == mode ? ACTIVE_BUILD_STYLE : BASE_BUILD_BUTTON_STYLE);
     }
 
-    private void showSaveConfirmDialog() {
+    private void handleExitRequested() {
         Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
-        dialog.setTitle("Save");
+        dialog.setTitle("Exit");
         dialog.setHeaderText(null);
-        dialog.setContentText("Do you want to save?");
-        ButtonType yes = new ButtonType("Yes", ButtonBar.ButtonData.YES);
-        ButtonType no = new ButtonType("No", ButtonBar.ButtonData.NO);
-        dialog.getButtonTypes().setAll(yes, no);
+        dialog.setContentText("Do you want to save current status before exiting?");
+        dialog.getButtonTypes().setAll(ButtonType.YES, ButtonType.NO);
         if (buildPane.getScene() != null && buildPane.getScene().getWindow() != null) {
             dialog.initOwner(buildPane.getScene().getWindow());
         }
-        dialog.showAndWait();
+
+        Optional<ButtonType> result = dialog.showAndWait();
+        if (result.isEmpty()) {
+            return;
+        }
+
+        if (result.get() == ButtonType.YES) {
+            if (onSaveRequested.getAsBoolean()) {
+                onExitRequested.run();
+            }
+            return;
+        }
+
+        if (result.get() == ButtonType.NO) {
+            onExitRequested.run();
+        }
     }
 }

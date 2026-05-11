@@ -29,6 +29,8 @@ import model.Game;
 import model.GameMap;
 import model.World;
 
+import java.util.function.BooleanSupplier;
+
 public class GameWindow extends BorderPane {
     private static final int INITIAL_MAP_VIEW_WIDTH = 1000;
     private static final int INITIAL_MAP_VIEW_HEIGHT = 700;
@@ -46,7 +48,7 @@ public class GameWindow extends BorderPane {
     private final Game game;
     private final Runnable onRestartRequested;
     private final Runnable onLeaveRequested;
-    private final Runnable onSaveRequested;
+    private final BooleanSupplier onSaveRequested;
     private final GameOverPane gameOverOverlay;
     private boolean gameOverOverlayShown;
 
@@ -60,13 +62,13 @@ public class GameWindow extends BorderPane {
     private final AnimationEngine animationEngine;
     private Money lastRenderedCash;
 
-    public GameWindow(Game game, World world, Company company, Runnable onRestartRequested, Runnable onLeaveRequested, Runnable onSaveRequested) {
+    public GameWindow(Game game, World world, Company company, Runnable onRestartRequested, Runnable onLeaveRequested, BooleanSupplier onSaveRequested) {
         this.game = game;
         this.world = world;
         this.company = company;
         this.onRestartRequested = onRestartRequested == null ? () -> { } : onRestartRequested;
         this.onLeaveRequested = onLeaveRequested == null ? () -> { } : onLeaveRequested;
-        this.onSaveRequested = onSaveRequested == null ? () -> { } : onSaveRequested;
+        this.onSaveRequested = onSaveRequested == null ? () -> false : onSaveRequested;
         this.animationEngine = new AnimationEngine();
         this.lastRenderedCash = company.getEconomy().getCash();
         this.gameOverOverlayShown = false;
@@ -83,7 +85,7 @@ public class GameWindow extends BorderPane {
         this.timeController = new TimeController();
         this.hudView = new HUDView(uiState);
         this.minimapView = new MinimapView(mapView.getCamera(), animationEngine);
-        this.controlPanes = new ControlPanes(uiState, timeController, onSaveRequested);
+        this.controlPanes = new ControlPanes(uiState, timeController, onSaveRequested, onLeaveRequested);
 
         BorderPane topOverlay = new BorderPane();
         topOverlay.setLeft(hudView);

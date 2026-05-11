@@ -17,6 +17,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 
 public class Main extends Application {
     private static final int WORLD_WIDTH = 100;
@@ -94,10 +95,10 @@ public class Main extends Application {
         Platform.runLater(nextWindow::requestFocus);
     }
 
-    private void saveCurrentGame(Stage stage) {
+    private boolean saveCurrentGame(Stage stage) {
         if (currentGame == null) {
             showError(stage, "Save failed", "No active game to save.");
-            return;
+            return false;
         }
 
         String defaultName = "save_" + LocalDateTime.now().format(SAVE_NAME_FORMAT);
@@ -107,14 +108,20 @@ public class Main extends Application {
         dialog.setContentText("Save name:");
         dialog.initOwner(stage);
 
-        dialog.showAndWait().ifPresent(saveName -> {
-            try {
-                saveService.save(currentGame, saveName);
-                showInfo(stage, "Game saved", "Saved as " + saveName.trim());
-            } catch (IOException | IllegalArgumentException ex) {
-                showError(stage, "Save failed", ex.getMessage());
-            }
-        });
+        Optional<String> saveNameResult = dialog.showAndWait();
+        if (saveNameResult.isEmpty()) {
+            return false;
+        }
+
+        String saveName = saveNameResult.get();
+        try {
+            saveService.save(currentGame, saveName);
+            showInfo(stage, "Game saved", "Saved as " + saveName.trim());
+            return true;
+        } catch (IOException | IllegalArgumentException ex) {
+            showError(stage, "Save failed", ex.getMessage());
+            return false;
+        }
     }
 
     private boolean hasSavedGames() {
