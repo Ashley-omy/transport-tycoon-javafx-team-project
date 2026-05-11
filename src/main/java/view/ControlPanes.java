@@ -74,7 +74,7 @@ public class ControlPanes {
     private final Button routeBtn = new Button("Place Route");
     private final Button pauseBtn = new Button("Pause");
     private final Button saveBtn = new Button("Save");
-    private final Button exitBtn = new Button("EXIT");
+    private final Button exitBtn = new Button("Exit");
     private final Button normalSpeedBtn = new Button("1x");
     private final Button fastSpeedBtn = new Button("2x");
     private final Button veryFastSpeedBtn = new Button("4x");
