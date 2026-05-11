@@ -5,6 +5,9 @@ import java.util.Collections;
 import java.util.List;
 
 public abstract class Terrain implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = -6776047390846442181L;
+
     private final List<Tile> occupiedTiles;
 
     protected Terrain() {

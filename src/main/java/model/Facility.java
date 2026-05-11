@@ -3,6 +3,9 @@ package model;
 import common.Id;
 
 public abstract class Facility extends MapEntity {
+    @java.io.Serial
+    private static final long serialVersionUID = 7017689808668011564L;
+
     protected final GoodsType inputType;    // consumes
     protected final GoodsType outputType;   // produces
     

@@ -5,6 +5,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Comparator;
 import java.util.List;
 
 public class SaveService {
@@ -50,11 +51,19 @@ public class SaveService {
         try (var stream = Files.list(saveDirectory)) {
             return stream
                     .filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().endsWith(SAVE_EXTENSION))
+                    .sorted(Comparator.comparingLong(this::lastModifiedMillis).reversed())
                     .map(path -> path.getFileName().toString())
-                    .filter(name -> name.endsWith(SAVE_EXTENSION))
                     .map(name -> name.substring(0, name.length() - SAVE_EXTENSION.length()))
-                    .sorted()
                     .toList();
+        }
+    }
+
+    private long lastModifiedMillis(Path path) {
+        try {
+            return Files.getLastModifiedTime(path).toMillis();
+        } catch (IOException ex) {
+            return Long.MIN_VALUE;
         }
     }
 

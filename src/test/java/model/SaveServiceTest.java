@@ -7,7 +7,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import java.lang.reflect.Field;
+import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -80,7 +82,24 @@ class SaveServiceTest {
         saveService.save(new Game(new World(25, 25), new Company()), "first save");
         saveService.save(new Game(new World(25, 25), new Company()), "second-save");
 
-        assertEquals(List.of("first_save", "second-save"), saveService.listSaves());
+        Files.setLastModifiedTime(saveDirectory.resolve("first_save.sav"), FileTime.fromMillis(1_000));
+        Files.setLastModifiedTime(saveDirectory.resolve("second-save.sav"), FileTime.fromMillis(2_000));
+
+        assertEquals(List.of("second-save", "first_save"), saveService.listSaves());
+    }
+
+    @Test
+    void savedGameShouldLoadWithElapsedTime() throws Exception {
+        Game game = new Game(new World(25, 25), new Company());
+        game.update(65.0);
+
+        SaveService saveService = new SaveService(saveDirectory);
+        saveService.save(game, "time");
+
+        Game loadedGame = saveService.load("time");
+
+        assertEquals(65.0, loadedGame.getElapsedTimeSeconds(), 1e-9);
+        assertEquals("00:01:05", loadedGame.getFormattedTime());
     }
 
     private void prepareOpenTile(World world, GridPos pos) {

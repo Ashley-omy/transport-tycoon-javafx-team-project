@@ -9,6 +9,9 @@ import java.util.Map;
  * Cities generate passengers and have demands that increase over time.
  */
 public class City extends MapEntity {
+    @java.io.Serial
+    private static final long serialVersionUID = 6786448721844624055L;
+
     private static final int STANDARD_POPULATION = 5000;
     private static final int CITY_FOOTPRINT = 5;
     private static final double DEMAND_INCREASE_RATE = 0.2; // Units per second

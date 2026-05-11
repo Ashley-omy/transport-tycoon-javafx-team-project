@@ -3,6 +3,9 @@ package common;
 import java.util.Objects;
 
 public class GridPos implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 7787694307085328352L;
+
     public final int x;
     public final int y;
 

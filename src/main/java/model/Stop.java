@@ -8,6 +8,9 @@ import java.util.LinkedList;
 import java.util.Queue;
 
 public class Stop implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = -424341478837511307L;
+
     private final Id id;
     private final Tile occupiedTile;
     private final MapEntity servedPlace;

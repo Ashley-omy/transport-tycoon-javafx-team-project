@@ -7,6 +7,9 @@ package common;
 import java.util.UUID;
 
 public final class Id implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = -5034902813971242584L;
+
     private final String value;
 
     public Id(String value) {
