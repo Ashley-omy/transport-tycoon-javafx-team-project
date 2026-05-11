@@ -12,6 +12,7 @@ public class Game implements java.io.Serializable {
     private double speedMultiplier = 1.0;
     private boolean gameOver = false;
     private double simDelta;
+    private double elapsedTimeSeconds = 0.0;
 
     public static final double SPEED_NORMAL = 1.0;
     public static final double SPEED_FAST = 2.0;
@@ -34,6 +35,7 @@ public class Game implements java.io.Serializable {
         if (simDelta <= 0.0) return;
 
         tick++;
+        elapsedTimeSeconds += simDelta;
         world.tick(simDelta);
         company.tick(simDelta);
 
@@ -53,6 +55,14 @@ public class Game implements java.io.Serializable {
     public boolean isGameOver() { return gameOver; }
     public long getTick() { return tick; }
     public double getSimDelta() { return simDelta; }
+    public double getElapsedTimeSeconds() { return elapsedTimeSeconds; }
+    public String getFormattedTime() {
+        int totalSeconds = (int) elapsedTimeSeconds;
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int seconds = totalSeconds % 60;
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+    }
     public void setPaused(boolean paused) { this.paused = paused; }
     public boolean isPaused() { return paused; }
     public void setSpeedMultiplier(double speedMultiplier) {

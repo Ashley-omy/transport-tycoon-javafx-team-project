@@ -213,7 +213,7 @@ public class GameWindow extends BorderPane {
         lastRenderedCash = currentCash;
         hudView.render(
                 currentCash,
-                animationEngine.getFormattedTime(),
+                game.getFormattedTime(),
                 timeController.getSpeed()
         );
         controlPanes.render();
