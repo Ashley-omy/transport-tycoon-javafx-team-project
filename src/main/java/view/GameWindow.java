@@ -20,6 +20,7 @@ import javafx.geometry.Pos;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
@@ -29,8 +30,8 @@ import model.GameMap;
 import model.World;
 
 public class GameWindow extends BorderPane {
-    private static final int MAP_VIEW_WIDTH = 1000;
-    private static final int MAP_VIEW_HEIGHT = 700;
+    private static final int INITIAL_MAP_VIEW_WIDTH = 1000;
+    private static final int INITIAL_MAP_VIEW_HEIGHT = 700;
     private static final int BUILD_PANE_TO_MAP_GAP = 16;
     private static final int HUD_TOP_MARGIN = 10;
     private static final int SPEED_PANE_TOP_MARGIN = 18;
@@ -78,7 +79,7 @@ public class GameWindow extends BorderPane {
         // -----------------------------
         // Views
         // -----------------------------
-        this.mapView = new MapView(MAP_VIEW_WIDTH, MAP_VIEW_HEIGHT, animationEngine);
+        this.mapView = new MapView(INITIAL_MAP_VIEW_WIDTH, INITIAL_MAP_VIEW_HEIGHT, animationEngine);
         this.timeController = new TimeController();
         this.hudView = new HUDView(uiState);
         this.minimapView = new MinimapView(mapView.getCamera(), animationEngine);
@@ -95,10 +96,11 @@ public class GameWindow extends BorderPane {
         // Layout
         HBox leftPlayArea = new HBox(BUILD_PANE_TO_MAP_GAP, controlPanes.getBuildPane(), mapView);
         leftPlayArea.setAlignment(Pos.TOP_LEFT);
-        leftPlayArea.setFillHeight(false);
-        leftPlayArea.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
-        controlPanes.getBuildPane().setMinHeight(MAP_VIEW_HEIGHT);
-        controlPanes.getBuildPane().setPrefHeight(MAP_VIEW_HEIGHT);
+        leftPlayArea.setFillHeight(true);
+        leftPlayArea.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        HBox.setHgrow(mapView, Priority.ALWAYS);
+        mapView.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        controlPanes.getBuildPane().setMaxHeight(Double.MAX_VALUE);
 
         VBox rightOverlay = new VBox(12, minimapView);
         rightOverlay.setAlignment(Pos.TOP_RIGHT);
@@ -107,7 +109,7 @@ public class GameWindow extends BorderPane {
 
         StackPane center = new StackPane(leftPlayArea, rightOverlay);
         center.setAlignment(Pos.TOP_LEFT);
-        center.setPadding(new Insets(16));
+        center.setPadding(Insets.EMPTY);
         center.setStyle(CENTER_BACKGROUND_STYLE);
         StackPane.setAlignment(leftPlayArea, Pos.TOP_LEFT);
         StackPane.setAlignment(rightOverlay, Pos.TOP_RIGHT);
