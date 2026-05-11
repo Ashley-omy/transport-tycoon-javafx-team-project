@@ -29,6 +29,7 @@ public class Main extends Application {
     private final Region startMenuDimmer = new Region();
     private GameWindow currentGameWindow;
     private Game currentGame;
+    private String currentSaveName;
     private StackPane rootContainer;
     private Parent baseContent;
     private StartMenuPane startMenuPane;
@@ -70,6 +71,7 @@ public class Main extends Application {
         World world = new World(WORLD_WIDTH, WORLD_HEIGHT);
         Company company = new Company();
         Game game = new Game(world, company);
+        currentSaveName = null;
         loadGame(stage, game);
     }
 
@@ -100,17 +102,21 @@ public class Main extends Application {
             return;
         }
 
-        String defaultName = "save_" + LocalDateTime.now().format(SAVE_NAME_FORMAT);
+        String defaultName = currentSaveName != null
+                ? currentSaveName
+                : "save_" + LocalDateTime.now().format(SAVE_NAME_FORMAT);
         TextInputDialog dialog = new TextInputDialog(defaultName);
         dialog.setTitle("Save Game");
         dialog.setHeaderText(null);
-        dialog.setContentText("Save name:");
+        dialog.setContentText("Save name (same name overwrites existing save):");
         dialog.initOwner(stage);
 
         dialog.showAndWait().ifPresent(saveName -> {
             try {
                 saveService.save(currentGame, saveName);
-                showInfo(stage, "Game saved", "Saved as " + saveName.trim());
+                currentSaveName = saveName.trim();
+                showInfo(stage, "Game saved", "Saved as " + saveName.trim()
+                        + " at game time " + currentGame.getFormattedTime());
             } catch (IOException | IllegalArgumentException ex) {
                 showError(stage, "Save failed", ex.getMessage());
             }
@@ -148,6 +154,7 @@ public class Main extends Application {
         dialog.showAndWait().ifPresent(saveName -> {
             try {
                 Game loadedGame = saveService.load(saveName);
+                currentSaveName = saveName;
                 loadGame(stage, loadedGame);
                 hideStartMenu();
             } catch (IOException | ClassNotFoundException | IllegalArgumentException ex) {
