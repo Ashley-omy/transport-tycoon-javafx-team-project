@@ -4,6 +4,9 @@ import common.Id;
 import common.Money;
 
 public class Shipment implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = -7298992715937732744L;
+
     private final ShipmentKind kind;
     private final GoodsType goodsType; // null when kind == PASSENGERS
     private int units;

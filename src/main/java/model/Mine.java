@@ -6,6 +6,8 @@ import common.Id;
  * Mine produces raw materials
  */
 public class Mine extends Facility {
+    @java.io.Serial
+    private static final long serialVersionUID = -1395311953885402997L;
 
     public Mine(Id id, GoodsType outputType, int maxStockCapacity, int productionRate, double productionTime) {
         super(id, null, outputType, maxStockCapacity, productionRate, productionTime);

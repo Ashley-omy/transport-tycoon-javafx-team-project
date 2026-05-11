@@ -7,6 +7,9 @@ import common.*;
 import java.util.*;
 
 public abstract class MapEntity implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 8334789305422779390L;
+
     // Default lifetime for transient floating messages above an entity.
     private static final double DEFAULT_EVENT_DISPLAY_SECONDS = 2.0;
 

@@ -13,6 +13,8 @@ package controller;
 import common.GridPos;
 import common.Vec2;
 import javafx.animation.AnimationTimer;
+import javafx.scene.Scene;
+import javafx.stage.Window;
 import model.Game;
 import view.BuildMode;
 import view.BridgeTypePane;
@@ -174,14 +176,14 @@ public class GameController {
                 facilityInfoPane.close();
                 garagePane.showForGarage(
                         clickedTile.getGarage(),
-                        window.getScene() == null ? null : window.getScene().getWindow()
+                        getOwnerWindow()
                 );
                 return;
             }
             if (clickedTile != null && clickedTile.getEntity() instanceof Facility facility) {
                 facilityInfoPane.showForFacility(
                         facility,
-                        window.getScene() == null ? null : window.getScene().getWindow()
+                        getOwnerWindow()
                 );
                 return;
             }
@@ -438,7 +440,7 @@ public class GameController {
             );
             return;
         }
-        bridgeTypePane.showForBridgeSelection(window.getScene() == null ? null : window.getScene().getWindow());
+        bridgeTypePane.showForBridgeSelection(getOwnerWindow());
     }
 
     private void placePendingBridge(BridgeType selectedType) {
@@ -481,5 +483,13 @@ public class GameController {
             return;
         }
         window.getMapView().getCamera().setTopLeftClamped(minimap.getMap(), targetTopLeft);
+    }
+
+    private Window getOwnerWindow() {
+        Scene scene = window.getScene();
+        if (scene == null) {
+            return null;
+        }
+        return scene.getWindow();
     }
 }

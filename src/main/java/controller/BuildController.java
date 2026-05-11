@@ -14,6 +14,8 @@ public class BuildController {
     private final Company company;
 
     public BuildController(World world, Company company) {
+        if (world == null) throw new IllegalArgumentException("world cannot be null");
+        if (company == null) throw new IllegalArgumentException("company cannot be null");
         this.world = world;
         this.company = company;
     }
@@ -32,12 +34,19 @@ public class BuildController {
         GridPos up = new GridPos(x, y+1);
         GridPos down = new GridPos(x, y-1);
 
-        if (world.getMap().inBounds(right)) list.add(world.getMap().getTile(right));
-        if (world.getMap().inBounds(left)) list.add(world.getMap().getTile(left));
-        if (world.getMap().inBounds(up)) list.add(world.getMap().getTile(up));
-        if (world.getMap().inBounds(down)) list.add(world.getMap().getTile(down));
+        addTileIfPresent(list, right);
+        addTileIfPresent(list, left);
+        addTileIfPresent(list, up);
+        addTileIfPresent(list, down);
 
         return list;
+    }
+
+    private void addTileIfPresent(List<Tile> tiles, GridPos pos) {
+        Tile tile = world.getMap().getTile(pos);
+        if (tile != null) {
+            tiles.add(tile);
+        }
     }
 
     // step 2: do we aleady have existing roads on map?
