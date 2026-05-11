@@ -6,6 +6,8 @@ import common.Id;
  * Factory consumes raw materials and produces finished goods.
  */
 public class Factory extends Facility {
+    @java.io.Serial
+    private static final long serialVersionUID = -2851907447855130154L;
 
     public Factory(Id id, GoodsType inputType, GoodsType outputType, int maxStockCapacity, int productionRate, double productionTime) {
         super(id, inputType, outputType, maxStockCapacity, productionRate, productionTime);

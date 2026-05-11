@@ -45,6 +45,9 @@ public class GameMap implements java.io.Serializable {
 
     // #66 Implement map bounds checking
     public boolean inBounds(GridPos pos) {
+        if (pos == null) {
+            return false;
+        }
         return pos.x >= 0 && pos.y >= 0 && pos.x < width && pos.y < height;
     }
 

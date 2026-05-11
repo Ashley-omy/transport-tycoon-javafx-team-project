@@ -5,6 +5,9 @@ import common.Money;
 import java.util.Objects;
 
 public final class BridgeSpec implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = -977686292153038294L;
+
     private final BridgeType type;
     private final int maxSpanTiles;
     private final Money cost;

@@ -3,6 +3,9 @@ package common;
 import java.util.Objects;
 
 public final class Money implements Comparable<Money>, java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = -5795411471649255213L;
+
     private final long amount;
     private final String currency;
 
