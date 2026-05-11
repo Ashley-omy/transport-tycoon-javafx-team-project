@@ -3,16 +3,18 @@ package view;
 import controller.ActionResult;
 import controller.TimeController;
 import controller.TimeSpeed;
+import javafx.css.PseudoClass;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.control.Label;
 import javafx.scene.paint.Color;
 
 import java.util.Optional;
@@ -21,33 +23,40 @@ import java.util.function.BooleanSupplier;
 public class ControlPanes {
     private static final double BASE_BUTTON_WIDTH = 72.0;
     private static final double BASE_BUTTON_HEIGHT = 28.0;
-    private static final double BUILD_BUTTON_SCALE = 2.0;
-    private static final double BUILD_BUTTON_WIDTH = BASE_BUTTON_WIDTH * BUILD_BUTTON_SCALE;
-    private static final double BUILD_BUTTON_HEIGHT = BASE_BUTTON_HEIGHT * BUILD_BUTTON_SCALE;
+    private static final double BUILD_BUTTON_WIDTH = 150.0;
+    private static final double BUILD_BUTTON_HEIGHT = 73.0;
+    private static final double BOTTOM_BUTTON_HEIGHT = 56.0;
     private static final double SPEED_BUTTON_WIDTH = BASE_BUTTON_WIDTH;
     private static final double SPEED_BUTTON_HEIGHT = BASE_BUTTON_HEIGHT;
-    private static final String BUILD_RESULT_STYLE = "-fx-font-size: 13px; -fx-font-weight: bold;";
+    private static final String BUILD_RESULT_STYLE = "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #5d4423;";
+    private static final PseudoClass SELECTED_BUILD = PseudoClass.getPseudoClass("selected-build");
+    private static final String BUILD_PANE_STYLE =
+            "-fx-background-color: #ffd669; " +
+            "-fx-background-radius: 14; " +
+            "-fx-padding: 8 10 10 10;";
+    private static final String SPEED_PANE_STYLE =
+            "-fx-background-color: #ffd669; " +
+            "-fx-background-radius: 14; " +
+            "-fx-padding: 6 8 6 8;";
 
     private static final String BASE_BUTTON_STYLE =
             "-fx-focus-color: transparent; " +
-            "-fx-faint-focus-color: transparent;";
-    private static final String BASE_BUILD_BUTTON_STYLE =
-            "-fx-focus-color: transparent; " +
-            "-fx-faint-focus-color: transparent;" +
-            "-fx-font-size: 15px;" +
-            "-fx-font-weight: normal;";
-    private static final String ACTIVE_BUILD_STYLE =
-            BASE_BUILD_BUTTON_STYLE +
-                    "-fx-background-color: #2e5f8a; " +
-                    "-fx-text-fill: white; " +
-                    "-fx-border-color: #8fc1ff; " +
-                    "-fx-border-width: 1;";
+            "-fx-faint-focus-color: transparent; " +
+            "-fx-background-color: linear-gradient(to bottom, #73c0ff, #2d8fe9); " +
+            "-fx-text-fill: white; " +
+            "-fx-font-weight: bold; " +
+            "-fx-background-radius: 14; " +
+            "-fx-border-radius: 14; " +
+            "-fx-border-color: #cfe9ff; " +
+            "-fx-border-width: 1.4; " +
+            "-fx-effect: dropshadow(gaussian, rgba(32, 118, 204, 0.45), 8, 0.25, 0, 2);";
     private static final String ACTIVE_SPEED_STYLE =
             BASE_BUTTON_STYLE +
-                    "-fx-background-color: #3f7c50; " +
-                    "-fx-text-fill: white; " +
-                    "-fx-border-color: #9be0a4; " +
-                    "-fx-border-width: 1;";
+                    "-fx-background-color: linear-gradient(to bottom, #ffd18a, #f0942f); " +
+                    "-fx-text-fill: #4d2a08; " +
+                    "-fx-border-color: #ffe0b6; " +
+                    "-fx-border-width: 1.8;";
+    private static final String POP_UI_STYLESHEET_PATH = "/styles/pop-ui.css";
 
     private final UIState uiState;
     private final TimeController timeController;
@@ -81,23 +90,36 @@ public class ControlPanes {
         speedPane.setAlignment(Pos.CENTER_RIGHT);
         speedPane.setFillHeight(false);
         speedPane.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        speedPane.setStyle(SPEED_PANE_STYLE);
 
         buildPane.setAlignment(Pos.TOP_LEFT);
         buildPane.setFillWidth(false);
         buildPane.setMaxSize(Region.USE_PREF_SIZE, Region.USE_PREF_SIZE);
+        buildPane.setStyle(BUILD_PANE_STYLE);
 
         configureBuildButton(roadBtn);
         configureBuildButton(bridgeBtn);
         configureBuildButton(stopBtn);
         configureBuildButton(garageBtn);
         configureBuildButton(deconstructBtn);
-         configureBuildButton(routeBtn);
-         configureBuildButton(saveBtn);
-         configureBuildButton(exitBtn);
-         configureSpeedButton(pauseBtn);
+        configureBuildButton(routeBtn);
+        configureBuildButton(saveBtn);
+        configureBuildButton(exitBtn);
+        configureBottomButton(saveBtn);
+        configureBottomButton(exitBtn);
+        configureSpeedButton(pauseBtn);
         configureSpeedButton(normalSpeedBtn);
         configureSpeedButton(fastSpeedBtn);
         configureSpeedButton(veryFastSpeedBtn);
+
+        roadBtn.getStyleClass().add("btn-road");
+        bridgeBtn.getStyleClass().add("btn-bridge");
+        stopBtn.getStyleClass().add("btn-stop");
+        garageBtn.getStyleClass().add("btn-garage");
+        deconstructBtn.getStyleClass().add("btn-deconstruct");
+        routeBtn.getStyleClass().add("btn-route");
+        saveBtn.getStyleClass().add("btn-save");
+        exitBtn.getStyleClass().add("btn-exit");
 
         roadBtn.setOnAction(e -> toggleBuildMode(BuildMode.ROAD));
         bridgeBtn.setOnAction(e -> {
@@ -155,18 +177,18 @@ public class ControlPanes {
         VBox.setVgrow(buildPaneSpacer, Priority.ALWAYS);
         VBox.setMargin(exitBtn, new Insets(0, 0, 15, 0));
 
-         buildPane.getChildren().addAll(
-                 roadBtn,
-                 bridgeBtn,
-                 stopBtn,
-                 garageBtn,
-                 deconstructBtn,
-                 routeBtn,
-                 buildResultLabel,
-                 buildPaneSpacer,
-                 saveBtn,
-                 exitBtn
-         );
+        buildPane.getChildren().addAll(
+                roadBtn,
+                bridgeBtn,
+                stopBtn,
+                garageBtn,
+                deconstructBtn,
+                routeBtn,
+                buildResultLabel,
+                buildPaneSpacer,
+                saveBtn,
+                exitBtn
+        );
 
         refreshBuildButtonStyles();
         refreshSpeedButtonStyles();
@@ -198,7 +220,7 @@ public class ControlPanes {
         button.setMinSize(BUILD_BUTTON_WIDTH, BUILD_BUTTON_HEIGHT);
         button.setPrefSize(BUILD_BUTTON_WIDTH, BUILD_BUTTON_HEIGHT);
         button.setMaxSize(BUILD_BUTTON_WIDTH, BUILD_BUTTON_HEIGHT);
-        button.setStyle(BASE_BUILD_BUTTON_STYLE);
+        button.getStyleClass().add("build-button");
     }
 
     private void configureSpeedButton(Button button) {
@@ -207,6 +229,12 @@ public class ControlPanes {
         button.setPrefSize(SPEED_BUTTON_WIDTH, SPEED_BUTTON_HEIGHT);
         button.setMaxSize(SPEED_BUTTON_WIDTH, SPEED_BUTTON_HEIGHT);
         button.setStyle(BASE_BUTTON_STYLE);
+    }
+
+    private void configureBottomButton(Button button) {
+        button.setMinSize(BUILD_BUTTON_WIDTH, BOTTOM_BUTTON_HEIGHT);
+        button.setPrefSize(BUILD_BUTTON_WIDTH, BOTTOM_BUTTON_HEIGHT);
+        button.setMaxSize(BUILD_BUTTON_WIDTH, BOTTOM_BUTTON_HEIGHT);
     }
 
     private void toggleBuildMode(BuildMode mode) {
@@ -236,7 +264,8 @@ public class ControlPanes {
     }
 
     private void applyBuildSelectionStyle(Button button, BuildMode mode) {
-        button.setStyle(uiState.getBuildMode() == mode ? ACTIVE_BUILD_STYLE : BASE_BUILD_BUTTON_STYLE);
+        boolean selected = uiState.getBuildMode() == mode;
+        button.pseudoClassStateChanged(SELECTED_BUILD, selected);
     }
 
     private void handleExitRequested() {
@@ -248,6 +277,7 @@ public class ControlPanes {
         if (buildPane.getScene() != null && buildPane.getScene().getWindow() != null) {
             dialog.initOwner(buildPane.getScene().getWindow());
         }
+        styleDialog(dialog);
 
         Optional<ButtonType> result = dialog.showAndWait();
         if (result.isEmpty()) {
@@ -263,6 +293,23 @@ public class ControlPanes {
 
         if (result.get() == ButtonType.NO) {
             onExitRequested.run();
+        }
+    }
+
+    private void styleDialog(Dialog<?> dialog) {
+        if (dialog == null || dialog.getDialogPane() == null) {
+            return;
+        }
+
+        var stylesheetUrl = ControlPanes.class.getResource(POP_UI_STYLESHEET_PATH);
+        if (stylesheetUrl != null) {
+            String stylesheet = stylesheetUrl.toExternalForm();
+            if (!dialog.getDialogPane().getStylesheets().contains(stylesheet)) {
+                dialog.getDialogPane().getStylesheets().add(stylesheet);
+            }
+        }
+        if (!dialog.getDialogPane().getStyleClass().contains("pop-dialog")) {
+            dialog.getDialogPane().getStyleClass().add("pop-dialog");
         }
     }
 }

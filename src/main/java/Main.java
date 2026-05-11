@@ -5,6 +5,7 @@ import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
 import javafx.scene.control.ChoiceDialog;
+import javafx.scene.control.Dialog;
 import javafx.scene.control.TextInputDialog;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
@@ -25,6 +26,7 @@ public class Main extends Application {
     private static final int SCENE_WIDTH = 1180;
     private static final int SCENE_HEIGHT = 750;
     private static final DateTimeFormatter SAVE_NAME_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss");
+    private static final String POP_UI_STYLESHEET_PATH = "/styles/pop-ui.css";
 
     private final SaveService saveService = new SaveService();
     private final Region startMenuDimmer = new Region();
@@ -40,6 +42,7 @@ public class Main extends Application {
         stage.setTitle("Transport Tycoon");
         restartGame(stage);
         showStartMenu(stage);
+        stage.setFullScreen(true);
         stage.show();
     }
 
@@ -52,7 +55,7 @@ public class Main extends Application {
                 },
                 () -> chooseAndLoadGame(stage)
         );
-        startMenuDimmer.setStyle("-fx-background-color: rgba(0, 0, 0, 0.45);");
+        startMenuDimmer.setStyle("-fx-background-color: rgba(255, 236, 181, 0.45);");
         startMenuDimmer.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         startMenuVisible = true;
         updateRoot(stage);
@@ -107,6 +110,7 @@ public class Main extends Application {
         dialog.setHeaderText(null);
         dialog.setContentText("Save name:");
         dialog.initOwner(stage);
+        styleDialog(dialog);
 
         Optional<String> saveNameResult = dialog.showAndWait();
         if (saveNameResult.isEmpty()) {
@@ -151,6 +155,7 @@ public class Main extends Application {
         dialog.setHeaderText(null);
         dialog.setContentText("Saved game:");
         dialog.initOwner(stage);
+        styleDialog(dialog);
 
         dialog.showAndWait().ifPresent(saveName -> {
             try {
@@ -166,7 +171,12 @@ public class Main extends Application {
     private void updateRoot(Stage stage) {
         if (stage != null && rootContainer == null) {
             rootContainer = new StackPane();
-            stage.setScene(new Scene(rootContainer, SCENE_WIDTH, SCENE_HEIGHT));
+            Scene scene = new Scene(rootContainer, SCENE_WIDTH, SCENE_HEIGHT);
+            String stylesheet = resolveStylesheet(POP_UI_STYLESHEET_PATH);
+            if (stylesheet != null) {
+                scene.getStylesheets().add(stylesheet);
+            }
+            stage.setScene(scene);
         }
         if (rootContainer == null || baseContent == null) {
             return;
@@ -186,6 +196,7 @@ public class Main extends Application {
         alert.setHeaderText(null);
         alert.setContentText(message);
         alert.initOwner(stage);
+        styleDialog(alert);
         alert.showAndWait();
     }
 
@@ -195,7 +206,31 @@ public class Main extends Application {
         alert.setHeaderText(null);
         alert.setContentText(message == null || message.isBlank() ? "Unknown error" : message);
         alert.initOwner(stage);
+        styleDialog(alert);
         alert.showAndWait();
+    }
+
+    private void styleDialog(Dialog<?> dialog) {
+        if (dialog == null || dialog.getDialogPane() == null) {
+            return;
+        }
+
+        String stylesheet = resolveStylesheet(POP_UI_STYLESHEET_PATH);
+        if (stylesheet != null && !dialog.getDialogPane().getStylesheets().contains(stylesheet)) {
+            dialog.getDialogPane().getStylesheets().add(stylesheet);
+        }
+        if (!dialog.getDialogPane().getStyleClass().contains("pop-dialog")) {
+            dialog.getDialogPane().getStyleClass().add("pop-dialog");
+        }
+    }
+
+    private String resolveStylesheet(String resourcePath) {
+        if (resourcePath == null || resourcePath.isBlank()) {
+            return null;
+        }
+
+        var url = Main.class.getResource(resourcePath);
+        return url == null ? null : url.toExternalForm();
     }
 
     public static void main(String[] args) {

@@ -37,7 +37,8 @@ public class GameWindow extends BorderPane {
     private static final int BUILD_PANE_TO_MAP_GAP = 16;
     private static final int HUD_TOP_MARGIN = 10;
     private static final int SPEED_PANE_TOP_MARGIN = 18;
-    private static final String CENTER_BACKGROUND_STYLE = "-fx-background-color: black;";
+    private static final String PANEL_BACKGROUND_STYLE =
+            "-fx-background-color: #ffd669;";
 
     // --- View ---
     private final MapView mapView;
@@ -88,6 +89,7 @@ public class GameWindow extends BorderPane {
         this.controlPanes = new ControlPanes(uiState, timeController, onSaveRequested, onLeaveRequested);
 
         BorderPane topOverlay = new BorderPane();
+        topOverlay.setStyle(PANEL_BACKGROUND_STYLE);
         topOverlay.setLeft(hudView);
         topOverlay.setRight(controlPanes.getSpeedPane());
         BorderPane.setAlignment(hudView, Pos.TOP_LEFT);
@@ -112,7 +114,7 @@ public class GameWindow extends BorderPane {
         StackPane center = new StackPane(leftPlayArea, rightOverlay);
         center.setAlignment(Pos.TOP_LEFT);
         center.setPadding(Insets.EMPTY);
-        center.setStyle(CENTER_BACKGROUND_STYLE);
+        center.setStyle(PANEL_BACKGROUND_STYLE);
         StackPane.setAlignment(leftPlayArea, Pos.TOP_LEFT);
         StackPane.setAlignment(rightOverlay, Pos.TOP_RIGHT);
         this.gameOverOverlay = new GameOverPane(this.onRestartRequested, this.onLeaveRequested);

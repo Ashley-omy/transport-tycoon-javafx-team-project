@@ -17,7 +17,10 @@ import javafx.scene.layout.Region;
 import javafx.scene.control.Label;
 
 public class HUDView extends HBox {
-    private static final String HUD_TEXT_STYLE = "-fx-font-size: 16px; -fx-font-weight: bold;";
+    private static final String HUD_PANEL_STYLE =
+            "-fx-background-color: #ffd669;" +
+            "-fx-background-radius: 10;";
+    private static final String HUD_TEXT_STYLE = "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #4e3b1f;";
     private static final String EARN_TEXT_STYLE = "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #6dff6f;";
     private static final String COST_TEXT_STYLE = "-fx-font-size: 16px; -fx-font-weight: bold; -fx-text-fill: #FF4D4D;";
     private static final long MESSAGE_DURATION_NANOS = 2_000_000_000L;
@@ -46,6 +49,7 @@ public class HUDView extends HBox {
         setPadding(new Insets(8, 0, 8, 16));
         setSpacing(14);
         setMaxWidth(Double.MAX_VALUE);
+        setStyle(HUD_PANEL_STYLE);
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         moneyLabel.setStyle(HUD_TEXT_STYLE);
