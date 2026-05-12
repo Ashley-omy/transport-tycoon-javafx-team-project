@@ -49,6 +49,14 @@ class EconomyTest {
     }
 
     @Test
+    void transactionHistoryRecordsTypedTransactions() {
+        economy.spend(Money.of(300), TransactionType.ROAD_CONSTRUCTION, "Built road");
+
+        assertEquals(2, economy.getTransactionHistory().size());
+        assertTrue(economy.getTransactionHistory().getLast().toString().contains("ROAD_CONSTRUCTION"));
+    }
+
+    @Test
     void earnAndSpendRejectNullAndNegativeAmounts() {
         assertThrows(IllegalArgumentException.class, () -> economy.earn(null));
         assertThrows(IllegalArgumentException.class, () -> economy.earn(Money.of(-1)));

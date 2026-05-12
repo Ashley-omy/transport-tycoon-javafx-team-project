@@ -16,7 +16,6 @@ public class Company implements java.io.Serializable {
     public static final Money DEFAULT_STARTING_CAPITAL = Money.of(100_000);
 
     private static final Money DEFAULT_VEHICLE_RESALE_VALUE = Money.of(2_500);
-    private static final Money DEFAULT_DELIVERY_INCOME = Money.of(300);
     // getters for cost constants
     public static Money getVehicleResaleValue() {
         return DEFAULT_VEHICLE_RESALE_VALUE;
@@ -70,27 +69,10 @@ public class Company implements java.io.Serializable {
         }
     }
 
-    // income from deliveries
-    public void completeShipment(Shipment s) {
-        if (s == null) return;
-        // Use fixed income for now, but could calculate based on shipment value
-        Money income = DEFAULT_DELIVERY_INCOME;
-        economy.earn(income, TransactionType.DELIVERY_INCOME, 
-                    "Delivered shipment from " + s.getFromStopId() + " to " + s.getToStopId());
-    }
-
     // income from deliveries with actual payout
     public void completeShipmentWithPayout(Money payout) {
         if (payout == null || payout.isNegative()) return;
         economy.earn(payout, TransactionType.DELIVERY_INCOME, "Delivered shipment");
-    }
-
-    public void earn(Money amount) {
-        economy.earn(amount);
-    }
-
-    public boolean spend(Money amount) {
-        return economy.spend(amount);
     }
 
     // have to deal with maintenance from garage

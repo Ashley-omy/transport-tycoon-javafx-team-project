@@ -7,7 +7,7 @@ public class Tile implements java.io.Serializable {
     @java.io.Serial
     private static final long serialVersionUID = 1L;
 
-    private GridPos pos;
+    private final GridPos pos;
     private Terrain terrain;   // #163  Implement tile terrain field
     private RoadPiece road;    // # 166 Implement tile roadPiece field
     private Stop stop;         // #165  Implement tile stop field
@@ -42,14 +42,8 @@ public class Tile implements java.io.Serializable {
     public RoadPiece getRoadPiece() { return road; }
     public void setRoadPiece(RoadPiece r) { this.road = r; }
 
-    public boolean hasEntity() { return entity != null; }
-    public boolean hasStop() { return stop != null; }
     public boolean hasGarage() { return garage != null; }
     public boolean hasRoad() { return road != null; }
-
-    public boolean isPassable() {
-        return terrain.isPassable();
-    }
 
     public Facility getFacility() {
         return (entity instanceof Facility) ? (Facility) entity : null;

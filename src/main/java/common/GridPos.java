@@ -21,8 +21,7 @@ public class GridPos implements java.io.Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if(!(o instanceof GridPos)) return false;
-        GridPos gp = (GridPos) o;
+        if (!(o instanceof GridPos gp)) return false;
         return this.x == gp.x && this.y == gp.y;
     }
 

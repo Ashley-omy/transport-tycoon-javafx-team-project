@@ -15,8 +15,8 @@ public abstract class MapEntity implements java.io.Serializable {
 
     protected Id id;
     protected int footprintW;
-    protected List<Stop> servedStops = new ArrayList<>();
-    protected List<Tile> occupiedTiles = new ArrayList<>();
+    protected List<Stop> servedStops;
+    protected List<Tile> occupiedTiles;
     private final List<EntityEventDisplay> activeEventDisplays = new ArrayList<>();
 
     public MapEntity(Id id, int footprintW) {
@@ -38,27 +38,10 @@ public abstract class MapEntity implements java.io.Serializable {
         return occupiedTiles;
     }
 
-    public boolean occupies(GridPos pos) {
-        for (Tile t : occupiedTiles) {
-            if (t.getPos().equals(pos)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void attachStop(Stop s) {
         if (!servedStops.contains(s)) {
             servedStops.add(s);
         }
-    }
-
-    public void detachStop(Stop s) {
-        servedStops.remove(s);
-    }
-
-    public int getServedStopCount() {
-        return servedStops.size();
     }
 
     // Convenience overload: show a message for the default duration.

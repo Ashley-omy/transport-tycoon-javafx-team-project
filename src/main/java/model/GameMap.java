@@ -2,7 +2,7 @@ package model;
 
 import common.GridPos;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class GameMap implements java.io.Serializable {
@@ -65,12 +65,8 @@ public class GameMap implements java.io.Serializable {
     }
 
     public List<Tile> getAllTiles() {
-        List<Tile> allTiles = new ArrayList<>(width * height);
-        for (int x = 0; x < width; ++x) {
-            for (int y = 0; y < height; ++y) {
-                allTiles.add(tiles[x][y]);
-            }
-        }
-        return allTiles;
+        return Arrays.stream(tiles)
+                .flatMap(Arrays::stream)
+                .toList();
     }
 }

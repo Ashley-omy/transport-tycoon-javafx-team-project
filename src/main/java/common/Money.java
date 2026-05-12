@@ -14,7 +14,7 @@ public final class Money implements Comparable<Money>, java.io.Serializable {
 
     public Money(long amount, String currency) {
         this.amount = amount;
-        this.currency = (currency == null || currency.isBlank()) ? DEFAULT_CURRENCY : currency;
+        this.currency = normalizeCurrency(currency);
     }
 
     public static Money of(long amount) {
@@ -23,10 +23,6 @@ public final class Money implements Comparable<Money>, java.io.Serializable {
 
     public long amount() {
         return amount;
-    }
-
-    public String currency() {
-        return currency;
     }
 
     public Money add(Money other) {
@@ -51,10 +47,6 @@ public final class Money implements Comparable<Money>, java.io.Serializable {
         return amount < 0;
     }
 
-    public boolean isZero() {
-        return amount == 0;
-    }
-
     public boolean isPositive() {
         return amount > 0;
     }
@@ -72,19 +64,9 @@ public final class Money implements Comparable<Money>, java.io.Serializable {
         return this.amount >= other.amount;
     }
 
-    public boolean greaterThan(Money other) {
-        requireSameCurrency(other);
-        return this.amount > other.amount;
-    }
-
     public boolean lessThan(Money other) {
         requireSameCurrency(other);
         return this.amount < other.amount;
-    }
-
-    public boolean lessOrEqual(Money other) {
-        requireSameCurrency(other);
-        return this.amount <= other.amount;
     }
 
     public static Money max(Money a, Money b) {
@@ -106,6 +88,15 @@ public final class Money implements Comparable<Money>, java.io.Serializable {
             throw new IllegalArgumentException(
                     "Currency mismatch: " + this.currency + " vs " + other.currency);
         }
+    }
+
+    private static String normalizeCurrency(String currency) {
+        return (currency == null || currency.isBlank()) ? DEFAULT_CURRENCY : currency.toLowerCase();
+    }
+
+    @java.io.Serial
+    private Object readResolve() {
+        return new Money(amount, currency);
     }
 
     @Override

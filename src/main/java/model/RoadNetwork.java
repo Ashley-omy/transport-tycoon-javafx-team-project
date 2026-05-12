@@ -165,21 +165,21 @@ public class RoadNetwork implements java.io.Serializable {
 
     // Keep generated paths clean by skipping duplicate consecutive points.
     private void appendIfDifferent(List<GridPos> path, GridPos pos) {
-        if (path.isEmpty() || !path.get(path.size() - 1).equals(pos)) {
+        if (path.isEmpty() || !path.getLast().equals(pos)) {
             path.add(pos);
         }
     }
 
     private List<GridPos> reconstructPath(Map<GridPos, GridPos> previous, GridPos target) {
         // Walk backward from target to start using the predecessor map built by BFS.
-        List<GridPos> path = new ArrayList<>();
+        LinkedList<GridPos> path = new LinkedList<>();
         GridPos current = target;
 
         while (current != null) {
-            path.add(0, current);
+            path.addFirst(current);
             current = previous.get(current);
         }
 
-        return path;
+        return List.copyOf(path);
     }
 }

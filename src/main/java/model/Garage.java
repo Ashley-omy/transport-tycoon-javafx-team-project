@@ -23,7 +23,6 @@ public class Garage implements java.io.Serializable {
     private final Id id;
     private final int displayNumber;
     private final int capacity;
-    private final int serviceBayCount;
 
     private final List<Vehicle> vehicles = new ArrayList<>();
     private final List<Tile> occupiedTiles = new ArrayList<>();
@@ -46,7 +45,6 @@ public class Garage implements java.io.Serializable {
             throw new IllegalArgumentException("occupiedTiles cannot be null or empty");
         }
         this.capacity = capacity;
-        this.serviceBayCount = serviceBayCount;
         this.occupiedTiles.addAll(occupiedTiles);
         populateInitialStock();
     }
@@ -55,20 +53,8 @@ public class Garage implements java.io.Serializable {
         return id;
     }
 
-    public int getDisplayNumber() {
-        return displayNumber;
-    }
-
     public String getDisplayName() {
         return "Garage #" + displayNumber;
-    }
-
-    public int getCapacity() {
-        return capacity;
-    }
-
-    public int getServiceBayCount() {
-        return serviceBayCount;
     }
 
     public List<Vehicle> getVehicles() {
@@ -152,18 +138,13 @@ public class Garage implements java.io.Serializable {
     }
 
     // Company.buyVehicle(v) is called by FleetController
-    public boolean sellVehicle(Vehicle v) {
-        if (v == null) return false;
+    public void sellVehicle(Vehicle v) {
+        if (v == null) return;
         removeVehicle(v);
-        return true;
     }
-    
-    public int getAvailableSpace() {
-        return capacity - vehicles.size();
-    }
-    
-    public boolean hasVehicle(Vehicle v) {
-        return vehicles.contains(v);
+
+    public boolean doesNotHaveVehicle(Vehicle v) {
+        return !vehicles.contains(v);
     }
 
     private void populateInitialStock() {

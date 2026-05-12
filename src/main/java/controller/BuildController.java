@@ -68,6 +68,8 @@ public class BuildController {
         if (tile == null) return false;
         if (tile.getRoadPiece()!=null) return false;
         if(tile.getEntity()!=null) return false;
+        if (tile.getStop() != null) return false;
+        if (tile.getGarage() != null) return false;
         if (!tile.getTerrain().isPassable()) return false;
         if(!hasAnyRoad()) return true;
 
@@ -94,7 +96,16 @@ public class BuildController {
                 "Built road at " + pos))
             return ActionResult.fail("Not enough money");
 
-        world.buildRoad(pos);
+        try {
+            world.buildRoad(pos);
+        } catch (IllegalArgumentException ex) {
+            company.getEconomy().earn(
+                    roadCost,
+                    TransactionType.ROAD_CONSTRUCTION,
+                    "Refund for failed road build at " + pos
+            );
+            return ActionResult.fail(ex.getMessage());
+        }
         return ActionResult.success("Build road successfully");
     }
 
@@ -183,8 +194,8 @@ public class BuildController {
     }
 
     private boolean hasRoadConnectionAtEitherEnd(List<GridPos> line) {
-        return hasAdjacentRoadOutsideLine(line.get(0), line)
-                || hasAdjacentRoadOutsideLine(line.get(line.size() - 1), line);
+        return hasAdjacentRoadOutsideLine(line.getFirst(), line)
+                || hasAdjacentRoadOutsideLine(line.getLast(), line);
     }
 
     private boolean hasAdjacentRoadOutsideLine(GridPos pos, List<GridPos> line) {
@@ -209,12 +220,11 @@ public class BuildController {
     // step 1: is the tile empty?
     private boolean isTileEmptyForStop(Tile tile) {
         if (tile == null) return false;
-        if (!tile.getTerrain().isPassable()) return false;
-        if (tile.getEntity() != null) return false;
-        if (tile.getRoadPiece() != null) return false;
-        if (tile.getStop() != null) return false;
-        if (tile.getGarage() != null) return false;
-        return true;
+        return tile.getTerrain().isPassable()
+                && tile.getEntity() == null
+                && tile.getRoadPiece() == null
+                && tile.getStop() == null
+                && tile.getGarage() == null;
     }
 
     // step 2: Stop should along road
@@ -301,14 +311,4 @@ public class BuildController {
         return ActionResult.success("Garage built successfully");
     }
 
-    /*
-    // stop removal
-    public void removeStop(Tile tile) {
-        Stop s = tile.getStop();
-        if (s == null) return;
-
-        s.getServedPlace().detachStop(s);
-        tile.setStop(null);
-    }
-    */
 }
