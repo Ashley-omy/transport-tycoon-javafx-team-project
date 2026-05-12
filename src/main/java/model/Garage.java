@@ -23,7 +23,6 @@ public class Garage implements java.io.Serializable {
     private final Id id;
     private final int displayNumber;
     private final int capacity;
-    private final int serviceBayCount;
 
     private final List<Vehicle> vehicles = new ArrayList<>();
     private final List<Tile> occupiedTiles = new ArrayList<>();
@@ -46,7 +45,6 @@ public class Garage implements java.io.Serializable {
             throw new IllegalArgumentException("occupiedTiles cannot be null or empty");
         }
         this.capacity = capacity;
-        this.serviceBayCount = serviceBayCount;
         this.occupiedTiles.addAll(occupiedTiles);
         populateInitialStock();
     }
