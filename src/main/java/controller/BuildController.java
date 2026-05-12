@@ -163,13 +163,15 @@ public class BuildController {
             }
         }
 
-        Money refund = getRoadBuildCost(tile);
-        world.removeRoad(pos);
-        company.getEconomy().earn(
-                refund,
+        Money deconstructCost = getRoadBuildCost(tile);
+        if (!company.getEconomy().spend(
+                deconstructCost,
                 TransactionType.ROAD_CONSTRUCTION,
-                "Refund for deconstructed road at " + pos);
-                
+                "Deconstructed road at " + pos)) {
+            return ActionResult.fail("Not enough money");
+        }
+        world.removeRoad(pos);
+
         return ActionResult.success("Deconstructed road successfully");
     }
 

@@ -9,6 +9,7 @@ package view;
  * @author asuna
  */
 import controller.BuildController;
+import controller.ActionResult;
 import controller.FleetController;
 import controller.GameController;
 import controller.InputController;
@@ -20,12 +21,14 @@ import javafx.geometry.Pos;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import model.Company;
 import model.Game;
 import model.GameMap;
@@ -46,14 +49,26 @@ public class GameWindow extends BorderPane {
     private static final int HUD_LOGO_LEFT_MARGIN = HUD_LEFT_MARGIN - (int) HUD_LOGO_WIDTH - HUD_LOGO_GAP;
     private static final int HUD_TOP_MARGIN = 10;
     private static final int SPEED_PANE_TOP_MARGIN = 18;
+    private static final int MESSAGE_PANE_HEIGHT = 80;
     private static final String PANEL_BACKGROUND_STYLE =
             "-fx-background-color: #ffd669;";
+    private static final String MESSAGE_PANE_STYLE =
+            "-fx-background-color: rgba(0, 0, 0, 0.5); " +
+            "-fx-border-color: white; " +
+            "-fx-border-width: 1; " +
+            "-fx-padding: 6 10 6 10;";
+    private static final String MESSAGE_TEXT_STYLE =
+            "-fx-font-size: 15px; -fx-font-weight: bold;";
+    private static final Color MESSAGE_SUCCESS_COLOR = Color.rgb(120, 255, 120);
+    private static final Color MESSAGE_ERROR_COLOR = Color.rgb(255, 120, 120);
 
     // --- View ---
     private final MapView mapView;
     private final HUDView hudView;
     private final MinimapView minimapView;
     private final ControlPanes controlPanes;
+    private final StackPane messagePane;
+    private final Label messageLabel;
     private final UIState uiState;
     private final Game game;
     private final Runnable onRestartRequested;
@@ -96,6 +111,9 @@ public class GameWindow extends BorderPane {
         this.hudView = new HUDView(uiState);
         this.minimapView = new MinimapView(mapView.getCamera(), animationEngine);
         this.controlPanes = new ControlPanes(uiState, timeController, onSaveRequested, onLeaveRequested);
+        this.messageLabel = new Label("");
+        this.messagePane = new StackPane(messageLabel);
+        this.controlPanes.setBuildResultConsumer(this::displayActionMessage);
 
         ImageView hudLogoView = createHudLogoView();
         HBox logoAndHud = new HBox(HUD_LOGO_GAP, hudLogoView, hudView);
@@ -110,12 +128,33 @@ public class GameWindow extends BorderPane {
         BorderPane.setMargin(logoAndHud, new Insets(HUD_TOP_MARGIN, 0, 0, Math.max(0, HUD_LOGO_LEFT_MARGIN)));
         BorderPane.setMargin(controlPanes.getSpeedPane(), new Insets(SPEED_PANE_TOP_MARGIN, 16, 0, 0));
 
+        messagePane.setAlignment(Pos.CENTER);
+        messagePane.setMinHeight(MESSAGE_PANE_HEIGHT);
+        messagePane.setPrefHeight(MESSAGE_PANE_HEIGHT);
+        messagePane.setMaxHeight(MESSAGE_PANE_HEIGHT);
+        messagePane.setStyle(MESSAGE_PANE_STYLE);
+        messagePane.setMouseTransparent(true);
+        messageLabel.setStyle(MESSAGE_TEXT_STYLE);
+        messageLabel.setTextFill(Color.WHITE);
+        messageLabel.setAlignment(Pos.CENTER);
+        messageLabel.setMaxWidth(Double.MAX_VALUE);
+
         // Layout
-        HBox leftPlayArea = new HBox(BUILD_PANE_TO_MAP_GAP, controlPanes.getBuildPane(), mapView);
+        StackPane mapStack = new StackPane(mapView, messagePane);
+        mapStack.setAlignment(Pos.TOP_LEFT);
+        mapStack.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+        StackPane.setAlignment(mapView, Pos.TOP_LEFT);
+        StackPane.setAlignment(messagePane, Pos.TOP_CENTER);
+        StackPane.setMargin(messagePane, new Insets(15, 0, 0, -100));
+        HBox.setHgrow(mapStack, Priority.ALWAYS);
+        messagePane.prefWidthProperty().bind(mapView.widthProperty().multiply(0.5));
+        messagePane.maxWidthProperty().bind(mapView.widthProperty().multiply(0.5));
+
+        HBox leftPlayArea = new HBox(BUILD_PANE_TO_MAP_GAP, controlPanes.getBuildPane(), mapStack);
         leftPlayArea.setAlignment(Pos.TOP_LEFT);
         leftPlayArea.setFillHeight(true);
         leftPlayArea.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
-        HBox.setHgrow(mapView, Priority.ALWAYS);
+        HBox.setHgrow(mapStack, Priority.ALWAYS);
         mapView.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
         controlPanes.getBuildPane().setMaxHeight(Double.MAX_VALUE);
 
@@ -215,19 +254,19 @@ public class GameWindow extends BorderPane {
         boolean showedCostMessage = false;
         for (String message : world.drainMessages()) {
             if (world.isCostMessage(message)) {
-                hudView.showCostMessage(world.stripMessagePrefix(message));
+                displayMessage(world.stripMessagePrefix(message), MESSAGE_ERROR_COLOR);
                 showedCostMessage = true;
             } else if (world.isRevenueMessage(message)) {
-                hudView.showEarnMessage(world.stripMessagePrefix(message));
+                displayMessage(world.stripMessagePrefix(message), MESSAGE_SUCCESS_COLOR);
                 showedRevenueMessage = true;
             }
         }
         Money currentCash = company.getEconomy().getCash();
         Money cashDelta = currentCash.subtract(lastRenderedCash);
         if (cashDelta.isPositive() && !showedRevenueMessage) {
-            hudView.showEarnMessage(cashDelta);
+            displayMessage("earn +" + cashDelta.amount() + " coins", MESSAGE_SUCCESS_COLOR);
         } else if (cashDelta.isNegative() && !showedCostMessage) {
-            hudView.showCostMessage("spend -" + cashDelta.abs().amount() + " coins");
+            displayMessage("spend -" + cashDelta.abs().amount() + " coins", MESSAGE_ERROR_COLOR);
         }
         lastRenderedCash = currentCash;
         hudView.render(
@@ -292,5 +331,21 @@ public class GameWindow extends BorderPane {
         logoView.setPreserveRatio(true);
         logoView.setSmooth(true);
         return logoView;
+    }
+
+    private void displayActionMessage(ActionResult result) {
+        if (result == null || result.getMessage() == null || result.getMessage().isBlank()) {
+            return;
+        }
+        Color textColor = result.isSuccess() ? MESSAGE_SUCCESS_COLOR : MESSAGE_ERROR_COLOR;
+        displayMessage(result.getMessage(), textColor);
+    }
+
+    private void displayMessage(String text, Color color) {
+        if (text == null || text.isBlank()) {
+            return;
+        }
+        messageLabel.setTextFill(color == null ? Color.WHITE : color);
+        messageLabel.setText(text);
     }
 }

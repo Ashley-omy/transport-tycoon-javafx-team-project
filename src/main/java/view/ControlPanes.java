@@ -10,15 +10,14 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Dialog;
-import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 
 import java.util.Optional;
 import java.util.function.BooleanSupplier;
+import java.util.function.Consumer;
 
 public class ControlPanes {
     private static final double BASE_BUTTON_WIDTH = 72.0;
@@ -28,7 +27,6 @@ public class ControlPanes {
     private static final double BOTTOM_BUTTON_HEIGHT = 56.0;
     private static final double SPEED_BUTTON_WIDTH = BASE_BUTTON_WIDTH;
     private static final double SPEED_BUTTON_HEIGHT = BASE_BUTTON_HEIGHT;
-    private static final String BUILD_RESULT_STYLE = "-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #5d4423;";
     private static final PseudoClass SELECTED_BUILD = PseudoClass.getPseudoClass("selected-build");
     private static final String BUILD_PANE_STYLE =
             "-fx-background-color: #ffd669; " +
@@ -62,6 +60,7 @@ public class ControlPanes {
     private final TimeController timeController;
     private final BooleanSupplier onSaveRequested;
     private final Runnable onExitRequested;
+    private Consumer<ActionResult> buildResultConsumer = result -> { };
 
     private final HBox speedPane = new HBox(6);
     private final VBox buildPane = new VBox(8);
@@ -78,7 +77,6 @@ public class ControlPanes {
     private final Button normalSpeedBtn = new Button("1x");
     private final Button fastSpeedBtn = new Button("2x");
     private final Button veryFastSpeedBtn = new Button("4x");
-    private final Label buildResultLabel = new Label();
     private final Region buildPaneSpacer = new Region();
 
     public ControlPanes(UIState uiState, TimeController timeController, BooleanSupplier onSaveRequested, Runnable onExitRequested) {
@@ -169,11 +167,6 @@ public class ControlPanes {
                 veryFastSpeedBtn
         );
 
-        buildResultLabel.setWrapText(true);
-        buildResultLabel.setMinWidth(BUILD_BUTTON_WIDTH);
-        buildResultLabel.setPrefWidth(BUILD_BUTTON_WIDTH);
-        buildResultLabel.setMaxWidth(BUILD_BUTTON_WIDTH);
-        buildResultLabel.setStyle(BUILD_RESULT_STYLE);
         VBox.setVgrow(buildPaneSpacer, Priority.ALWAYS);
         VBox.setMargin(exitBtn, new Insets(0, 0, 15, 0));
 
@@ -184,7 +177,6 @@ public class ControlPanes {
                 garageBtn,
                 deconstructBtn,
                 routeBtn,
-                buildResultLabel,
                 buildPaneSpacer,
                 saveBtn,
                 exitBtn
@@ -207,12 +199,15 @@ public class ControlPanes {
         refreshSpeedButtonStyles();
     }
 
+    public void setBuildResultConsumer(Consumer<ActionResult> consumer) {
+        this.buildResultConsumer = consumer == null ? result -> { } : consumer;
+    }
+
     public void displayBuildResult(ActionResult result) {
         if (result == null) {
             return;
         }
-        buildResultLabel.setTextFill(result.isSuccess() ? Color.GREEN : Color.RED);
-        buildResultLabel.setText(result.getMessage());
+        buildResultConsumer.accept(result);
     }
 
     private void configureBuildButton(Button button) {
