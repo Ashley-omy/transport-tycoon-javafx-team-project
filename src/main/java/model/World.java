@@ -24,10 +24,9 @@ public class World implements java.io.Serializable {
     private static final String REVENUE_PREFIX = "[REV] ";
     private static final String COST_PREFIX = "[COST] ";
 
-    private GameMap map;
-    private RoadNetwork roads;
-    private List<BridgeSpec> bridgeCatalog = new ArrayList<>();
-    long rngSeed;
+    private final GameMap map;
+    private final RoadNetwork roads;
+    private final List<BridgeSpec> bridgeCatalog;
     private double supplyEmitTimer = 0.0;
     private final List<String> hudMessages = new ArrayList<>();
 
@@ -188,27 +187,7 @@ public class World implements java.io.Serializable {
         }
     }
 
-    public void buildStop(GridPos pos, MapEntity servedPlace) {
-        Tile tile = map.getTile(pos);
-
-        Stop stop = new Stop(Id.genNew(), tile, servedPlace);
-        tile.setStop(stop);
-        servedPlace.attachStop(stop);
-    }
-
     public static final Money GARAGE_BUILD_COST = Money.of(5_000);
-
-    public boolean canBuildGarageAt(GridPos pos) {
-        if (!map.inBounds(pos)) return false;
-        
-        Tile t = map.getTile(pos);
-        
-        return t.getRoadPiece() == null &&
-                t.getStop() == null &&
-                t.getGarage() == null &&
-                t.getEntity() == null &&
-                t.getTerrain().isPassable();
-    }
 
     public void buildGarage(GridPos pos, int capacity, int serviceBayCount) {
         Tile tile = map.getTile(pos);

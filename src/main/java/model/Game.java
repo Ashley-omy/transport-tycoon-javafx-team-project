@@ -26,7 +26,6 @@ public class Game implements java.io.Serializable {
         if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
 
         simDelta = deltaTime;
-        if (simDelta <= 0.0) return;
 
         tick++;
         elapsedTimeSeconds += simDelta;

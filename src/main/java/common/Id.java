@@ -28,8 +28,7 @@ public final class Id implements java.io.Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof Id)) return false;
-        Id other = (Id) o;
+        if (!(o instanceof Id other)) return false;
         return value.equals(other.value);
     }
 

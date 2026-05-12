@@ -44,10 +44,6 @@ public abstract class MapEntity implements java.io.Serializable {
         }
     }
 
-    public int getServedStopCount() {
-        return servedStops.size();
-    }
-
     // Convenience overload: show a message for the default duration.
     public void pushEventDisplay(String text) {
         pushEventDisplay(text, DEFAULT_EVENT_DISPLAY_SECONDS);

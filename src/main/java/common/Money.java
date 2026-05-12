@@ -25,10 +25,6 @@ public final class Money implements Comparable<Money>, java.io.Serializable {
         return amount;
     }
 
-    public String currency() {
-        return currency;
-    }
-
     public Money add(Money other) {
         requireSameCurrency(other);
         return new Money(Math.addExact(this.amount, other.amount), this.currency);

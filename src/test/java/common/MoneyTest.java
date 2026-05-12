@@ -11,7 +11,6 @@ class MoneyTest {
         Money loadedStyleMoney = new Money(100, "Coins");
         Money currentStyleMoney = Money.of(25);
 
-        assertEquals("coins", loadedStyleMoney.currency());
         assertTrue(loadedStyleMoney.greaterOrEqual(currentStyleMoney));
         assertEquals(Money.of(75), loadedStyleMoney.subtract(currentStyleMoney));
     }
