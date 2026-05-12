@@ -4,7 +4,6 @@ import common.GridPos;
 import common.Id;
 import common.Money;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class Vehicle implements java.io.Serializable {
@@ -46,15 +45,6 @@ public abstract class Vehicle implements java.io.Serializable {
     private double maintenanceTimer = 0.0; // Time spent in garage
     private Garage homeGarage = null;
     private boolean returningToGarage = false;
-    private VehicleState savedStateBeforeMaintenance = VehicleState.IDLE;
-    private int savedCurrentStopIndex = -1;
-    private int savedTargetStopIndex = -1;
-    private double savedStopTimerRemaining = 0.0;
-    private List<GridPos> savedCurrentPath = List.of();
-    private int savedCurrentPathIndex = 0;
-    // Snapshot of segmentProgress while the vehicle temporarily returns for maintenance.
-    private double savedSegmentProgress = 0.0;
-    private GridPos savedTilePos;
     private boolean parkedAfterMaintenance = false;
 
     protected Vehicle(Id id, int capacityUnits, Money purchaseCost, Money maintenanceCost, double speed) {
@@ -524,10 +514,8 @@ public abstract class Vehicle implements java.io.Serializable {
             return true;
         }
 
-        saveProgressForMaintenance();
         List<GridPos> pathToGarage = buildPathBetweenLocations(tilePos, garagePos);
         if (pathToGarage.size() < 2) {
-            clearSavedMaintenanceProgress();
             return false;
         }
 
@@ -648,28 +636,6 @@ public abstract class Vehicle implements java.io.Serializable {
         return nextDisplayNumber++;
     }
 
-    private void saveProgressForMaintenance() {
-        savedStateBeforeMaintenance = state;
-        savedCurrentStopIndex = currentStopIndex;
-        savedTargetStopIndex = targetStopIndex;
-        savedStopTimerRemaining = stopTimerRemaining;
-        savedCurrentPath = currentPath == null ? List.of() : new ArrayList<>(currentPath);
-        savedCurrentPathIndex = currentPathIndex;
-        savedSegmentProgress = segmentProgress;
-        savedTilePos = tilePos;
-    }
-
-    private void clearSavedMaintenanceProgress() {
-        savedStateBeforeMaintenance = VehicleState.IDLE;
-        savedCurrentStopIndex = -1;
-        savedTargetStopIndex = -1;
-        savedStopTimerRemaining = 0.0;
-        savedCurrentPath = List.of();
-        savedCurrentPathIndex = 0;
-        savedSegmentProgress = 0.0;
-        savedTilePos = null;
-    }
-
     private void parkInGarageAfterMaintenance() {
         currentStopIndex = -1;
         targetStopIndex = -1;
@@ -685,7 +651,6 @@ public abstract class Vehicle implements java.io.Serializable {
 
         state = VehicleState.IDLE;
         parkedAfterMaintenance = true;
-        clearSavedMaintenanceProgress();
     }
 
     // mine -> factory -> city.
