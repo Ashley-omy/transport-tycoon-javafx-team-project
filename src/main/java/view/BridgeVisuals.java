@@ -10,9 +10,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public final class BridgeVisuals {
-    private static final String BRIDGE1_TEXTURE_PATH = "/textures/bridges/Bridge1.png";
-    private static final String BRIDGE2_TEXTURE_PATH = "/textures/bridges/Bridge2.png";
-    private static final String BRIDGE3_TEXTURE_PATH = "/textures/bridges/Bridge3.png";
+    private static final String BRIDGE1_TEXTURE_PATH = "/assets/bridges/Bridge1.png";
+    private static final String BRIDGE2_TEXTURE_PATH = "/assets/bridges/Bridge2.png";
+    private static final String BRIDGE3_TEXTURE_PATH = "/assets/bridges/Bridge3.png";
     private static final Image BRIDGE1_TEXTURE = loadTexture(BRIDGE1_TEXTURE_PATH);
     private static final Image BRIDGE2_TEXTURE = loadTexture(BRIDGE2_TEXTURE_PATH);
     private static final Image BRIDGE3_TEXTURE = loadTexture(BRIDGE3_TEXTURE_PATH);

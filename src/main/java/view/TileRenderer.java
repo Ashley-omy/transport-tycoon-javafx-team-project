@@ -26,15 +26,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class TileRenderer {
-    private static final String LAND_TEXTURE_PATH = "/textures/land-tile.png";
-    private static final String FOREST1_TEXTURE_PATH = "/textures/Forest1.png";
-    private static final String FOREST2_TEXTURE_PATH = "/textures/Forest2.png";
-    private static final String ROAD_HORIZONTAL_TEXTURE_PATH = "/textures/roads/horizontal.png";
-    private static final String ROAD_VERTICAL_TEXTURE_PATH = "/textures/roads/vertical.png";
-    private static final String ROAD_INTERSECTION_TEXTURE_PATH = "/textures/roads/intersection.png";
-    private static final String BRIDGE1_TEXTURE_PATH = "/textures/bridges/Bridge1.png";
-    private static final String BRIDGE2_TEXTURE_PATH = "/textures/bridges/Bridge2.png";
-    private static final String BRIDGE3_TEXTURE_PATH = "/textures/bridges/Bridge3.png";
+    private static final String LAND_TEXTURE_PATH = "/assets/terrain/land-tile.png";
+    private static final String FOREST1_TEXTURE_PATH = "/assets/terrain/Forest1.png";
+    private static final String FOREST2_TEXTURE_PATH = "/assets/terrain/Forest2.png";
+    private static final String ROAD_HORIZONTAL_TEXTURE_PATH = "/assets/roads/horizontal.png";
+    private static final String ROAD_VERTICAL_TEXTURE_PATH = "/assets/roads/vertical.png";
+    private static final String ROAD_INTERSECTION_TEXTURE_PATH = "/assets/roads/intersection.png";
+    private static final String BRIDGE1_TEXTURE_PATH = "/assets/bridges/Bridge1.png";
+    private static final String BRIDGE2_TEXTURE_PATH = "/assets/bridges/Bridge2.png";
+    private static final String BRIDGE3_TEXTURE_PATH = "/assets/bridges/Bridge3.png";
     private static final Image LAND_TILE_TEXTURE = loadTexture(LAND_TEXTURE_PATH);
     private static final Image FOREST1_TEXTURE = loadTexture(FOREST1_TEXTURE_PATH);
     private static final Image FOREST2_TEXTURE = loadTexture(FOREST2_TEXTURE_PATH);
