@@ -7,7 +7,7 @@ public class Tile implements java.io.Serializable {
     @java.io.Serial
     private static final long serialVersionUID = 1L;
 
-    private GridPos pos;
+    private final GridPos pos;
     private Terrain terrain;   // #163  Implement tile terrain field
     private RoadPiece road;    // # 166 Implement tile roadPiece field
     private Stop stop;         // #165  Implement tile stop field
