@@ -53,12 +53,6 @@ public class Shipment implements java.io.Serializable {
     public boolean isPassengers() { return kind == ShipmentKind.PASSENGERS; }
     public boolean isGoods() { return kind == ShipmentKind.GOODS; }
 
-    public void removeUnits(int amount) {
-        if (amount <= 0) throw new IllegalArgumentException("amount must be > 0");
-        if (amount > units) throw new IllegalArgumentException("cannot remove more than available units");
-        units -= amount;
-    }
-
     public Shipment splitOff(int amount) {
         if (amount <= 0) throw new IllegalArgumentException("amount must be > 0");
         if (amount > units) throw new IllegalArgumentException("cannot split more than available units");

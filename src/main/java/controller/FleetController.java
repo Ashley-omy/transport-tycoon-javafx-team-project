@@ -213,7 +213,7 @@ public class FleetController {
         }
 
         // New stock vehicles need free garage capacity. Pre-stocked vehicles can be bought regardless.
-        if (!garage.hasVehicle(vehicle) && garage.isFull()) {
+        if (garage.doesNotHaveVehicle(vehicle) && garage.isFull()) {
             return false;
         }
 
@@ -230,7 +230,7 @@ public class FleetController {
         }
 
         // Keep purchased vehicles visible in the garage list (as OWNED in GaragePane).
-        if (!garage.hasVehicle(vehicle)) {
+        if (garage.doesNotHaveVehicle(vehicle)) {
             if (!garage.addVehicle(vehicle)) {
                 return false;
             }
@@ -242,7 +242,7 @@ public class FleetController {
     public ActionResult purchaseVehicleInGarage(Garage garage, Vehicle vehicle) {
         if (garage == null) return ActionResult.fail("Garage cannot be null");
         if (vehicle == null) return ActionResult.fail("Vehicle cannot be null");
-        if (!garage.hasVehicle(vehicle)) {
+        if (garage.doesNotHaveVehicle(vehicle)) {
             return ActionResult.fail("Selected vehicle is not available in this garage");
         }
         if (company.getFleet().contains(vehicle)) {
