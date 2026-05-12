@@ -14,14 +14,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class GarageTest {
 
     @Test
-    void constructorShouldStockTwoBusesAndTwoTrucks() {
+    void constructorShouldStockSmallAndBigBusesAndTrucks() {
         Tile tile = new Tile(new GridPos(1, 1), new Land());
 
         Garage garage = new Garage(Id.genNew(), 10, 2, List.of(tile));
 
-        assertEquals(4, garage.getVehicles().size());
-        assertEquals(2, garage.getVehicles().stream().filter(Bus.class::isInstance).count());
-        assertEquals(2, garage.getVehicles().stream().filter(Truck.class::isInstance).count());
+        assertEquals(8, garage.getVehicles().size());
+        assertEquals(4, garage.getVehicles().stream().filter(Bus.class::isInstance).count());
+        assertEquals(4, garage.getVehicles().stream().filter(Truck.class::isInstance).count());
         assertTrue(garage.getVehicles().stream().allMatch(vehicle -> vehicle.getHomeGarage() == garage));
     }
 
@@ -32,7 +32,7 @@ class GarageTest {
         try {
             new Garage(Id.genNew(), 3, 1, List.of(tile));
         } catch (IllegalArgumentException ex) {
-            assertTrue(ex.getMessage().contains("capacity must be >= 4"));
+            assertTrue(ex.getMessage().contains("capacity must be >= 8"));
             return;
         }
 
