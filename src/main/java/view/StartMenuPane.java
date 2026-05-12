@@ -13,7 +13,7 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 public class StartMenuPane extends StackPane {
-    private static final String LOGO_PATH = "/textures/logo.png";
+    private static final String LOGO_PATH = "/assets/logo.png";
     private static final double MENU_LOGO_WIDTH = 360.0;
     private static final String ROOT_STYLE =
             "-fx-background-color: #fff7bf;" +

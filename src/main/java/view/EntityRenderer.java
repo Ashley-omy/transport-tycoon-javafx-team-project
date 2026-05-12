@@ -28,10 +28,10 @@ import java.nio.file.Paths;
 import java.util.List;
 
 public class EntityRenderer {
-    private static final String CITY_TEXTURE_PATH = "/textures/City.png";
-    private static final String MINE_TEXTURE_PATH = "/textures/Mine.png";
-    private static final String FACILITY_TEXTURE_PATH = "/textures/Facility.png";
-    private static final String GARAGE_TEXTURE_PATH = "/textures/Garage.png";
+    private static final String CITY_TEXTURE_PATH = "/assets/structures/City.png";
+    private static final String MINE_TEXTURE_PATH = "/assets/structures/Mine.png";
+    private static final String FACILITY_TEXTURE_PATH = "/assets/structures/Facility.png";
+    private static final String GARAGE_TEXTURE_PATH = "/assets/structures/Garage.png";
 
     private static final Image CITY_TEXTURE = loadTexture(CITY_TEXTURE_PATH);
     private static final Image MINE_TEXTURE = loadTexture(MINE_TEXTURE_PATH);

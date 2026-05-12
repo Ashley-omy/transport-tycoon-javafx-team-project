@@ -15,8 +15,8 @@ public class Garage implements java.io.Serializable {
     @java.io.Serial
     private static final long serialVersionUID = 1L;
 
-    private static final int DEFAULT_STOCK_PER_TYPE = 2;
-    private static final int DEFAULT_INITIAL_STOCK_SIZE = DEFAULT_STOCK_PER_TYPE * 2;
+    private static final int DEFAULT_STOCK_PER_SPEC = 2;
+    private static final int DEFAULT_INITIAL_STOCK_SIZE = DEFAULT_STOCK_PER_SPEC * 4;
     private static final double DEFAULT_EVENT_DISPLAY_SECONDS = 2.0;
     private static int nextDisplayNumber = 1;
 
@@ -167,9 +167,11 @@ public class Garage implements java.io.Serializable {
     }
 
     private void populateInitialStock() {
-        for (int i = 0; i < DEFAULT_STOCK_PER_TYPE; i++) {
+        for (int i = 0; i < DEFAULT_STOCK_PER_SPEC; i++) {
             stockVehicle(VehicleFactory.createSmallBus(Id.genNew()));
+            stockVehicle(VehicleFactory.createLargeBus(Id.genNew()));
             stockVehicle(VehicleFactory.createSmallTruck(Id.genNew()));
+            stockVehicle(VehicleFactory.createLargeTruck(Id.genNew()));
         }
     }
 

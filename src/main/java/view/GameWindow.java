@@ -37,7 +37,7 @@ import model.World;
 import java.util.function.BooleanSupplier;
 
 public class GameWindow extends BorderPane {
-    private static final String LOGO_PATH = "/textures/logo.png";
+    private static final String LOGO_PATH = "/assets/logo.png";
     private static final int INITIAL_MAP_VIEW_WIDTH = 1000;
     private static final int INITIAL_MAP_VIEW_HEIGHT = 700;
     private static final int BUILD_PANE_WIDTH = 150;
