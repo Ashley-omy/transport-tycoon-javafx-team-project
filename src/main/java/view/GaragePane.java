@@ -5,13 +5,17 @@ import controller.FleetController;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.Stage;
@@ -23,6 +27,10 @@ import model.Truck;
 import model.Vehicle;
 import model.VehicleState;
 
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.function.Consumer;
 
 public class GaragePane extends Stage {
@@ -42,6 +50,15 @@ public class GaragePane extends Stage {
             "-fx-font-weight: bold; " +
             "-fx-border-color: " + BUTTON_BORDER + "; " +
             "-fx-border-width: 1.2;";
+    private static final String BIG_BUS_TEXTURE_PATH = "/assets/vehicles/BigBus.png";
+    private static final String BIG_TRUCK_TEXTURE_PATH = "/assets/vehicles/BigTruck.png";
+    private static final String SMALL_BUS_TEXTURE_PATH = "/assets/vehicles/SmallBus .png";
+    private static final String SMALL_TRUCK_TEXTURE_PATH = "/assets/vehicles/SmallTruck .png";
+    private static final Image BIG_BUS_TEXTURE = loadTexture(BIG_BUS_TEXTURE_PATH);
+    private static final Image BIG_TRUCK_TEXTURE = loadTexture(BIG_TRUCK_TEXTURE_PATH);
+    private static final Image SMALL_BUS_TEXTURE = loadTexture(SMALL_BUS_TEXTURE_PATH);
+    private static final Image SMALL_TRUCK_TEXTURE = loadTexture(SMALL_TRUCK_TEXTURE_PATH);
+    private static final double VEHICLE_PREVIEW_SIZE = 72;
 
     private final Company company;
     private final FleetController fleetController;
@@ -167,11 +184,7 @@ public class GaragePane extends Stage {
         overagedLabel.setTextFill(overAged ? Color.CRIMSON : Color.TRANSPARENT);
         overagedLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
 
-        Rectangle vehicleBody = new Rectangle(88, 42);
-        vehicleBody.setArcWidth(8);
-        vehicleBody.setArcHeight(8);
-        vehicleBody.setFill(colorFor(vehicle));
-        vehicleBody.setStroke(Color.BLACK);
+        Node vehicleBody = createVehiclePreview(vehicle);
 
         Label typeLabel = new Label(typeOf(vehicle));
         typeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + BROWN_TEXT + ";");
@@ -279,10 +292,10 @@ public class GaragePane extends Stage {
 
     private String typeOf(Vehicle vehicle) {
         if (vehicle instanceof Bus) {
-            return "Bus";
+            return vehicle.getCapacityUnits() >= 80 ? "Big Bus" : "Small Bus";
         }
         if (vehicle instanceof Truck) {
-            return "Truck";
+            return vehicle.getCapacityUnits() >= 150 ? "Big Truck" : "Small Truck";
         }
         return vehicle.getClass().getSimpleName();
     }
@@ -295,5 +308,63 @@ public class GaragePane extends Stage {
             return Color.DARKORANGE;
         }
         return Color.DARKSLATEGRAY;
+    }
+
+    private Node createVehiclePreview(Vehicle vehicle) {
+        Image texture = textureFor(vehicle);
+        if (texture != null && !texture.isError()) {
+            ImageView imageView = new ImageView(texture);
+            imageView.setFitWidth(VEHICLE_PREVIEW_SIZE);
+            imageView.setFitHeight(VEHICLE_PREVIEW_SIZE);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+            imageView.setRotate(90);
+
+            StackPane preview = new StackPane(imageView);
+            preview.setMinSize(VEHICLE_PREVIEW_SIZE, VEHICLE_PREVIEW_SIZE);
+            preview.setPrefSize(VEHICLE_PREVIEW_SIZE, VEHICLE_PREVIEW_SIZE);
+            preview.setMaxSize(VEHICLE_PREVIEW_SIZE, VEHICLE_PREVIEW_SIZE);
+            return preview;
+        }
+
+        Rectangle fallback = new Rectangle(88, 42);
+        fallback.setArcWidth(8);
+        fallback.setArcHeight(8);
+        fallback.setFill(colorFor(vehicle));
+        fallback.setStroke(Color.BLACK);
+        return fallback;
+    }
+
+    private Image textureFor(Vehicle vehicle) {
+        if (vehicle instanceof Bus) {
+            return vehicle.getCapacityUnits() >= 80 ? BIG_BUS_TEXTURE : SMALL_BUS_TEXTURE;
+        }
+        if (vehicle instanceof Truck) {
+            return vehicle.getCapacityUnits() >= 150 ? BIG_TRUCK_TEXTURE : SMALL_TRUCK_TEXTURE;
+        }
+        return null;
+    }
+
+    private static Image loadTexture(String resourcePath) {
+        try (InputStream stream = GaragePane.class.getResourceAsStream(resourcePath)) {
+            if (stream != null) {
+                return new Image(stream);
+            }
+        } catch (Exception ignored) {
+        }
+        return loadTextureFromProjectPath(resourcePath);
+    }
+
+    private static Image loadTextureFromProjectPath(String resourcePath) {
+        try {
+            String normalized = resourcePath.startsWith("/") ? resourcePath.substring(1) : resourcePath;
+            Path filePath = Paths.get("src", "main", "resources").resolve(normalized);
+            if (!Files.exists(filePath)) {
+                return null;
+            }
+            return new Image(filePath.toUri().toString());
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 }
