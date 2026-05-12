@@ -58,7 +58,7 @@ public class GameWindow extends BorderPane {
             "-fx-border-width: 1; " +
             "-fx-padding: 6 10 6 10;";
     private static final String MESSAGE_TEXT_STYLE =
-            "-fx-font-size: 15px; -fx-font-weight: bold;";
+            "-fx-font-size: 20px; -fx-font-weight: bold;";
     private static final Color MESSAGE_SUCCESS_COLOR = Color.rgb(120, 255, 120);
     private static final Color MESSAGE_ERROR_COLOR = Color.rgb(255, 120, 120);
 
