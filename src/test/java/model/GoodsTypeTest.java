@@ -1,12 +1,15 @@
 package model;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 class GoodsTypeTest {
 
     @Test
-    @Disabled("TODO")
-    void placeholder() {
+    void enumValuesExist() {
+        assertNotNull(GoodsType.valueOf("STEEL"));
+        assertNotNull(GoodsType.valueOf("IRON"));
+        assertNotNull(GoodsType.valueOf("WOOD"));
+        assertNotNull(GoodsType.valueOf("PAPER"));
     }
 }
