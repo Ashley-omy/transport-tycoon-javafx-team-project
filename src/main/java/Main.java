@@ -154,7 +154,7 @@ public class Main extends Application {
             return;
         }
 
-        ChoiceDialog<String> dialog = new ChoiceDialog<>(saves.get(0), saves);
+        ChoiceDialog<String> dialog = new ChoiceDialog<>(saves.getFirst(), saves);
         dialog.setTitle("Load Game");
         dialog.setHeaderText(null);
         dialog.setContentText("Saved game:");
@@ -177,7 +177,7 @@ public class Main extends Application {
         if (stage != null && rootContainer == null) {
             rootContainer = new StackPane();
             Scene scene = new Scene(rootContainer, SCENE_WIDTH, SCENE_HEIGHT);
-            String stylesheet = resolveStylesheet(POP_UI_STYLESHEET_PATH);
+            String stylesheet = resolveStylesheet();
             if (stylesheet != null) {
                 scene.getStylesheets().add(stylesheet);
             }
@@ -220,7 +220,7 @@ public class Main extends Application {
             return;
         }
 
-        String stylesheet = resolveStylesheet(POP_UI_STYLESHEET_PATH);
+        String stylesheet = resolveStylesheet();
         if (stylesheet != null && !dialog.getDialogPane().getStylesheets().contains(stylesheet)) {
             dialog.getDialogPane().getStylesheets().add(stylesheet);
         }
@@ -229,16 +229,13 @@ public class Main extends Application {
         }
     }
 
-    private String resolveStylesheet(String resourcePath) {
-        if (resourcePath == null || resourcePath.isBlank()) {
-            return null;
-        }
-
-        var url = Main.class.getResource(resourcePath);
+    private String resolveStylesheet() {
+        var url = Main.class.getResource(POP_UI_STYLESHEET_PATH);
         return url == null ? null : url.toExternalForm();
     }
 
+    @SuppressWarnings("unused")
     public static void main(String[] args) {
-        launch();
+        launch(args);
     }
 }
