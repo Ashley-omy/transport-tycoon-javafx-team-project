@@ -118,8 +118,4 @@ public class Stop implements java.io.Serializable {
 
         return false;
     }
-    
-    public void tick(double deltaTime) {
-        if (Double.isNaN(deltaTime) || deltaTime <= 0.0) return;
-    }
 }

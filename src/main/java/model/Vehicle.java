@@ -73,13 +73,11 @@ public abstract class Vehicle implements java.io.Serializable {
     }
 
     public Id getId() { return id; }
-    public int getDisplayNumber() { return displayNumber; }
     public String getDisplayName() { return "Vehicle #" + displayNumber; }
     public Money getPurchaseCost() { return purchaseCost; }
     public Money getMaintenanceCost() { return maintenanceCost; }
     public double getSpeed() { return speed; }
     public int getCapacityUnits() { return capacityUnits; }
-    public double getAge() { return age; }
 
     public void setOwner(Company owner) { this.owner = owner; }
 
@@ -88,10 +86,6 @@ public abstract class Vehicle implements java.io.Serializable {
     public void setHomeGarage(Garage garage) { this.homeGarage = garage; }
 
     public Garage getHomeGarage() { return homeGarage; }
-
-    public double getMaintenanceIntervalSeconds() {
-        return getMaintenanceInterval();
-    }
 
     public boolean isOverAged() {
         return age >= OVER_AGED_THRESHOLD;
@@ -155,10 +149,6 @@ public abstract class Vehicle implements java.io.Serializable {
         return cargo == null ? capacityUnits : (capacityUnits - cargo.getUnits());
     }
 
-    public boolean hasCargo() {
-        return cargo != null && cargo.getUnits() > 0;
-    }
-
     public VehicleState getState() {
         return state;
     }
@@ -210,24 +200,20 @@ public abstract class Vehicle implements java.io.Serializable {
         if (!acceptsKind(s.getKind())) return false;
         if (s.isGoods() && !acceptsGoodsType(s.getGoodsType())) return false;
 
-        if (cargo == null) return true;
-
-        // if already carrying cargo, must be same kind
-        if (cargo.getKind() != s.getKind()) return false;
-        if (cargo.isGoods() && cargo.getGoodsType() != s.getGoodsType()) return false;
-
-        return true;
+        return cargo == null
+                || (cargo.getKind() == s.getKind()
+                && (!cargo.isGoods() || cargo.getGoodsType() == s.getGoodsType()));
     }
 
-    public boolean loadFrom(Stop stop) {
-        if (stop == null) return false;
+    private void loadFrom(Stop stop) {
+        if (stop == null) return;
 
         Shipment loaded = stop.dequeueFor(this);
-        if (loaded == null) return false;
+        if (loaded == null) return;
         Shipment routedShipment = routeShipmentToNextStop(loaded);
         if (routedShipment == null) {
             stop.enqueue(loaded);
-            return false;
+            return;
         }
 
         if (cargo == null) {
@@ -250,16 +236,15 @@ public abstract class Vehicle implements java.io.Serializable {
             // Display immediate load feedback at the served entity location.
             servedPlace.pushEventDisplay("Load +" + routedShipment.getUnits() + " " + describeShipment(routedShipment));
         }
-        return true;
     }
 
-    public Money unloadTo(Stop stop) {
-        if (stop == null) return Money.ZERO;
+    private void unloadTo(Stop stop) {
+        if (stop == null) return;
         Shipment unloading = cargo;
         boolean isDeliveringToThisStop = unloading != null && stop.getId().equals(unloading.getToStopId());
         Money payout = stop.deliverFrom(this);
 
-        if (isDeliveringToThisStop && unloading != null && payout.isPositive()) {
+        if (isDeliveringToThisStop && payout.isPositive()) {
             MapEntity servedPlace = stop.getServedPlace();
             if (servedPlace != null) {
                 // Display immediate unload feedback where delivery happened.
@@ -274,8 +259,6 @@ public abstract class Vehicle implements java.io.Serializable {
                 world.pushRevenueMessage("Revenue earned: +" + payout + " at " + describeEntity(stop.getServedPlace()));
             }
         }
-
-        return payout;
     }
 
     public void tick(double deltaTime) {
@@ -353,7 +336,7 @@ public abstract class Vehicle implements java.io.Serializable {
         }
 
         if (homeGarage != null && !homeGarage.getOccupiedTiles().isEmpty()) {
-            GridPos garagePos = homeGarage.getOccupiedTiles().get(0).getPos();
+            GridPos garagePos = homeGarage.getOccupiedTiles().getFirst().getPos();
             Stop firstStop = assignedRoute.getStop(0);
 
             tilePos = garagePos;
@@ -413,7 +396,7 @@ public abstract class Vehicle implements java.io.Serializable {
             return;
         }
 
-        tilePos = currentPath.get(0);
+        tilePos = currentPath.getFirst();
         state = VehicleState.ON_ROUTE;
     }
 
@@ -531,7 +514,7 @@ public abstract class Vehicle implements java.io.Serializable {
             ensureInitializedOnRoute();
         }
 
-        GridPos garagePos = homeGarage.getOccupiedTiles().get(0).getPos();
+        GridPos garagePos = homeGarage.getOccupiedTiles().getFirst().getPos();
         if (tilePos == null) {
             tilePos = garagePos;
             returningToGarage = false;
@@ -593,7 +576,10 @@ public abstract class Vehicle implements java.io.Serializable {
 
             GridPos otherFrom = other.getCurrentPathTile();
             GridPos otherTo = other.getNextPathTile();
-            double otherProgress = (otherFrom != null && otherTo != null && !otherFrom.equals(otherTo))
+            if (otherFrom == null || otherTo == null) {
+                continue;
+            }
+            double otherProgress = !otherFrom.equals(otherTo)
                     ? clamp01(other.segmentProgress)
                     : 0.0;
             double otherX = tileCenterX(otherFrom) + (otherTo.x - otherFrom.x) * otherProgress;
@@ -673,19 +659,6 @@ public abstract class Vehicle implements java.io.Serializable {
         savedTilePos = tilePos;
     }
 
-    private void restoreProgressAfterMaintenance() {
-        currentStopIndex = savedCurrentStopIndex;
-        targetStopIndex = savedTargetStopIndex;
-        stopTimerRemaining = savedStopTimerRemaining;
-        currentPath = savedCurrentPath.isEmpty() ? List.of() : new ArrayList<>(savedCurrentPath);
-        currentPathIndex = savedCurrentPathIndex;
-        segmentProgress = savedSegmentProgress;
-        tilePos = savedTilePos;
-        state = hasRoute() ? savedStateBeforeMaintenance : VehicleState.IDLE;
-        returningToGarage = false;
-        clearSavedMaintenanceProgress();
-    }
-
     private void clearSavedMaintenanceProgress() {
         savedStateBeforeMaintenance = VehicleState.IDLE;
         savedCurrentStopIndex = -1;
@@ -707,7 +680,7 @@ public abstract class Vehicle implements java.io.Serializable {
         returningToGarage = false;
 
         if (homeGarage != null && !homeGarage.getOccupiedTiles().isEmpty()) {
-            tilePos = homeGarage.getOccupiedTiles().get(0).getPos();
+            tilePos = homeGarage.getOccupiedTiles().getFirst().getPos();
         }
 
         state = VehicleState.IDLE;
@@ -747,17 +720,15 @@ public abstract class Vehicle implements java.io.Serializable {
 
         // Raw materials loaded at mines must go to a matching factory input.
         if (sourcePlace instanceof Mine) {
-            Stop factoryStop = findNextStopMatching(stop -> {
+            return findNextStopMatching(stop -> {
                 MapEntity served = stop.getServedPlace();
                 return served instanceof Facility facility && facility.getInputType() == goodsType;
             });
-            return factoryStop;
         }
 
         // Goods loaded at factories must go to a city.
         if (sourcePlace instanceof Factory) {
-            Stop cityStop = findNextStopMatching(stop -> stop.getServedPlace() instanceof City);
-            return cityStop;
+            return findNextStopMatching(stop -> stop.getServedPlace() instanceof City);
         }
 
         return null;

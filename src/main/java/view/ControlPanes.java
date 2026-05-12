@@ -58,8 +58,6 @@ public class ControlPanes {
 
     private final UIState uiState;
     private final TimeController timeController;
-    private final BooleanSupplier onSaveRequested;
-    private final Runnable onExitRequested;
     private Consumer<ActionResult> buildResultConsumer = result -> { };
 
     private final HBox speedPane = new HBox(6);
@@ -82,8 +80,8 @@ public class ControlPanes {
     public ControlPanes(UIState uiState, TimeController timeController, BooleanSupplier onSaveRequested, Runnable onExitRequested) {
         this.uiState = uiState;
         this.timeController = timeController;
-        this.onSaveRequested = onSaveRequested == null ? () -> false : onSaveRequested;
-        this.onExitRequested = onExitRequested == null ? () -> { } : onExitRequested;
+        BooleanSupplier saveAction = onSaveRequested == null ? () -> false : onSaveRequested;
+        Runnable exitAction = onExitRequested == null ? () -> { } : onExitRequested;
 
         speedPane.setAlignment(Pos.CENTER_RIGHT);
         speedPane.setFillHeight(false);
@@ -119,8 +117,8 @@ public class ControlPanes {
         saveBtn.getStyleClass().add("btn-save");
         exitBtn.getStyleClass().add("btn-exit");
 
-        roadBtn.setOnAction(e -> toggleBuildMode(BuildMode.ROAD));
-        bridgeBtn.setOnAction(e -> {
+        roadBtn.setOnAction(_ -> toggleBuildMode(BuildMode.ROAD));
+        bridgeBtn.setOnAction(_ -> {
             if (uiState.getBuildMode() == BuildMode.BRIDGE) {
                 uiState.requestBridgeTypeSelection();
             } else {
@@ -128,10 +126,10 @@ public class ControlPanes {
             }
             refreshBuildButtonStyles();
         });
-        stopBtn.setOnAction(e -> toggleBuildMode(BuildMode.STOP));
-        garageBtn.setOnAction(e -> toggleBuildMode(BuildMode.GARAGE));
-        deconstructBtn.setOnAction(e -> toggleBuildMode(BuildMode.DECONSTRUCT));
-        routeBtn.setOnAction(e -> {
+        stopBtn.setOnAction(_ -> toggleBuildMode(BuildMode.STOP));
+        garageBtn.setOnAction(_ -> toggleBuildMode(BuildMode.GARAGE));
+        deconstructBtn.setOnAction(_ -> toggleBuildMode(BuildMode.DECONSTRUCT));
+        routeBtn.setOnAction(_ -> {
             if (uiState.getBuildMode() == BuildMode.ROUTE) {
                 uiState.setBuildMode(BuildMode.NONE);
                 uiState.requestRoutePlacement();
@@ -141,24 +139,24 @@ public class ControlPanes {
             refreshBuildButtonStyles();
         });
 
-        pauseBtn.setOnAction(e -> {
+        pauseBtn.setOnAction(_ -> {
             timeController.setSpeed(TimeSpeed.PAUSE);
             refreshSpeedButtonStyles();
         });
-        normalSpeedBtn.setOnAction(e -> {
+        normalSpeedBtn.setOnAction(_ -> {
             timeController.setSpeed(TimeSpeed.NORMAL);
             refreshSpeedButtonStyles();
         });
-        fastSpeedBtn.setOnAction(e -> {
+        fastSpeedBtn.setOnAction(_ -> {
             timeController.setSpeed(TimeSpeed.FAST);
             refreshSpeedButtonStyles();
         });
-        veryFastSpeedBtn.setOnAction(e -> {
+        veryFastSpeedBtn.setOnAction(_ -> {
             timeController.setSpeed(TimeSpeed.VERY_FAST);
             refreshSpeedButtonStyles();
         });
-        saveBtn.setOnAction(e -> onSaveRequested.getAsBoolean());
-        exitBtn.setOnAction(e -> handleExitRequested());
+        saveBtn.setOnAction(_ -> saveAction.getAsBoolean());
+        exitBtn.setOnAction(_ -> handleExitRequested(saveAction, exitAction));
 
         speedPane.getChildren().addAll(
                 pauseBtn,
@@ -263,7 +261,7 @@ public class ControlPanes {
         button.pseudoClassStateChanged(SELECTED_BUILD, selected);
     }
 
-    private void handleExitRequested() {
+    private void handleExitRequested(BooleanSupplier saveAction, Runnable exitAction) {
         Alert dialog = new Alert(Alert.AlertType.CONFIRMATION);
         dialog.setTitle("Exit");
         dialog.setHeaderText(null);
@@ -280,14 +278,14 @@ public class ControlPanes {
         }
 
         if (result.get() == ButtonType.YES) {
-            if (onSaveRequested.getAsBoolean()) {
-                onExitRequested.run();
+            if (saveAction.getAsBoolean()) {
+                exitAction.run();
             }
             return;
         }
 
         if (result.get() == ButtonType.NO) {
-            onExitRequested.run();
+            exitAction.run();
         }
     }
 

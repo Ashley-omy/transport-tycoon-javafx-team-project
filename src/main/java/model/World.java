@@ -208,11 +208,6 @@ public class World implements java.io.Serializable {
             entity.tickEventDisplays(deltaTime);
         }
 
-        // Stops get their own updates after the entities they serve.
-        for (Stop stop : collectStops()) {
-            stop.tick(deltaTime);
-        }
-        
         // Garages also tick (mainly for future maintenance features)
         for (Garage garage : collectGarages()) {
             garage.tick(deltaTime);
@@ -351,19 +346,6 @@ public class World implements java.io.Serializable {
         }
     }
 
-
-    private List<Stop> collectStops() {
-        List<Stop> stops = new ArrayList<>();
-        for (Tile[] column : map.getTiles()) {
-            for (Tile tile : column) {
-                if (tile.getStop() != null) {
-                    stops.add(tile.getStop());
-                }
-            }
-        }
-        return stops;
-    }
-    
     private List<Garage> collectGarages() {
         Set<Garage> garages = new LinkedHashSet<>();
         for (Tile[] column : map.getTiles()) {
