@@ -311,14 +311,4 @@ public class BuildController {
         return ActionResult.success("Garage built successfully");
     }
 
-    /*
-    // stop removal
-    public void removeStop(Tile tile) {
-        Stop s = tile.getStop();
-        if (s == null) return;
-
-        s.getServedPlace().detachStop(s);
-        tile.setStop(null);
-    }
-    */
 }

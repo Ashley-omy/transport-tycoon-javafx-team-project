@@ -71,7 +71,6 @@ public class GameWindow extends BorderPane {
 
     // --- Controllers ---
     private final InputController inputController;
-    private final SelectionController selectionController;
     private final GameController gameController;
     private final World world;
     private final Company company;
@@ -181,7 +180,7 @@ public class GameWindow extends BorderPane {
         // Controllers
         // -----------------------------
         this.inputController = new InputController();
-        this.selectionController = new SelectionController();
+        SelectionController selectionController = new SelectionController();
 
         BuildController buildController = new BuildController(game.getWorld(), game.getCompany());
         FleetController fleetController = new FleetController(game.getCompany(), game.getWorld());

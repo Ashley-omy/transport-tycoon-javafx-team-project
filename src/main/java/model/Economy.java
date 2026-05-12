@@ -25,6 +25,9 @@ public class Economy implements java.io.Serializable {
         return cash;
     }
 
+    public List<Transaction> getTransactionHistory() {
+        return List.copyOf(transactionHistory);
+    }
 
     public boolean canAfford(Money cost) {
         validateMoney(cost);
@@ -94,14 +97,12 @@ public class Economy implements java.io.Serializable {
         private final Money amount;
         private final String description;
         private final Money balanceAfter;
-        private final long timestamp;
 
         public Transaction(TransactionType type, Money amount, String description, Money balanceAfter) {
             this.type = type;
             this.amount = amount;
             this.description = description;
             this.balanceAfter = balanceAfter;
-            this.timestamp = System.currentTimeMillis();
         }
 
 
