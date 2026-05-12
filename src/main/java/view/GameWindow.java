@@ -17,6 +17,8 @@ import controller.TimeController;
 import common.Money;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
@@ -32,12 +34,16 @@ import model.World;
 import java.util.function.BooleanSupplier;
 
 public class GameWindow extends BorderPane {
+    private static final String LOGO_PATH = "/textures/logo.png";
     private static final int INITIAL_MAP_VIEW_WIDTH = 1000;
     private static final int INITIAL_MAP_VIEW_HEIGHT = 700;
     private static final int BUILD_PANE_WIDTH = 150;
     private static final int BUILD_PANE_HORIZONTAL_PADDING = 20;
     private static final int BUILD_PANE_TO_MAP_GAP = 16;
     private static final int HUD_LEFT_MARGIN = BUILD_PANE_WIDTH + BUILD_PANE_HORIZONTAL_PADDING + BUILD_PANE_TO_MAP_GAP;
+    private static final double HUD_LOGO_WIDTH = 160.0;
+    private static final int HUD_LOGO_GAP = 8;
+    private static final int HUD_LOGO_LEFT_MARGIN = HUD_LEFT_MARGIN - (int) HUD_LOGO_WIDTH - HUD_LOGO_GAP;
     private static final int HUD_TOP_MARGIN = 10;
     private static final int SPEED_PANE_TOP_MARGIN = 18;
     private static final String PANEL_BACKGROUND_STYLE =
@@ -91,13 +97,17 @@ public class GameWindow extends BorderPane {
         this.minimapView = new MinimapView(mapView.getCamera(), animationEngine);
         this.controlPanes = new ControlPanes(uiState, timeController, onSaveRequested, onLeaveRequested);
 
+        ImageView hudLogoView = createHudLogoView();
+        HBox logoAndHud = new HBox(HUD_LOGO_GAP, hudLogoView, hudView);
+        logoAndHud.setAlignment(Pos.TOP_LEFT);
+
         BorderPane topOverlay = new BorderPane();
         topOverlay.setStyle(PANEL_BACKGROUND_STYLE);
-        topOverlay.setLeft(hudView);
+        topOverlay.setLeft(logoAndHud);
         topOverlay.setRight(controlPanes.getSpeedPane());
-        BorderPane.setAlignment(hudView, Pos.TOP_LEFT);
+        BorderPane.setAlignment(logoAndHud, Pos.TOP_LEFT);
         BorderPane.setAlignment(controlPanes.getSpeedPane(), Pos.TOP_RIGHT);
-        BorderPane.setMargin(hudView, new Insets(HUD_TOP_MARGIN, 0, 0, HUD_LEFT_MARGIN));
+        BorderPane.setMargin(logoAndHud, new Insets(HUD_TOP_MARGIN, 0, 0, Math.max(0, HUD_LOGO_LEFT_MARGIN)));
         BorderPane.setMargin(controlPanes.getSpeedPane(), new Insets(SPEED_PANE_TOP_MARGIN, 16, 0, 0));
 
         // Layout
@@ -268,5 +278,19 @@ public class GameWindow extends BorderPane {
         gameOverOverlay.setManaged(true);
         gameOverOverlay.setVisible(true);
         gameOverOverlay.toFront();
+    }
+
+    private ImageView createHudLogoView() {
+        var resource = GameWindow.class.getResource(LOGO_PATH);
+        ImageView logoView = new ImageView();
+        if (resource == null) {
+            return logoView;
+        }
+        Image image = new Image(resource.toExternalForm());
+        logoView.setImage(image);
+        logoView.setFitWidth(HUD_LOGO_WIDTH);
+        logoView.setPreserveRatio(true);
+        logoView.setSmooth(true);
+        return logoView;
     }
 }
