@@ -4,10 +4,6 @@
  */
 package view;
 
-/**
- *
- * @author asuna
- */
 import controller.BuildController;
 import controller.ActionResult;
 import controller.FleetController;
@@ -67,13 +63,9 @@ public class GameWindow extends BorderPane {
     private final HUDView hudView;
     private final MinimapView minimapView;
     private final ControlPanes controlPanes;
-    private final StackPane messagePane;
     private final Label messageLabel;
     private final UIState uiState;
     private final Game game;
-    private final Runnable onRestartRequested;
-    private final Runnable onLeaveRequested;
-    private final BooleanSupplier onSaveRequested;
     private final GameOverPane gameOverOverlay;
     private boolean gameOverOverlayShown;
 
@@ -91,9 +83,9 @@ public class GameWindow extends BorderPane {
         this.game = game;
         this.world = world;
         this.company = company;
-        this.onRestartRequested = onRestartRequested == null ? () -> { } : onRestartRequested;
-        this.onLeaveRequested = onLeaveRequested == null ? () -> { } : onLeaveRequested;
-        this.onSaveRequested = onSaveRequested == null ? () -> false : onSaveRequested;
+        Runnable restartAction = onRestartRequested == null ? () -> { } : onRestartRequested;
+        Runnable leaveAction = onLeaveRequested == null ? () -> { } : onLeaveRequested;
+        BooleanSupplier saveAction = onSaveRequested == null ? () -> false : onSaveRequested;
         this.animationEngine = new AnimationEngine();
         this.lastRenderedCash = company.getEconomy().getCash();
         this.gameOverOverlayShown = false;
@@ -110,9 +102,9 @@ public class GameWindow extends BorderPane {
         this.timeController = new TimeController();
         this.hudView = new HUDView(uiState);
         this.minimapView = new MinimapView(mapView.getCamera(), animationEngine);
-        this.controlPanes = new ControlPanes(uiState, timeController, onSaveRequested, onLeaveRequested);
+        this.controlPanes = new ControlPanes(uiState, timeController, saveAction, leaveAction);
         this.messageLabel = new Label("");
-        this.messagePane = new StackPane(messageLabel);
+        StackPane messagePane = new StackPane(messageLabel);
         this.controlPanes.setBuildResultConsumer(this::displayActionMessage);
 
         ImageView hudLogoView = createHudLogoView();
@@ -169,7 +161,7 @@ public class GameWindow extends BorderPane {
         center.setStyle(PANEL_BACKGROUND_STYLE);
         StackPane.setAlignment(leftPlayArea, Pos.TOP_LEFT);
         StackPane.setAlignment(rightOverlay, Pos.TOP_RIGHT);
-        this.gameOverOverlay = new GameOverPane(this.onRestartRequested, this.onLeaveRequested);
+        this.gameOverOverlay = new GameOverPane(restartAction, leaveAction);
         center.getChildren().add(gameOverOverlay);
         StackPane.setAlignment(gameOverOverlay, Pos.CENTER);
         this.setCenter(center);
@@ -295,10 +287,6 @@ public class GameWindow extends BorderPane {
 
     public AnimationEngine getAnimationEngine() {
         return animationEngine;
-    }
-
-    public HUDView getHudView() {
-        return hudView;
     }
 
     public ControlPanes getControlPanes() {
