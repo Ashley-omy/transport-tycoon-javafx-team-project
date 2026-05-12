@@ -26,6 +26,23 @@ import model.VehicleState;
 import java.util.function.Consumer;
 
 public class GaragePane extends Stage {
+    private static final String YAMABUKI = "#ffd669";
+    private static final String BROWN_TEXT = "#5d4423";
+    private static final String BUTTON_BG = "#d3a15a";
+    private static final String BUTTON_BORDER = "#8a5d2d";
+    private static final String PANE_FILL_STYLE = "-fx-background-color: " + YAMABUKI + ";";
+    private static final String SCROLL_FILL_STYLE =
+            "-fx-background: " + YAMABUKI + "; " +
+            "-fx-background-color: " + YAMABUKI + "; " +
+            "-fx-control-inner-background: " + YAMABUKI + ";";
+    private static final String BUTTON_STYLE =
+            "-fx-background-color: " + BUTTON_BG + "; " +
+            "-fx-text-fill: " + BROWN_TEXT + "; " +
+            "-fx-font-size: 14px; " +
+            "-fx-font-weight: bold; " +
+            "-fx-border-color: " + BUTTON_BORDER + "; " +
+            "-fx-border-width: 1.2;";
+
     private final Company company;
     private final FleetController fleetController;
     private final Consumer<ActionResult> actionReporter;
@@ -47,7 +64,7 @@ public class GaragePane extends Stage {
 
         setTitle("Garage");
 
-        titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: " + BROWN_TEXT + ";");
 
         vehicleTiles.setPadding(new Insets(8));
         vehicleTiles.setHgap(10);
@@ -58,14 +75,22 @@ public class GaragePane extends Stage {
         ScrollPane listScroll = new ScrollPane(vehicleTiles);
         listScroll.setFitToWidth(true);
         listScroll.setPrefViewportHeight(260);
+        listScroll.setStyle(SCROLL_FILL_STYLE);
+        vehicleTiles.setStyle(PANE_FILL_STYLE);
 
         detailsLabel.setWrapText(true);
         detailsLabel.setMinHeight(72);
-        detailsLabel.setStyle("-fx-font-size: 12px;");
+        detailsLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: " + BROWN_TEXT + ";");
 
         buyButton.setDisable(true);
         sellButton.setDisable(true);
         resumeButton.setDisable(true);
+        buyButton.setMinWidth(96);
+        sellButton.setMinWidth(96);
+        resumeButton.setMinWidth(96);
+        buyButton.setStyle(BUTTON_STYLE);
+        sellButton.setStyle(BUTTON_STYLE);
+        resumeButton.setStyle(BUTTON_STYLE);
         buyButton.setOnAction(e -> handleBuy());
         sellButton.setOnAction(e -> handleSell());
         resumeButton.setOnAction(e -> handleResume());
@@ -78,6 +103,7 @@ public class GaragePane extends Stage {
 
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(12));
+        root.setStyle(PANE_FILL_STYLE);
         root.setTop(titleLabel);
         root.setCenter(listScroll);
         root.setBottom(bottom);
@@ -118,7 +144,7 @@ public class GaragePane extends Stage {
 
         if (currentGarage.getVehicles().isEmpty()) {
             Label empty = new Label("No vehicles in this garage.");
-            empty.setStyle("-fx-text-fill: #666666;");
+            empty.setStyle("-fx-text-fill: " + BROWN_TEXT + "; -fx-font-size: 14px;");
             vehicleTiles.getChildren().add(empty);
             return;
         }
@@ -135,11 +161,11 @@ public class GaragePane extends Stage {
 
         Label ownedLabel = new Label(owned ? "OWNED" : "");
         ownedLabel.setTextFill(owned ? Color.FORESTGREEN : Color.TRANSPARENT);
-        ownedLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold;");
+        ownedLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
 
         Label overagedLabel = new Label(overAged ? "OVERAGED" : "");
         overagedLabel.setTextFill(overAged ? Color.CRIMSON : Color.TRANSPARENT);
-        overagedLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold;");
+        overagedLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold;");
 
         Rectangle vehicleBody = new Rectangle(88, 42);
         vehicleBody.setArcWidth(8);
@@ -148,10 +174,10 @@ public class GaragePane extends Stage {
         vehicleBody.setStroke(Color.BLACK);
 
         Label typeLabel = new Label(typeOf(vehicle));
-        typeLabel.setStyle("-fx-font-size: 12px; -fx-font-weight: bold;");
+        typeLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + BROWN_TEXT + ";");
 
         Label idLabel = new Label(vehicle.getDisplayName());
-        idLabel.setStyle("-fx-font-size: 10px; -fx-text-fill: #555555;");
+        idLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: " + BROWN_TEXT + ";");
 
         VBox card = new VBox(6, ownedLabel, overagedLabel, vehicleBody, typeLabel, idLabel);
         card.setAlignment(Pos.TOP_CENTER);

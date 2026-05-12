@@ -21,6 +21,23 @@ import java.util.List;
 import java.util.function.Consumer;
 
 public class BridgeTypePane extends Stage {
+    private static final String YAMABUKI = "#ffd669";
+    private static final String BROWN_TEXT = "#5d4423";
+    private static final String BUTTON_BG = "#d3a15a";
+    private static final String BUTTON_BORDER = "#8a5d2d";
+    private static final String PANE_FILL_STYLE = "-fx-background-color: " + YAMABUKI + ";";
+    private static final String SCROLL_FILL_STYLE =
+            "-fx-background: " + YAMABUKI + "; " +
+            "-fx-background-color: " + YAMABUKI + "; " +
+            "-fx-control-inner-background: " + YAMABUKI + ";";
+    private static final String BUTTON_STYLE =
+            "-fx-background-color: " + BUTTON_BG + "; " +
+            "-fx-text-fill: " + BROWN_TEXT + "; " +
+            "-fx-font-size: 14px; " +
+            "-fx-font-weight: bold; " +
+            "-fx-border-color: " + BUTTON_BORDER + "; " +
+            "-fx-border-width: 1.2;";
+
     private final List<BridgeSpec> bridgeSpecs;
     private final Consumer<BridgeType> onPlace;
     private final VBox optionRows = new VBox(8);
@@ -35,18 +52,23 @@ public class BridgeTypePane extends Stage {
         this.onPlace = onPlace;
 
         setTitle("Choose Bridge Type");
-        titleLabel.setStyle("-fx-font-size: 16px; -fx-font-weight: bold;");
+        titleLabel.setStyle("-fx-font-size: 20px; -fx-font-weight: bold; -fx-text-fill: " + BROWN_TEXT + ";");
 
         optionRows.setPadding(new Insets(4));
         placeButton.setDisable(true);
+        placeButton.setMinWidth(180);
+        placeButton.setStyle(BUTTON_STYLE);
         placeButton.setOnAction(e -> placeSelectedBridge());
 
         ScrollPane scrollPane = new ScrollPane(optionRows);
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefViewportHeight(280);
+        scrollPane.setStyle(SCROLL_FILL_STYLE);
+        optionRows.setStyle(PANE_FILL_STYLE);
 
         BorderPane root = new BorderPane();
         root.setPadding(new Insets(12));
+        root.setStyle(PANE_FILL_STYLE);
         root.setTop(titleLabel);
         root.setCenter(scrollPane);
         BorderPane.setAlignment(titleLabel, Pos.CENTER_LEFT);
@@ -97,7 +119,7 @@ public class BridgeTypePane extends Stage {
                         + "\ncost: " + spec.getCost()
                         + "\nspeedLimit: " + spec.getSpeedLimit()
         );
-        details.setStyle("-fx-font-size: 12px;");
+        details.setStyle("-fx-font-size: 14px; -fx-text-fill: " + BROWN_TEXT + ";");
 
         HBox row = new HBox(12, swatch, details);
         row.setAlignment(Pos.CENTER_LEFT);

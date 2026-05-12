@@ -172,10 +172,10 @@ public class ControlPanes {
 
         buildPane.getChildren().addAll(
                 roadBtn,
+                deconstructBtn,
                 bridgeBtn,
                 stopBtn,
                 garageBtn,
-                deconstructBtn,
                 routeBtn,
                 buildPaneSpacer,
                 saveBtn,
