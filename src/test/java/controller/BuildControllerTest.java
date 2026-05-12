@@ -84,6 +84,27 @@ class BuildControllerTest {
     }
 
     @Test
+    // error path: road building must not overwrite an existing garage tile
+    void buildRoadShouldFailOnGarageTileWithoutSpendingMoney() {
+        World world = new World(25, 25);
+        Company company = new Company();
+        BuildController buildController = new BuildController(world, company);
+        GridPos garagePos = findEmptyTileNextToRoad(world);
+
+        ActionResult garageResult = buildController.buildGarage(garagePos);
+        Money cashAfterGarage = company.getEconomy().getCash();
+
+        ActionResult roadResult = buildController.buildRoad(garagePos);
+
+        assertTrue(garageResult.isSuccess());
+        assertFalse(roadResult.isSuccess());
+        assertEquals("Cannot place road here", roadResult.getMessage());
+        assertNull(world.getMap().getTile(garagePos).getRoadPiece());
+        assertTrue(world.getMap().getTile(garagePos).hasGarage());
+        assertEquals(cashAfterGarage, company.getEconomy().getCash());
+    }
+
+    @Test
     // happy path: player can build garage on one empty tile next to road
     void buildGarageShouldSucceedOnEmptyTileNextToRoad() {
         // step 1: find one valid empty tile next to existing road

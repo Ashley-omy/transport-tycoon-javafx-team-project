@@ -68,6 +68,8 @@ public class BuildController {
         if (tile == null) return false;
         if (tile.getRoadPiece()!=null) return false;
         if(tile.getEntity()!=null) return false;
+        if (tile.getStop() != null) return false;
+        if (tile.getGarage() != null) return false;
         if (!tile.getTerrain().isPassable()) return false;
         if(!hasAnyRoad()) return true;
 
@@ -94,7 +96,16 @@ public class BuildController {
                 "Built road at " + pos))
             return ActionResult.fail("Not enough money");
 
-        world.buildRoad(pos);
+        try {
+            world.buildRoad(pos);
+        } catch (IllegalArgumentException ex) {
+            company.getEconomy().earn(
+                    roadCost,
+                    TransactionType.ROAD_CONSTRUCTION,
+                    "Refund for failed road build at " + pos
+            );
+            return ActionResult.fail(ex.getMessage());
+        }
         return ActionResult.success("Build road successfully");
     }
 
