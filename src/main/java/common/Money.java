@@ -14,7 +14,7 @@ public final class Money implements Comparable<Money>, java.io.Serializable {
 
     public Money(long amount, String currency) {
         this.amount = amount;
-        this.currency = (currency == null || currency.isBlank()) ? DEFAULT_CURRENCY : currency;
+        this.currency = normalizeCurrency(currency);
     }
 
     public static Money of(long amount) {
@@ -106,6 +106,15 @@ public final class Money implements Comparable<Money>, java.io.Serializable {
             throw new IllegalArgumentException(
                     "Currency mismatch: " + this.currency + " vs " + other.currency);
         }
+    }
+
+    private static String normalizeCurrency(String currency) {
+        return (currency == null || currency.isBlank()) ? DEFAULT_CURRENCY : currency.toLowerCase();
+    }
+
+    @java.io.Serial
+    private Object readResolve() {
+        return new Money(amount, currency);
     }
 
     @Override
