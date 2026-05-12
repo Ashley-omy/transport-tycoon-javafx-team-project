@@ -34,7 +34,10 @@ import java.util.function.BooleanSupplier;
 public class GameWindow extends BorderPane {
     private static final int INITIAL_MAP_VIEW_WIDTH = 1000;
     private static final int INITIAL_MAP_VIEW_HEIGHT = 700;
+    private static final int BUILD_PANE_WIDTH = 150;
+    private static final int BUILD_PANE_HORIZONTAL_PADDING = 20;
     private static final int BUILD_PANE_TO_MAP_GAP = 16;
+    private static final int HUD_LEFT_MARGIN = BUILD_PANE_WIDTH + BUILD_PANE_HORIZONTAL_PADDING + BUILD_PANE_TO_MAP_GAP;
     private static final int HUD_TOP_MARGIN = 10;
     private static final int SPEED_PANE_TOP_MARGIN = 18;
     private static final String PANEL_BACKGROUND_STYLE =
@@ -94,7 +97,7 @@ public class GameWindow extends BorderPane {
         topOverlay.setRight(controlPanes.getSpeedPane());
         BorderPane.setAlignment(hudView, Pos.TOP_LEFT);
         BorderPane.setAlignment(controlPanes.getSpeedPane(), Pos.TOP_RIGHT);
-        BorderPane.setMargin(hudView, new Insets(HUD_TOP_MARGIN, 0, 0, 0));
+        BorderPane.setMargin(hudView, new Insets(HUD_TOP_MARGIN, 0, 0, HUD_LEFT_MARGIN));
         BorderPane.setMargin(controlPanes.getSpeedPane(), new Insets(SPEED_PANE_TOP_MARGIN, 16, 0, 0));
 
         // Layout
