@@ -5,12 +5,16 @@ import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 
 public class StartMenuPane extends StackPane {
+    private static final String LOGO_PATH = "/textures/logo.png";
+    private static final double MENU_LOGO_WIDTH = 360.0;
     private static final String ROOT_STYLE =
             "-fx-background-color: #fff7bf;" +
             "-fx-background-radius: 10;" +
@@ -51,8 +55,9 @@ public class StartMenuPane extends StackPane {
     }
 
     private VBox createMenuView() {
+        ImageView logoView = createLogoView(MENU_LOGO_WIDTH);
         Label title = new Label("Transport Tycoon");
-        title.setFont(Font.font("Segoe Print", FontWeight.BOLD, 50));
+        title.setFont(Font.font("Segoe Print", FontWeight.BOLD, 15));
         title.setStyle(TITLE_STYLE);
 
         Button startNewGameButton = createMenuButton("Start New Game");
@@ -71,7 +76,7 @@ public class StartMenuPane extends StackPane {
         }
         buttons.getChildren().add(howToPlayButton);
 
-        VBox menu = new VBox(14, title, buttons);
+        VBox menu = new VBox(14, logoView, title, buttons);
         menu.setAlignment(Pos.CENTER);
         return menu;
     }
@@ -143,6 +148,20 @@ public class StartMenuPane extends StackPane {
         label.setFont(Font.font("Segoe Print", 16));
         label.setMaxWidth(CONTENT_WIDTH);
         return label;
+    }
+
+    private ImageView createLogoView(double fitWidth) {
+        var resource = StartMenuPane.class.getResource(LOGO_PATH);
+        ImageView logoView = new ImageView();
+        if (resource == null) {
+            return logoView;
+        }
+        Image image = new Image(resource.toExternalForm());
+        logoView.setImage(image);
+        logoView.setFitWidth(fitWidth);
+        logoView.setPreserveRatio(true);
+        logoView.setSmooth(true);
+        return logoView;
     }
 
     private void showHowToPlay() {

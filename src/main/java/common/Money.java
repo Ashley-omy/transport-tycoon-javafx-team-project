@@ -9,7 +9,7 @@ public final class Money implements Comparable<Money>, java.io.Serializable {
     private final long amount;
     private final String currency;
 
-    public static final String DEFAULT_CURRENCY = "Coins";
+    public static final String DEFAULT_CURRENCY = "coins";
     public static final Money ZERO = new Money(0, DEFAULT_CURRENCY);
 
     public Money(long amount, String currency) {

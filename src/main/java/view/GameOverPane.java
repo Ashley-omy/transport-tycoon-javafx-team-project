@@ -32,8 +32,8 @@ public class GameOverPane extends StackPane {
         panel.setAlignment(Pos.CENTER);
         panel.setPadding(new Insets(28));
         panel.setStyle(
-                "-fx-background-color: rgba(20, 20, 20, 0.94);"
-                        + "-fx-border-color: #ff6a6a;"
+                "-fx-background-color: rgba(250, 226, 160, 0.95);"
+                        + "-fx-border-color: #c89d4b;"
                         + "-fx-border-width: 2;"
         );
 
@@ -41,7 +41,7 @@ public class GameOverPane extends StackPane {
         setVisible(false);
         setManaged(false);
         setPickOnBounds(true);
-        setStyle("-fx-background-color: rgba(0, 0, 0, 0.55);");
+        setStyle("-fx-background-color: rgba(255, 236, 181, 0.55);");
         setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
     }
 }

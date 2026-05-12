@@ -78,14 +78,19 @@ public class Camera {
         return tileSize;
     }
 
-    // Convert screen (pixels) → tile
+    public void setViewportSize(int viewportW, int viewportH) {
+        this.viewportW = Math.max(1, viewportW);
+        this.viewportH = Math.max(1, viewportH);
+    }
+
+    // Convert screen (pixels) to tile
     public GridPos screenToTile(Vec2 screenPos) {
         int tileX = (int)(screenPos.x / tileSize) + topLeftTile.x;
         int tileY = (int)(screenPos.y / tileSize) + topLeftTile.y;
         return new GridPos(tileX, tileY);
     }
 
-    // Convert tile → screen (top-left pixel)
+    // Convert tile to screen (top-left pixel)
     public Vec2 tileToScreen(GridPos tile) {
         double x = (tile.x - topLeftTile.x) * tileSize;
         double y = (tile.y - topLeftTile.y) * tileSize;
