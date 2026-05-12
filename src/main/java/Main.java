@@ -31,6 +31,7 @@ public class Main extends Application {
     private final Region startMenuDimmer = new Region();
     private GameWindow currentGameWindow;
     private Game currentGame;
+    private String currentSaveName;
     private StackPane rootContainer;
     private Parent baseContent;
     private StartMenuPane startMenuPane;
@@ -73,6 +74,7 @@ public class Main extends Application {
         World world = new World(WORLD_WIDTH, WORLD_HEIGHT);
         Company company = new Company();
         Game game = new Game(world, company);
+        currentSaveName = null;
         loadGame(stage, game);
     }
 
@@ -103,11 +105,13 @@ public class Main extends Application {
             return false;
         }
 
-        String defaultName = "save_" + LocalDateTime.now().format(SAVE_NAME_FORMAT);
+        String defaultName = currentSaveName != null
+                ? currentSaveName
+                : "save_" + LocalDateTime.now().format(SAVE_NAME_FORMAT);
         TextInputDialog dialog = new TextInputDialog(defaultName);
         dialog.setTitle("Save Game");
         dialog.setHeaderText(null);
-        dialog.setContentText("Save name:");
+        dialog.setContentText("Save name (same name overwrites existing save):");
         dialog.initOwner(stage);
         styleDialog(dialog);
 
@@ -119,6 +123,7 @@ public class Main extends Application {
         String saveName = saveNameResult.get();
         try {
             saveService.save(currentGame, saveName);
+            currentSaveName = saveName.trim();
             showInfo(stage, "Game saved", "Saved as " + saveName.trim());
             return true;
         } catch (IOException | IllegalArgumentException ex) {
@@ -159,8 +164,9 @@ public class Main extends Application {
         dialog.showAndWait().ifPresent(saveName -> {
             try {
                 Game loadedGame = saveService.load(saveName);
+                currentSaveName = saveName;
+                startMenuVisible = false;
                 loadGame(stage, loadedGame);
-                hideStartMenu();
             } catch (IOException | ClassNotFoundException | IllegalArgumentException ex) {
                 showError(stage, "Load failed", ex.getMessage());
             }
