@@ -3,11 +3,15 @@ package view;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
@@ -37,6 +41,8 @@ public class BridgeTypePane extends Stage {
             "-fx-font-weight: bold; " +
             "-fx-border-color: " + BUTTON_BORDER + "; " +
             "-fx-border-width: 1.2;";
+    private static final double BRIDGE_PREVIEW_WIDTH = 56;
+    private static final double BRIDGE_PREVIEW_HEIGHT = 56;
 
     private final List<BridgeSpec> bridgeSpecs;
     private final Consumer<BridgeType> onPlace;
@@ -107,11 +113,7 @@ public class BridgeTypePane extends Stage {
     }
 
     private HBox createRow(BridgeSpec spec) {
-        Rectangle swatch = new Rectangle(78, 24);
-        swatch.setFill(BridgeVisuals.colorFor(spec.getType()));
-        swatch.setStroke(Color.rgb(45, 45, 45));
-        swatch.setArcWidth(4);
-        swatch.setArcHeight(4);
+        Node swatch = createBridgePreview(spec.getType());
 
         Label details = new Label(
                 "Type: " + spec.getType()
@@ -127,6 +129,31 @@ public class BridgeTypePane extends Stage {
         setRowSelectedStyle(row, false);
         row.setOnMouseClicked(e -> selectType(spec.getType(), row));
         return row;
+    }
+
+    private Node createBridgePreview(BridgeType type) {
+        Image texture = BridgeVisuals.textureFor(type);
+        if (texture != null && !texture.isError()) {
+            ImageView imageView = new ImageView(texture);
+            imageView.setFitWidth(BRIDGE_PREVIEW_WIDTH);
+            imageView.setFitHeight(BRIDGE_PREVIEW_HEIGHT);
+            imageView.setPreserveRatio(true);
+            imageView.setSmooth(true);
+            imageView.setRotate(90);
+
+            StackPane preview = new StackPane(imageView);
+            preview.setMinSize(BRIDGE_PREVIEW_WIDTH, BRIDGE_PREVIEW_HEIGHT);
+            preview.setPrefSize(BRIDGE_PREVIEW_WIDTH, BRIDGE_PREVIEW_HEIGHT);
+            preview.setMaxSize(BRIDGE_PREVIEW_WIDTH, BRIDGE_PREVIEW_HEIGHT);
+            return preview;
+        }
+
+        Rectangle fallback = new Rectangle(BRIDGE_PREVIEW_WIDTH, BRIDGE_PREVIEW_HEIGHT);
+        fallback.setFill(BridgeVisuals.colorFor(type));
+        fallback.setStroke(Color.rgb(45, 45, 45));
+        fallback.setArcWidth(4);
+        fallback.setArcHeight(4);
+        return fallback;
     }
 
     private void selectType(BridgeType type, HBox selectedRow) {
