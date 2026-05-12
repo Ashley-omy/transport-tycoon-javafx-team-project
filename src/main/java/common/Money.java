@@ -51,10 +51,6 @@ public final class Money implements Comparable<Money>, java.io.Serializable {
         return amount < 0;
     }
 
-    public boolean isZero() {
-        return amount == 0;
-    }
-
     public boolean isPositive() {
         return amount > 0;
     }
@@ -72,19 +68,9 @@ public final class Money implements Comparable<Money>, java.io.Serializable {
         return this.amount >= other.amount;
     }
 
-    public boolean greaterThan(Money other) {
-        requireSameCurrency(other);
-        return this.amount > other.amount;
-    }
-
     public boolean lessThan(Money other) {
         requireSameCurrency(other);
         return this.amount < other.amount;
-    }
-
-    public boolean lessOrEqual(Money other) {
-        requireSameCurrency(other);
-        return this.amount <= other.amount;
     }
 
     public static Money max(Money a, Money b) {
