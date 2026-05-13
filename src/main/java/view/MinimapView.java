@@ -45,9 +45,9 @@ public class MinimapView extends StackPane {
         setPadding(new Insets(PADDING));
         setMaxSize(WIDTH + (PADDING * 2), HEIGHT + (PADDING * 2));
         setPickOnBounds(false);
-        setStyle("-fx-background-color: rgba(20, 23, 30, 0.92);"
+        setStyle("-fx-background-color: rgba(250, 226, 160, 0.92);"
                 + "-fx-background-radius: 5;"
-                + "-fx-border-color: rgba(255,255,255,0.10);"
+                + "-fx-border-color: #c89d4b;"
                 + "-fx-border-width: 0.05;"
                 + "-fx-border-radius: 5;");
     }

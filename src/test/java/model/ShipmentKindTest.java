@@ -1,12 +1,13 @@
 package model;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 class ShipmentKindTest {
 
     @Test
-    @Disabled("TODO")
-    void placeholder() {
+    void enumValuesExist() {
+        assertNotNull(ShipmentKind.valueOf("GOODS"));
+        assertNotNull(ShipmentKind.valueOf("PASSENGERS"));
     }
 }

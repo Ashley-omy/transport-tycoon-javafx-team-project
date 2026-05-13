@@ -3,6 +3,9 @@ package model;
 import java.util.Objects;
 
 public class Water extends Terrain {
+    @java.io.Serial
+    private static final long serialVersionUID = -6345753606454440660L;
+
     private WaterType waterType;
 
     public Water() {

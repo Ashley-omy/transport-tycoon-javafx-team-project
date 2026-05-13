@@ -9,6 +9,9 @@ package model;
  */
 
 public class Forest extends Terrain {
+    @java.io.Serial
+    private static final long serialVersionUID = -5464980839506458138L;
+
     static final double GROWTH_INTERVAL_SECONDS = 12.0;
     static final double SPREAD_INTERVAL_SECONDS = 18.0;
 

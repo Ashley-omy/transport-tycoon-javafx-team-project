@@ -3,7 +3,10 @@ package model;
 import common.Id;
 import common.Money;
 
-public class Shipment {
+public class Shipment implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = -7298992715937732744L;
+
     private final ShipmentKind kind;
     private final GoodsType goodsType; // null when kind == PASSENGERS
     private int units;
@@ -49,12 +52,6 @@ public class Shipment {
 
     public boolean isPassengers() { return kind == ShipmentKind.PASSENGERS; }
     public boolean isGoods() { return kind == ShipmentKind.GOODS; }
-
-    public void removeUnits(int amount) {
-        if (amount <= 0) throw new IllegalArgumentException("amount must be > 0");
-        if (amount > units) throw new IllegalArgumentException("cannot remove more than available units");
-        units -= amount;
-    }
 
     public Shipment splitOff(int amount) {
         if (amount <= 0) throw new IllegalArgumentException("amount must be > 0");

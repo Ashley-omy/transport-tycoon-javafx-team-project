@@ -13,6 +13,8 @@ package controller;
 import common.GridPos;
 import common.Vec2;
 import javafx.animation.AnimationTimer;
+import javafx.scene.Scene;
+import javafx.stage.Window;
 import model.Game;
 import view.BuildMode;
 import view.BridgeTypePane;
@@ -50,6 +52,7 @@ public class GameController {
     private final Set<GridPos> dragRoadVisitedTiles = new HashSet<>();
 
     private long lastTime = 0;
+    private AnimationTimer gameLoopTimer;
 
     public GameController(Game game, GameWindow window,
                           InputController input,
@@ -75,7 +78,10 @@ public class GameController {
 
     // Start game loop
     public void start() {
-        new AnimationTimer() {
+        if (gameLoopTimer != null) {
+            gameLoopTimer.stop();
+        }
+        gameLoopTimer = new AnimationTimer() {
             @Override
             public void handle(long now) {
 
@@ -89,7 +95,16 @@ public class GameController {
 
                 update(deltaTime);
             }
-        }.start();
+        };
+        gameLoopTimer.start();
+    }
+
+    public void stop() {
+        if (gameLoopTimer != null) {
+            gameLoopTimer.stop();
+            gameLoopTimer = null;
+        }
+        lastTime = 0;
     }
 
     // Main update loop
@@ -104,9 +119,7 @@ public class GameController {
         handlePendingBridgeTypeSelection();
 
         // 2. Update game logic
-        if (time.getSpeed() != TimeSpeed.PAUSE) {
-            game.update(scaledDelta);
-        }
+        game.update(scaledDelta);
 
         // 3. Sync UI state
         window.getUIState().syncFromSelection(selection);
@@ -163,14 +176,14 @@ public class GameController {
                 facilityInfoPane.close();
                 garagePane.showForGarage(
                         clickedTile.getGarage(),
-                        window.getScene() == null ? null : window.getScene().getWindow()
+                        getOwnerWindow()
                 );
                 return;
             }
             if (clickedTile != null && clickedTile.getEntity() instanceof Facility facility) {
                 facilityInfoPane.showForFacility(
                         facility,
-                        window.getScene() == null ? null : window.getScene().getWindow()
+                        getOwnerWindow()
                 );
                 return;
             }
@@ -427,7 +440,7 @@ public class GameController {
             );
             return;
         }
-        bridgeTypePane.showForBridgeSelection(window.getScene() == null ? null : window.getScene().getWindow());
+        bridgeTypePane.showForBridgeSelection(getOwnerWindow());
     }
 
     private void placePendingBridge(BridgeType selectedType) {
@@ -470,5 +483,13 @@ public class GameController {
             return;
         }
         window.getMapView().getCamera().setTopLeftClamped(minimap.getMap(), targetTopLeft);
+    }
+
+    private Window getOwnerWindow() {
+        Scene scene = window.getScene();
+        if (scene == null) {
+            return null;
+        }
+        return scene.getWindow();
     }
 }

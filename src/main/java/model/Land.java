@@ -1,6 +1,8 @@
 package model;
 
 public class Land extends Terrain {
+    @java.io.Serial
+    private static final long serialVersionUID = 386549435600124750L;
 
     @Override
     public boolean isPassable() {

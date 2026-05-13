@@ -11,14 +11,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 
-public class Garage {
-    private static final int DEFAULT_STOCK_PER_TYPE = 2;
-    private static final int DEFAULT_INITIAL_STOCK_SIZE = DEFAULT_STOCK_PER_TYPE * 2;
+public class Garage implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
+
+    private static final int DEFAULT_STOCK_PER_SPEC = 2;
+    private static final int DEFAULT_INITIAL_STOCK_SIZE = DEFAULT_STOCK_PER_SPEC * 4;
     private static final double DEFAULT_EVENT_DISPLAY_SECONDS = 2.0;
+    private static int nextDisplayNumber = 1;
 
     private final Id id;
+    private final int displayNumber;
     private final int capacity;
-    private final int serviceBayCount;
 
     private final List<Vehicle> vehicles = new ArrayList<>();
     private final List<Tile> occupiedTiles = new ArrayList<>();
@@ -27,6 +31,7 @@ public class Garage {
 
     public Garage(Id id, int capacity, int serviceBayCount, List<Tile> occupiedTiles) {
         this.id = Objects.requireNonNull(id, "id cannot be null");
+        this.displayNumber = allocateDisplayNumber();
         if (capacity <= 0) {
             throw new IllegalArgumentException("capacity must be > 0");
         }
@@ -40,7 +45,6 @@ public class Garage {
             throw new IllegalArgumentException("occupiedTiles cannot be null or empty");
         }
         this.capacity = capacity;
-        this.serviceBayCount = serviceBayCount;
         this.occupiedTiles.addAll(occupiedTiles);
         populateInitialStock();
     }
@@ -49,12 +53,8 @@ public class Garage {
         return id;
     }
 
-    public int getCapacity() {
-        return capacity;
-    }
-
-    public int getServiceBayCount() {
-        return serviceBayCount;
+    public String getDisplayName() {
+        return "Garage #" + displayNumber;
     }
 
     public List<Vehicle> getVehicles() {
@@ -138,24 +138,21 @@ public class Garage {
     }
 
     // Company.buyVehicle(v) is called by FleetController
-    public boolean sellVehicle(Vehicle v) {
-        if (v == null) return false;
+    public void sellVehicle(Vehicle v) {
+        if (v == null) return;
         removeVehicle(v);
-        return true;
     }
-    
-    public int getAvailableSpace() {
-        return capacity - vehicles.size();
-    }
-    
-    public boolean hasVehicle(Vehicle v) {
-        return vehicles.contains(v);
+
+    public boolean doesNotHaveVehicle(Vehicle v) {
+        return !vehicles.contains(v);
     }
 
     private void populateInitialStock() {
-        for (int i = 0; i < DEFAULT_STOCK_PER_TYPE; i++) {
+        for (int i = 0; i < DEFAULT_STOCK_PER_SPEC; i++) {
             stockVehicle(VehicleFactory.createSmallBus(Id.genNew()));
+            stockVehicle(VehicleFactory.createLargeBus(Id.genNew()));
             stockVehicle(VehicleFactory.createSmallTruck(Id.genNew()));
+            stockVehicle(VehicleFactory.createLargeTruck(Id.genNew()));
         }
     }
 
@@ -164,7 +161,10 @@ public class Garage {
         vehicles.add(vehicle);
     }
 
-    private static final class GarageEventDisplay {
+    private static final class GarageEventDisplay implements java.io.Serializable {
+        @java.io.Serial
+        private static final long serialVersionUID = 1L;
+
         private final String text;
         private double remainingSeconds;
 
@@ -172,5 +172,9 @@ public class Garage {
             this.text = text;
             this.remainingSeconds = remainingSeconds;
         }
+    }
+
+    private static synchronized int allocateDisplayNumber() {
+        return nextDisplayNumber++;
     }
 }

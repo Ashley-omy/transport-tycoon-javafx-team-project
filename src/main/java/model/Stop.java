@@ -7,7 +7,10 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Queue;
 
-public class Stop {
+public class Stop implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = -424341478837511307L;
+
     private final Id id;
     private final Tile occupiedTile;
     private final MapEntity servedPlace;
@@ -114,9 +117,5 @@ public class Stop {
         }
 
         return false;
-    }
-    
-    public void tick(double deltaTime) {
-        if (Double.isNaN(deltaTime) || deltaTime <= 0.0) return;
     }
 }

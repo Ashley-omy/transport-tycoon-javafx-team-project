@@ -1,18 +1,16 @@
 package model;
 
-public class Game {
+public class Game implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
+
     private final World world;
     private final Company company;
 
     private long tick = 0L;
-    private boolean paused = false;
-    private double speedMultiplier = 1.0;
     private boolean gameOver = false;
     private double simDelta;
-
-    public static final double SPEED_NORMAL = 1.0;
-    public static final double SPEED_FAST = 2.0;
-    public static final double SPEED_VERY_FAST = 4.0;
+    private double elapsedTimeSeconds = 0.0;
 
     public Game(World world, Company company) {
         if (world == null) throw new IllegalArgumentException("world cannot be null");
@@ -23,19 +21,19 @@ public class Game {
     }
 
     public void update(double deltaTime) {
+        simDelta = 0.0;
         if (gameOver) return;
         if (Double.isNaN(deltaTime) || Double.isInfinite(deltaTime) || deltaTime <= 0.0) return;
 
-        simDelta = paused ? 0.0 : deltaTime * speedMultiplier;
-        if (simDelta <= 0.0) return;
+        simDelta = deltaTime;
 
         tick++;
+        elapsedTimeSeconds += simDelta;
         world.tick(simDelta);
         company.tick(simDelta);
 
         if (company.isBankrupt()) {
             gameOver = true;
-            paused = true;
         }
     }
 
@@ -49,13 +47,12 @@ public class Game {
     public boolean isGameOver() { return gameOver; }
     public long getTick() { return tick; }
     public double getSimDelta() { return simDelta; }
-    public void setPaused(boolean paused) { this.paused = paused; }
-    public boolean isPaused() { return paused; }
-    public void setSpeedMultiplier(double speedMultiplier) {
-        if (Double.isNaN(speedMultiplier) || speedMultiplier <= 0.0) {
-            throw new IllegalArgumentException("speedMultiplier must be > 0");
-        }
-        this.speedMultiplier = speedMultiplier;
+    public double getElapsedTimeSeconds() { return elapsedTimeSeconds; }
+    public String getFormattedTime() {
+        int totalSeconds = (int) elapsedTimeSeconds;
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int seconds = totalSeconds % 60;
+        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
     }
-    public double getSpeedMultiplier() { return speedMultiplier; }
 }

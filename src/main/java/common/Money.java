@@ -2,16 +2,19 @@ package common;
 
 import java.util.Objects;
 
-public final class Money implements Comparable<Money> {
+public final class Money implements Comparable<Money>, java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = -5795411471649255213L;
+
     private final long amount;
     private final String currency;
 
-    public static final String DEFAULT_CURRENCY = "Coins";
+    public static final String DEFAULT_CURRENCY = "coins";
     public static final Money ZERO = new Money(0, DEFAULT_CURRENCY);
 
     public Money(long amount, String currency) {
         this.amount = amount;
-        this.currency = (currency == null || currency.isBlank()) ? DEFAULT_CURRENCY : currency;
+        this.currency = normalizeCurrency(currency);
     }
 
     public static Money of(long amount) {
@@ -20,10 +23,6 @@ public final class Money implements Comparable<Money> {
 
     public long amount() {
         return amount;
-    }
-
-    public String currency() {
-        return currency;
     }
 
     public Money add(Money other) {
@@ -48,10 +47,6 @@ public final class Money implements Comparable<Money> {
         return amount < 0;
     }
 
-    public boolean isZero() {
-        return amount == 0;
-    }
-
     public boolean isPositive() {
         return amount > 0;
     }
@@ -69,19 +64,9 @@ public final class Money implements Comparable<Money> {
         return this.amount >= other.amount;
     }
 
-    public boolean greaterThan(Money other) {
-        requireSameCurrency(other);
-        return this.amount > other.amount;
-    }
-
     public boolean lessThan(Money other) {
         requireSameCurrency(other);
         return this.amount < other.amount;
-    }
-
-    public boolean lessOrEqual(Money other) {
-        requireSameCurrency(other);
-        return this.amount <= other.amount;
     }
 
     public static Money max(Money a, Money b) {
@@ -103,6 +88,15 @@ public final class Money implements Comparable<Money> {
             throw new IllegalArgumentException(
                     "Currency mismatch: " + this.currency + " vs " + other.currency);
         }
+    }
+
+    private static String normalizeCurrency(String currency) {
+        return (currency == null || currency.isBlank()) ? DEFAULT_CURRENCY : currency.toLowerCase();
+    }
+
+    @java.io.Serial
+    private Object readResolve() {
+        return new Money(amount, currency);
     }
 
     @Override

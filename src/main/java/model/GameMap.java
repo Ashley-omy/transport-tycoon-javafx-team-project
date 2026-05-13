@@ -2,10 +2,12 @@ package model;
 
 import common.GridPos;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
-public class GameMap {
+public class GameMap implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
     private final int width;
     private final int height;
 
@@ -43,6 +45,9 @@ public class GameMap {
 
     // #66 Implement map bounds checking
     public boolean inBounds(GridPos pos) {
+        if (pos == null) {
+            return false;
+        }
         return pos.x >= 0 && pos.y >= 0 && pos.x < width && pos.y < height;
     }
 
@@ -60,12 +65,8 @@ public class GameMap {
     }
 
     public List<Tile> getAllTiles() {
-        List<Tile> allTiles = new ArrayList<>(width * height);
-        for (int x = 0; x < width; ++x) {
-            for (int y = 0; y < height; ++y) {
-                allTiles.add(tiles[x][y]);
-            }
-        }
-        return allTiles;
+        return Arrays.stream(tiles)
+                .flatMap(Arrays::stream)
+                .toList();
     }
 }

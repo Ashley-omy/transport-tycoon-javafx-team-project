@@ -4,7 +4,10 @@ import common.Id;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Route {
+public class Route implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 479202476217930625L;
+
     private final Id id;
     private final List<Stop> stops;
 

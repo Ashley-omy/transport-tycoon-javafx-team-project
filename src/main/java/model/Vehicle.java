@@ -4,10 +4,12 @@ import common.GridPos;
 import common.Id;
 import common.Money;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public abstract class Vehicle {
+public abstract class Vehicle implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = -4878803635312517169L;
+
     private static final double STOP_DURATION_SECONDS = 1.5;
     private static final double EPSILON = 1e-9;
     private static final double BASE_MAINTENANCE_INTERVAL = 300.0; // 5 minutes for new vehicles
@@ -15,8 +17,10 @@ public abstract class Vehicle {
     private static final double MIN_MAINTENANCE_INTERVAL = 120.0; // 2 minutes minimum
     private static final double AGE_FOR_MIN_INTERVAL = 1200.0; // 20 minutes to reach minimum
     private static final double OVER_AGED_THRESHOLD = 1800.0; // 30 minutes before the vehicle is considered over-aged
+    private static int nextDisplayNumber = 1;
 
     protected final Id id;
+    protected final int displayNumber;
     protected final int capacityUnits;
     protected final Money purchaseCost;
     protected final Money maintenanceCost;
@@ -41,15 +45,6 @@ public abstract class Vehicle {
     private double maintenanceTimer = 0.0; // Time spent in garage
     private Garage homeGarage = null;
     private boolean returningToGarage = false;
-    private VehicleState savedStateBeforeMaintenance = VehicleState.IDLE;
-    private int savedCurrentStopIndex = -1;
-    private int savedTargetStopIndex = -1;
-    private double savedStopTimerRemaining = 0.0;
-    private List<GridPos> savedCurrentPath = List.of();
-    private int savedCurrentPathIndex = 0;
-    // Snapshot of segmentProgress while the vehicle temporarily returns for maintenance.
-    private double savedSegmentProgress = 0.0;
-    private GridPos savedTilePos;
     private boolean parkedAfterMaintenance = false;
 
     protected Vehicle(Id id, int capacityUnits, Money purchaseCost, Money maintenanceCost, double speed) {
@@ -59,6 +54,7 @@ public abstract class Vehicle {
         if (maintenanceCost == null) throw new IllegalArgumentException("maintenanceCost cannot be null");
         if (speed <= 0) throw new IllegalArgumentException("speed must be > 0");
         this.id = id;
+        this.displayNumber = allocateDisplayNumber();
         this.capacityUnits = capacityUnits;
         this.purchaseCost = purchaseCost;
         this.maintenanceCost = maintenanceCost;
@@ -67,11 +63,11 @@ public abstract class Vehicle {
     }
 
     public Id getId() { return id; }
+    public String getDisplayName() { return "Vehicle #" + displayNumber; }
     public Money getPurchaseCost() { return purchaseCost; }
     public Money getMaintenanceCost() { return maintenanceCost; }
     public double getSpeed() { return speed; }
     public int getCapacityUnits() { return capacityUnits; }
-    public double getAge() { return age; }
 
     public void setOwner(Company owner) { this.owner = owner; }
 
@@ -80,10 +76,6 @@ public abstract class Vehicle {
     public void setHomeGarage(Garage garage) { this.homeGarage = garage; }
 
     public Garage getHomeGarage() { return homeGarage; }
-
-    public double getMaintenanceIntervalSeconds() {
-        return getMaintenanceInterval();
-    }
 
     public boolean isOverAged() {
         return age >= OVER_AGED_THRESHOLD;
@@ -147,10 +139,6 @@ public abstract class Vehicle {
         return cargo == null ? capacityUnits : (capacityUnits - cargo.getUnits());
     }
 
-    public boolean hasCargo() {
-        return cargo != null && cargo.getUnits() > 0;
-    }
-
     public VehicleState getState() {
         return state;
     }
@@ -202,24 +190,20 @@ public abstract class Vehicle {
         if (!acceptsKind(s.getKind())) return false;
         if (s.isGoods() && !acceptsGoodsType(s.getGoodsType())) return false;
 
-        if (cargo == null) return true;
-
-        // if already carrying cargo, must be same kind
-        if (cargo.getKind() != s.getKind()) return false;
-        if (cargo.isGoods() && cargo.getGoodsType() != s.getGoodsType()) return false;
-
-        return true;
+        return cargo == null
+                || (cargo.getKind() == s.getKind()
+                && (!cargo.isGoods() || cargo.getGoodsType() == s.getGoodsType()));
     }
 
-    public boolean loadFrom(Stop stop) {
-        if (stop == null) return false;
+    private void loadFrom(Stop stop) {
+        if (stop == null) return;
 
         Shipment loaded = stop.dequeueFor(this);
-        if (loaded == null) return false;
+        if (loaded == null) return;
         Shipment routedShipment = routeShipmentToNextStop(loaded);
         if (routedShipment == null) {
             stop.enqueue(loaded);
-            return false;
+            return;
         }
 
         if (cargo == null) {
@@ -242,16 +226,15 @@ public abstract class Vehicle {
             // Display immediate load feedback at the served entity location.
             servedPlace.pushEventDisplay("Load +" + routedShipment.getUnits() + " " + describeShipment(routedShipment));
         }
-        return true;
     }
 
-    public Money unloadTo(Stop stop) {
-        if (stop == null) return Money.ZERO;
+    private void unloadTo(Stop stop) {
+        if (stop == null) return;
         Shipment unloading = cargo;
         boolean isDeliveringToThisStop = unloading != null && stop.getId().equals(unloading.getToStopId());
         Money payout = stop.deliverFrom(this);
 
-        if (isDeliveringToThisStop && unloading != null && payout.isPositive()) {
+        if (isDeliveringToThisStop && payout.isPositive()) {
             MapEntity servedPlace = stop.getServedPlace();
             if (servedPlace != null) {
                 // Display immediate unload feedback where delivery happened.
@@ -266,8 +249,6 @@ public abstract class Vehicle {
                 world.pushRevenueMessage("Revenue earned: +" + payout + " at " + describeEntity(stop.getServedPlace()));
             }
         }
-
-        return payout;
     }
 
     public void tick(double deltaTime) {
@@ -345,7 +326,7 @@ public abstract class Vehicle {
         }
 
         if (homeGarage != null && !homeGarage.getOccupiedTiles().isEmpty()) {
-            GridPos garagePos = homeGarage.getOccupiedTiles().get(0).getPos();
+            GridPos garagePos = homeGarage.getOccupiedTiles().getFirst().getPos();
             Stop firstStop = assignedRoute.getStop(0);
 
             tilePos = garagePos;
@@ -405,7 +386,7 @@ public abstract class Vehicle {
             return;
         }
 
-        tilePos = currentPath.get(0);
+        tilePos = currentPath.getFirst();
         state = VehicleState.ON_ROUTE;
     }
 
@@ -523,7 +504,7 @@ public abstract class Vehicle {
             ensureInitializedOnRoute();
         }
 
-        GridPos garagePos = homeGarage.getOccupiedTiles().get(0).getPos();
+        GridPos garagePos = homeGarage.getOccupiedTiles().getFirst().getPos();
         if (tilePos == null) {
             tilePos = garagePos;
             returningToGarage = false;
@@ -533,10 +514,8 @@ public abstract class Vehicle {
             return true;
         }
 
-        saveProgressForMaintenance();
         List<GridPos> pathToGarage = buildPathBetweenLocations(tilePos, garagePos);
         if (pathToGarage.size() < 2) {
-            clearSavedMaintenanceProgress();
             return false;
         }
 
@@ -548,7 +527,7 @@ public abstract class Vehicle {
         targetStopIndex = -1;
         state = VehicleState.ON_ROUTE;
         if (world != null) {
-            world.pushMessage("Vehicle " + id + " returning to garage (age: " +
+            world.pushMessage(getDisplayName() + " returning to garage (age: " +
                     String.format("%.0f", age) + "s, interval: " +
                     String.format("%.0f", getMaintenanceInterval()) + "s)");
         }
@@ -564,7 +543,7 @@ public abstract class Vehicle {
         maintenanceTimer = 0.0;
         state = VehicleState.IN_GARAGE;
         if (world != null) {
-            world.pushMessage("Vehicle " + id + " arrived at garage");
+            world.pushMessage(getDisplayName() + " arrived at garage");
         }
     }
 
@@ -585,7 +564,10 @@ public abstract class Vehicle {
 
             GridPos otherFrom = other.getCurrentPathTile();
             GridPos otherTo = other.getNextPathTile();
-            double otherProgress = (otherFrom != null && otherTo != null && !otherFrom.equals(otherTo))
+            if (otherFrom == null || otherTo == null) {
+                continue;
+            }
+            double otherProgress = !otherFrom.equals(otherTo)
                     ? clamp01(other.segmentProgress)
                     : 0.0;
             double otherX = tileCenterX(otherFrom) + (otherTo.x - otherFrom.x) * otherProgress;
@@ -643,43 +625,15 @@ public abstract class Vehicle {
         maintenanceTimer = 0.0;
         parkInGarageAfterMaintenance();
         if (world != null) {
-            world.pushMessage("Maintenance complete: " + id);
+            world.pushMessage("Maintenance complete: " + getDisplayName());
+        }
+        if (hasRoute()) {
+            setState(VehicleState.ON_ROUTE);
         }
     }
 
-    private void saveProgressForMaintenance() {
-        savedStateBeforeMaintenance = state;
-        savedCurrentStopIndex = currentStopIndex;
-        savedTargetStopIndex = targetStopIndex;
-        savedStopTimerRemaining = stopTimerRemaining;
-        savedCurrentPath = currentPath == null ? List.of() : new ArrayList<>(currentPath);
-        savedCurrentPathIndex = currentPathIndex;
-        savedSegmentProgress = segmentProgress;
-        savedTilePos = tilePos;
-    }
-
-    private void restoreProgressAfterMaintenance() {
-        currentStopIndex = savedCurrentStopIndex;
-        targetStopIndex = savedTargetStopIndex;
-        stopTimerRemaining = savedStopTimerRemaining;
-        currentPath = savedCurrentPath.isEmpty() ? List.of() : new ArrayList<>(savedCurrentPath);
-        currentPathIndex = savedCurrentPathIndex;
-        segmentProgress = savedSegmentProgress;
-        tilePos = savedTilePos;
-        state = hasRoute() ? savedStateBeforeMaintenance : VehicleState.IDLE;
-        returningToGarage = false;
-        clearSavedMaintenanceProgress();
-    }
-
-    private void clearSavedMaintenanceProgress() {
-        savedStateBeforeMaintenance = VehicleState.IDLE;
-        savedCurrentStopIndex = -1;
-        savedTargetStopIndex = -1;
-        savedStopTimerRemaining = 0.0;
-        savedCurrentPath = List.of();
-        savedCurrentPathIndex = 0;
-        savedSegmentProgress = 0.0;
-        savedTilePos = null;
+    private static synchronized int allocateDisplayNumber() {
+        return nextDisplayNumber++;
     }
 
     private void parkInGarageAfterMaintenance() {
@@ -692,12 +646,11 @@ public abstract class Vehicle {
         returningToGarage = false;
 
         if (homeGarage != null && !homeGarage.getOccupiedTiles().isEmpty()) {
-            tilePos = homeGarage.getOccupiedTiles().get(0).getPos();
+            tilePos = homeGarage.getOccupiedTiles().getFirst().getPos();
         }
 
         state = VehicleState.IDLE;
         parkedAfterMaintenance = true;
-        clearSavedMaintenanceProgress();
     }
 
     // mine -> factory -> city.
@@ -732,17 +685,15 @@ public abstract class Vehicle {
 
         // Raw materials loaded at mines must go to a matching factory input.
         if (sourcePlace instanceof Mine) {
-            Stop factoryStop = findNextStopMatching(stop -> {
+            return findNextStopMatching(stop -> {
                 MapEntity served = stop.getServedPlace();
                 return served instanceof Facility facility && facility.getInputType() == goodsType;
             });
-            return factoryStop;
         }
 
         // Goods loaded at factories must go to a city.
         if (sourcePlace instanceof Factory) {
-            Stop cityStop = findNextStopMatching(stop -> stop.getServedPlace() instanceof City);
-            return cityStop;
+            return findNextStopMatching(stop -> stop.getServedPlace() instanceof City);
         }
 
         return null;

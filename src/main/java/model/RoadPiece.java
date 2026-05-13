@@ -9,7 +9,10 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class RoadPiece {
+public class RoadPiece implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 7639248191131961075L;
+
     private final List<Tile> occupiedTiles = new ArrayList<>();
     private final RoadKind kind;
     private final BridgeSpec bridgeSpec;

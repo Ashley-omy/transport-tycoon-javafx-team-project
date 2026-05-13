@@ -10,7 +10,10 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-public class World {
+public class World implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
+
     // Emit supply in chunks instead of every frame.
     private static final double SUPPLY_EMIT_INTERVAL = 5.0;
     private static final List<BridgeSpec> DEFAULT_BRIDGE_CATALOG = List.of(
@@ -21,10 +24,9 @@ public class World {
     private static final String REVENUE_PREFIX = "[REV] ";
     private static final String COST_PREFIX = "[COST] ";
 
-    private GameMap map;
-    private RoadNetwork roads;
-    private List<BridgeSpec> bridgeCatalog = new ArrayList<>();
-    long rngSeed;
+    private final GameMap map;
+    private final RoadNetwork roads;
+    private final List<BridgeSpec> bridgeCatalog;
     private double supplyEmitTimer = 0.0;
     private final List<String> hudMessages = new ArrayList<>();
 
@@ -185,27 +187,7 @@ public class World {
         }
     }
 
-    public void buildStop(GridPos pos, MapEntity servedPlace) {
-        Tile tile = map.getTile(pos);
-
-        Stop stop = new Stop(Id.genNew(), tile, servedPlace);
-        tile.setStop(stop);
-        servedPlace.attachStop(stop);
-    }
-
     public static final Money GARAGE_BUILD_COST = Money.of(5_000);
-
-    public boolean canBuildGarageAt(GridPos pos) {
-        if (!map.inBounds(pos)) return false;
-        
-        Tile t = map.getTile(pos);
-        
-        return t.getRoadPiece() == null &&
-                t.getStop() == null &&
-                t.getGarage() == null &&
-                t.getEntity() == null &&
-                t.getTerrain().isPassable();
-    }
 
     public void buildGarage(GridPos pos, int capacity, int serviceBayCount) {
         Tile tile = map.getTile(pos);
@@ -226,11 +208,6 @@ public class World {
             entity.tickEventDisplays(deltaTime);
         }
 
-        // Stops get their own updates after the entities they serve.
-        for (Stop stop : collectStops()) {
-            stop.tick(deltaTime);
-        }
-        
         // Garages also tick (mainly for future maintenance features)
         for (Garage garage : collectGarages()) {
             garage.tick(deltaTime);
@@ -369,19 +346,6 @@ public class World {
         }
     }
 
-
-    private List<Stop> collectStops() {
-        List<Stop> stops = new ArrayList<>();
-        for (Tile[] column : map.getTiles()) {
-            for (Tile tile : column) {
-                if (tile.getStop() != null) {
-                    stops.add(tile.getStop());
-                }
-            }
-        }
-        return stops;
-    }
-    
     private List<Garage> collectGarages() {
         Set<Garage> garages = new LinkedHashSet<>();
         for (Tile[] column : map.getTiles()) {

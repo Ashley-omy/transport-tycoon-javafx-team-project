@@ -4,7 +4,10 @@ import common.Money;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Economy {
+public class Economy implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 1L;
+
     private Money cash;
     private final List<Transaction> transactionHistory = new ArrayList<>();
     private Money totalEarned = Money.ZERO;
@@ -22,6 +25,9 @@ public class Economy {
         return cash;
     }
 
+    public List<Transaction> getTransactionHistory() {
+        return List.copyOf(transactionHistory);
+    }
 
     public boolean canAfford(Money cost) {
         validateMoney(cost);
@@ -83,19 +89,20 @@ public class Economy {
         transactionHistory.add(new Transaction(type, amount, description, cash));
     }
 
-    public static class Transaction {
+    public static class Transaction implements java.io.Serializable {
+        @java.io.Serial
+        private static final long serialVersionUID = 1L;
+
         private final TransactionType type;
         private final Money amount;
         private final String description;
         private final Money balanceAfter;
-        private final long timestamp;
 
         public Transaction(TransactionType type, Money amount, String description, Money balanceAfter) {
             this.type = type;
             this.amount = amount;
             this.description = description;
             this.balanceAfter = balanceAfter;
-            this.timestamp = System.currentTimeMillis();
         }
 
 

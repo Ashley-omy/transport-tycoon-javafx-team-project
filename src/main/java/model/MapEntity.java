@@ -6,14 +6,17 @@ package model;
 import common.*;
 import java.util.*;
 
-public abstract class MapEntity {
+public abstract class MapEntity implements java.io.Serializable {
+    @java.io.Serial
+    private static final long serialVersionUID = 8334789305422779390L;
+
     // Default lifetime for transient floating messages above an entity.
     private static final double DEFAULT_EVENT_DISPLAY_SECONDS = 2.0;
 
     protected Id id;
     protected int footprintW;
-    protected List<Stop> servedStops = new ArrayList<>();
-    protected List<Tile> occupiedTiles = new ArrayList<>();
+    protected List<Stop> servedStops;
+    protected List<Tile> occupiedTiles;
     private final List<EntityEventDisplay> activeEventDisplays = new ArrayList<>();
 
     public MapEntity(Id id, int footprintW) {
@@ -35,27 +38,10 @@ public abstract class MapEntity {
         return occupiedTiles;
     }
 
-    public boolean occupies(GridPos pos) {
-        for (Tile t : occupiedTiles) {
-            if (t.getPos().equals(pos)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     public void attachStop(Stop s) {
         if (!servedStops.contains(s)) {
             servedStops.add(s);
         }
-    }
-
-    public void detachStop(Stop s) {
-        servedStops.remove(s);
-    }
-
-    public int getServedStopCount() {
-        return servedStops.size();
     }
 
     // Convenience overload: show a message for the default duration.
@@ -109,7 +95,10 @@ public abstract class MapEntity {
     public void acceptDelivery(Shipment s) { }
 
     // Internal DTO for one floating message with its remaining time budget.
-    private static final class EntityEventDisplay {
+    private static final class EntityEventDisplay implements java.io.Serializable {
+        @java.io.Serial
+        private static final long serialVersionUID = 1L;
+
         private final String text;
         private double remainingSeconds;
 

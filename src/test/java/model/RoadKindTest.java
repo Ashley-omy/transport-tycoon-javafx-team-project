@@ -1,12 +1,13 @@
 package model;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.*;
 
 class RoadKindTest {
 
     @Test
-    @Disabled("TODO")
-    void placeholder() {
+    void enumValuesExist() {
+        assertNotNull(RoadKind.valueOf("ROAD"));
+        assertNotNull(RoadKind.valueOf("BRIDGE"));
     }
 }
