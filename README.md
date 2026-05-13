@@ -14,6 +14,16 @@ Roads cannot be built on the tiles occupied by cities and industrial facilities;
 can be connected along their edges. Within a city's area, there is a predefined internal road network 
 modeling intra-city traffic, which the player cannot modify, but vehicles can use for travel. 
 
+**Gameplay screenshots**
+
+*Screenshot 1*
+
+![Screenshot 1](Screenshot1.png)
+
+*Screenshot 2*
+
+![Screenshot 2](Screenshot2.png)
+
 **Road construction**
 
 Building road infrastructure is part of the core task. The player can build roads on empty tiles for a 
