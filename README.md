@@ -105,9 +105,9 @@ The movement of vehicles between tiles on the game map should not be jumpy but c
 Vehicles can still logically be exclusively on a single tile at any time, but their movement between tiles 
 should be animated and smooth. 
 
-**2.5D Graphics** [0.5 complexity] 
-The requirement for the base task is to implement a top-down graphic display where every object 
-appears within its own tile. This sub-task involves implementing a 2.5-dimensional graphic style where 
-objects can visually overflow beyond their own cell's boundaries.
+**Persistence** [0.5 complexity] 
+It should be possible to save a given game state and later load a selected saved game state to continue 
+playing. After loading, vehicles that were in motion at the time of saving should resume their journey 
+from where they were located. The system should also support handling multiple save files. 
 
-**Programming Language used:** C#
+**Programming Language used:** Java
