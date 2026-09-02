@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.mycompany</groupId>
     <artifactId>TransportTycoon</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>${revision}</version>
     <packaging>jar</packaging>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -11,6 +11,7 @@
         <exec.mainClass>Launcher</exec.mainClass>
         <javafx.platform>linux</javafx.platform>
         <release.classifier>${javafx.platform}</release.classifier>
+        <revision>1.0-SNAPSHOT</revision>
     </properties>
     <dependencies>
         <dependency>
