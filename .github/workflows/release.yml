@@ -39,11 +39,8 @@ jobs:
           cache: maven
 
       - name: Build shaded jar
-        run: >-
-          mvn --batch-mode --errors --no-transfer-progress -DskipTests
-          -Djavafx.platform=${{ matrix.jfxClassifier }}
-          -Drelease.classifier=${{ matrix.platform }}
-          clean package
+        shell: bash
+        run: mvn --batch-mode --errors --no-transfer-progress -DskipTests -Djavafx.platform=${{ matrix.jfxClassifier }} -Drelease.classifier=${{ matrix.platform }} clean package
 
       - name: Upload jar artifact
         uses: actions/upload-artifact@v4
