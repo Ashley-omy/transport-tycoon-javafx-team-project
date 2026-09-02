@@ -1,0 +1,30 @@
+# Maven
+target/
+
+# NetBeans
+nbproject/private/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+#IntelliJ
+.idea/
+*.iml
+out/
+
+# Compiled files
+*.class
+
+# Local game saves
+saves/
+
+# Local debug output
+tmp-debug/
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

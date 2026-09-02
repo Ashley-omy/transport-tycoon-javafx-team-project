@@ -1,0 +1,73 @@
+# Build Java applications using Apache Maven.
+# This pipeline follows the course template structure, while keeping
+# Java 23 and JaCoCo coverage reporting for this project.
+image: maven:3-eclipse-temurin-23
+
+variables:
+  MAVEN_OPTS: >-
+    -Dhttps.protocols=TLSv1.2
+    -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
+    -Dorg.slf4j.simpleLogger.showDateTime=true
+    -Djava.awt.headless=true
+  MAVEN_CLI_OPTS: >-
+    --batch-mode
+    --errors
+    --fail-at-end
+    --show-version
+    --no-transfer-progress
+    -DinstallAtEnd=true
+    -DdeployAtEnd=true
+
+cache:
+  paths:
+    - .m2/repository
+
+stages:
+  - build
+  - test
+  - deploy
+
+build-job:
+  stage: build
+  script:
+    - mvn $MAVEN_CLI_OPTS clean compile
+
+test-job:
+  stage: test
+  script:
+    - TEST_EXIT=0
+    - mvn $MAVEN_CLI_OPTS clean test jacoco:report || TEST_EXIT=$?
+    - mkdir -p target/site/jacoco
+    - >
+      if [ ! -f target/site/jacoco/jacoco.xml ]; then
+        printf '%s\n' '<?xml version="1.0" encoding="UTF-8"?>' '<report name="empty"/>' > target/site/jacoco/jacoco.xml;
+      fi
+    - >
+      if [ ! -f target/site/jacoco/jacoco.csv ]; then
+        printf '%s\n' 'GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED' 'TOTAL,,,,0,0' > target/site/jacoco/jacoco.csv;
+      fi
+    - >-
+      awk -F, 'NR > 1 { missed += $4; covered += $5 } END { total = missed + covered;
+      if (total == 0) { print "Total coverage: 0%" } else { printf "Total coverage:
+      %.0f%%\n", (covered / total) * 100 } }' target/site/jacoco/jacoco.csv
+    - exit $TEST_EXIT
+  coverage: '/Total coverage: ([0-9]{1,3})%/'
+  artifacts:
+    when: always
+    paths:
+      - target/site/jacoco/
+      - target/surefire-reports/
+    reports:
+      coverage_report:
+        coverage_format: jacoco
+        path: target/site/jacoco/jacoco.xml
+
+deploy-job:
+  stage: deploy
+  script:
+    - mvn $MAVEN_CLI_OPTS clean install
+  artifacts:
+    paths:
+      - target/*.jar
+  rules:
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
