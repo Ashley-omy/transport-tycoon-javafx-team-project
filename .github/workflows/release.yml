@@ -21,10 +21,13 @@ jobs:
         include:
           - os: windows-latest
             platform: win
+            jfxClassifier: win
           - os: ubuntu-latest
             platform: linux
+            jfxClassifier: linux
           - os: macos-latest
             platform: mac
+            jfxClassifier: mac-aarch64
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
@@ -36,7 +39,11 @@ jobs:
           cache: maven
 
       - name: Build shaded jar
-        run: mvn --batch-mode --errors --no-transfer-progress -DskipTests clean package
+        run: >-
+          mvn --batch-mode --errors --no-transfer-progress -DskipTests
+          -Djavafx.platform=${{ matrix.jfxClassifier }}
+          -Drelease.classifier=${{ matrix.platform }}
+          clean package
 
       - name: Upload jar artifact
         uses: actions/upload-artifact@v4

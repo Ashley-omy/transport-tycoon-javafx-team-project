@@ -10,6 +10,7 @@
         <maven.compiler.release>23</maven.compiler.release>
         <exec.mainClass>Launcher</exec.mainClass>
         <javafx.platform>linux</javafx.platform>
+        <release.classifier>${javafx.platform}</release.classifier>
     </properties>
     <dependencies>
         <dependency>
@@ -77,7 +78,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
-                            <finalName>${project.artifactId}-${project.version}-${javafx.platform}</finalName>
+                            <finalName>${project.artifactId}-${project.version}-${release.classifier}</finalName>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <mainClass>Launcher</mainClass>
@@ -120,7 +121,8 @@
                 </os>
             </activation>
             <properties>
-                <javafx.platform>mac</javafx.platform>
+                <javafx.platform>mac-aarch64</javafx.platform>
+                <release.classifier>mac</release.classifier>
             </properties>
         </profile>
         <profile>
