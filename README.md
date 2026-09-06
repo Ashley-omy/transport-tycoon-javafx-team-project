@@ -1,5 +1,7 @@
 # 🚚🚗Transport Tycoon JavaFX Team Project 🛣🌳💶
 
+Please find the Japanese version below.
+
 A team-based Java game project inspired by Transport Tycoon, developed as part of a university software development course.
 
 ## Overview
@@ -63,25 +65,29 @@ The application follows the MVC pattern:
 
 ## Screenshots and Design Documents
 
-### 1. UML Class Diagrams
+# 1. UML Class Diagrams
 
 These UML diagrams were designed to clearly visualize class relationships and method responsibilities at a glance. Following the MVC architecture, they were used to support smoother team collaboration and system design.
 
+Package
 ![Package Diagram](images/package_UML.png)
 
+Model
 ![Model Diagram](images/model_UML.png)
 
+View
 ![View Diagram](images/view_UML.png)
 
+Controller
 ![Controller Diagram](images/controller_UML.png)
 
-### 2. CI/CD Pipeline
+# 2. CI/CD Pipeline
 
 Used GitLab CI pipelines to support automated testing and collaborative development.
 
 ![CI Pipeline](images/pipeline.png)
 
-### 3. GitLab Team Development
+# 3. GitLab Team Development
 
 These screenshots demonstrate the collaborative development workflow using GitLab, including branch management, issue tracking, task organization.
 
@@ -90,33 +96,27 @@ These screenshots demonstrate the collaborative development workflow using GitLa
 
 ---
 
-*Please find the Japanese version below.*
-
-# 🚚🚗Transport Tycoon JavaFX Team Project 🛣🌳💶(日本語)
-
 大学のソフトウェア開発の授業の一環として制作した、Transport Tycoonにインスパイアされたチーム制作のJavaゲームプロジェクトです。
 
 ## 概要
 
-このプロジェクトは、プレイヤーが交通インフラを建設・運営する輸送シミュレーションゲームです。ゲームロジック、ユーザー操作、画面描画を分離するため、MVCアーキテクチャに基づいて設計されています。
-
-このゲームはGitLabを使って開発されました。
+このプロジェクトは、プレイヤーが交通インフラを建設・運営する輸送シミュレーションゲームです。ゲームロジック、ユーザー操作、画面描画を分離するため、MVCアーキテクチャに基づいて設計されています。GitLabを使って開発されました。
 
 ## 遊び方
 
-### 重要なルール
+# 基本ルール
 
 ・あなたは輸送会社の社長であり、初期予算が与えられます。この予算を使って輸送ルートを建設したり、車両を購入したりできます。
-・車両が目的地で資材、製品、乗客の荷下ろしに成功すると収入が得られます。
+・車両が目的地で資材、製品、乗客の荷下ろしをすると収入が得られます。
 ・維持費が発生し、車両が古くなるほど増加します。車両が古くなりすぎた場合は売却できます。
 ・予算(コイン)がなくなると、会社は倒産しゲームオーバーになります。
 ・森は時間の経過とともに面積が広がります。森の上に道路を敷設すると追加費用がかかります。
 
-### 1. ゲームのダウンロード
+# 1. ゲームのダウンロード
 
 ゲームをダウンロードするには、「Release」に移動し、お使いのパソコンのOSに対応したjarファイルをクリックしてください。
 
-### 2. 輸送ルートの作成
+# 2. 輸送ルートの作成
 
 道路が工場、鉱山、都市を適切に結ぶように建設してください。
 工場は鉱山から資材を消費し、都市は工場から製品を購入します。2つの都市を結び、その道路にバスを走らせると、乗客が利益を生みます。
@@ -125,7 +125,7 @@ These screenshots demonstrate the collaborative development workflow using GitLa
 
 https://github.com/user-attachments/assets/e0000a27-6d95-45ea-813f-f5de5b06def6
 
-### 3. 車両の購入
+# 3. 車両の購入
 
 車庫をクリックして車両を選択します。車両にはバスとトラックの2種類があります。バスは乗客を、トラックは資材や製品を輸送します。価格・速度・積載量・維持費は車両によって異なるため、よく検討して選んでください。
 
@@ -142,8 +142,8 @@ https://github.com/user-attachments/assets/47ffd767-5d70-4728-be83-f31829d98a53
 
 ## 担当箇所
 
-- システムアーキテクチャを明確にするためのUML図の設計
-- JavaFXベースのUI実装への貢献
+- UML図の設計
+- JavaFXベースのUI実装
 - 車両移動ロジックの実装
 - GitLabを用いたチーム開発環境での作業
 
@@ -151,31 +151,35 @@ https://github.com/user-attachments/assets/47ffd767-5d70-4728-be83-f31829d98a53
 
 このアプリケーションはMVCパターンに従っています:
 
-- Model: ゲーム世界、エンティティ、輸送ロジック、シミュレーション状態
+- Model: ゲーム世界、エンティティ、輸送ロジック、シミュレーションの状態
 - View: JavaFXのUIとマップ描画
 - Controller: ユーザー入力の処理とModel・View間の連携
 
 ## スクリーンショットと設計資料
 
-### 1. UMLクラス図
+# 1. UMLクラス図
 
-これらのUML図は、クラス間の関係とメソッドの責務を一目で分かりやすく可視化するために設計されました。MVCアーキテクチャに沿って、チーム開発と設計をスムーズに進めるために活用されました。
+これらのUML図は、クラス間の関係とメソッドの役割を一目で分かりやすく可視化するために設計されました。MVCアーキテクチャに沿って、チーム開発をスムーズに進めることに大きく貢献しました。
 
+Package
 ![Package Diagram](images/package_UML.png)
 
+Model
 ![Model Diagram](images/model_UML.png)
 
+View
 ![View Diagram](images/view_UML.png)
 
+Controller
 ![Controller Diagram](images/controller_UML.png)
 
-### 2. CI/CDパイプライン
+# 2. CI/CDパイプライン
 
-自動テストとチーム開発を支援するため、GitLabのCIパイプラインを使用しました。
+自動テストとチーム開発促進のため、GitLabのCIパイプラインを使用しました。
 
 ![CI Pipeline](images/pipeline.png)
 
-### 3. GitLabでのチーム開発
+# 3. GitLabでのチーム開発
 
 これらのスクリーンショットは、ブランチ管理・課題管理・タスク管理を含む、GitLabを用いたチーム開発のワークフローを示しています。
 
