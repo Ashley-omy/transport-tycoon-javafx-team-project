@@ -14,11 +14,11 @@ This game has been built using GitLab.
 
 ### Important Rules
 
-・You are the boss of a transport company and are given an initial budget. You can use it to construct transport routes and purchase vehicles.
-・You make money when vehicles successfully unload materials, products, or passengers at their destinations.
-・Maintenance fees apply and increase as vehicles age. If a vehicle gets too old, you can sell it.
-・When you run out of budget (coins), your company goes bankrupt and the game is over.
-・Forests expand their area over time. Placing roads over them costs extra money.
+- You are the boss of a transport company and are given an initial budget. You can use it to construct transport routes and purchase vehicles.
+- You make money when vehicles successfully unload materials, products, or passengers at their destinations.
+- Maintenance fees apply and increase as vehicles age. If a vehicle gets too old, you can sell it.
+- When you run out of budget (coins), your company goes bankrupt and the game is over.
+- Forests expand their area over time. Placing roads over them costs extra money.
 
 ### 1. Download the game
 
@@ -106,11 +106,11 @@ These screenshots demonstrate the collaborative development workflow using GitLa
 
 ### 基本ルール
 
-・あなたは輸送会社の社長であり、初期予算が与えられます。この予算を使って輸送ルートを建設したり、車両を購入したりできます。
-・車両が目的地で資材、製品、乗客の荷下ろしをすると収入が得られます。
-・維持費が発生し、車両が古くなるほど増加します。車両が古くなりすぎた場合は売却できます。
-・予算(コイン)がなくなると、会社は倒産しゲームオーバーになります。
-・森は時間の経過とともに面積が広がります。森の上に道路を敷設すると追加費用がかかります。
+- あなたは輸送会社の社長であり、初期予算が与えられます。この予算を使って輸送ルートを建設したり、車両を購入したりできます。
+- 車両が目的地で資材、製品、乗客の荷下ろしをすると収入が得られます。
+- 維持費が発生し、車両が古くなるほど増加します。車両が古くなりすぎた場合は売却できます。
+- 予算(コイン)がなくなると、会社は倒産しゲームオーバーになります。
+- 森は時間の経過とともに面積が広がります。森の上に道路を敷設すると追加費用がかかります。
 
 ### 1. ゲームのダウンロード
 
@@ -151,7 +151,7 @@ These screenshots demonstrate the collaborative development workflow using GitLa
 
 このアプリケーションはMVCパターンに従っています:
 
-- Model: ゲーム世界、エンティティ、輸送ロジック、シミュレーションの状態
+- Model: ゲーム世界、工場や街などのエンティティ、輸送ロジック、ゲームの状態
 - View: JavaFXのUIとマップ描画
 - Controller: ユーザー入力の処理とModel・View間の連携
 
@@ -181,7 +181,7 @@ Controller
 
 ### 3. GitLabでのチーム開発
 
-これらのスクリーンショットは、ブランチ管理・課題管理・タスク管理を含む、GitLabを用いたチーム開発のワークフローを示しています。
+これらのスクリーンショットは、ブランチ管理・イシュー管理・タスク管理を含む、GitLabを用いたチーム開発のワークフローを示しています。
 
 ![GitLab IssueBoard](images/issue_board.png)
 ![GitLab RepositoryGraph](images/repository_graph.png)
