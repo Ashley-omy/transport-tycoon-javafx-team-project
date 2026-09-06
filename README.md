@@ -12,7 +12,7 @@ This game has been built using GitLab.
 
 ## How to Play
 
-# Important Rules
+### Important Rules
 
 ・You are the boss of a transport company and are given an initial budget. You can use it to construct transport routes and purchase vehicles.
 ・You make money when vehicles successfully unload materials, products, or passengers at their destinations.
@@ -20,24 +20,24 @@ This game has been built using GitLab.
 ・When you run out of budget (coins), your company goes bankrupt and the game is over.
 ・Forests expand their area over time. Placing roads over them costs extra money.
 
-# 1. Download the game
+### 1. Download the game
 
 To download the game, go to "Release" and click the jar file that corresponds to your computer's OS.
 
-# 2. Make a route of transport
+### 2. Make a route of transport
 
 Make sure to construct roads so that they properly connect factories, mines, and cities.
 Factories consume materials from mines, and cities then buy products from the factories. If you connect two cities and run a bus on the road between them, passengers will generate profit.
 
 Place pieces of road first, then place stops, where vehicles load and unload goods or people. After that, place a garage, where you will be able to buy vehicles later. To create a route, click the "Place Route" button on the side bar, then click the stops that belong to the route one by one. Click "Place Route" again once you are done.
 
-https://github.com/user-attachments/assets/e0000a27-6d95-45ea-813f-f5de5b06def6
+![Making a route](https://github.com/user-attachments/assets/e0000a27-6d95-45ea-813f-f5de5b06def6)
 
-# 3. Purchase vehicles
+### 3. Purchase vehicles
 
 Click the garage and choose a vehicle. There are two types: buses and trucks. Buses carry passengers, while trucks carry materials and products. Price, speed, capacity, and maintenance fee vary depending on the vehicle, so choose carefully.
 
-https://github.com/user-attachments/assets/47ffd767-5d70-4728-be83-f31829d98a53
+![Purchasing vehicles](https://github.com/user-attachments/assets/47ffd767-5d70-4728-be83-f31829d98a53)
 
 ## Technologies
 
@@ -65,7 +65,7 @@ The application follows the MVC pattern:
 
 ## Screenshots and Design Documents
 
-# 1. UML Class Diagrams
+### 1. UML Class Diagrams
 
 These UML diagrams were designed to clearly visualize class relationships and method responsibilities at a glance. Following the MVC architecture, they were used to support smoother team collaboration and system design.
 
@@ -81,13 +81,13 @@ View
 Controller
 ![Controller Diagram](images/controller_UML.png)
 
-# 2. CI/CD Pipeline
+### 2. CI/CD Pipeline
 
 Used GitLab CI pipelines to support automated testing and collaborative development.
 
 ![CI Pipeline](images/pipeline.png)
 
-# 3. GitLab Team Development
+### 3. GitLab Team Development
 
 These screenshots demonstrate the collaborative development workflow using GitLab, including branch management, issue tracking, task organization.
 
@@ -104,7 +104,7 @@ These screenshots demonstrate the collaborative development workflow using GitLa
 
 ## 遊び方
 
-# 基本ルール
+### 基本ルール
 
 ・あなたは輸送会社の社長であり、初期予算が与えられます。この予算を使って輸送ルートを建設したり、車両を購入したりできます。
 ・車両が目的地で資材、製品、乗客の荷下ろしをすると収入が得られます。
@@ -112,24 +112,24 @@ These screenshots demonstrate the collaborative development workflow using GitLa
 ・予算(コイン)がなくなると、会社は倒産しゲームオーバーになります。
 ・森は時間の経過とともに面積が広がります。森の上に道路を敷設すると追加費用がかかります。
 
-# 1. ゲームのダウンロード
+### 1. ゲームのダウンロード
 
 ゲームをダウンロードするには、「Release」に移動し、お使いのパソコンのOSに対応したjarファイルをクリックしてください。
 
-# 2. 輸送ルートの作成
+### 2. 輸送ルートの作成
 
 道路が工場、鉱山、都市を適切に結ぶように建設してください。
 工場は鉱山から資材を消費し、都市は工場から製品を購入します。2つの都市を結び、その道路にバスを走らせると、乗客が利益を生みます。
 
 まず道路を敷設し、次に車両が荷物や人を積み下ろしする停留所を設置します。その後、後で車両を購入できる車庫を設置します。ルートを作成するには、サイドバーの「Place Route」ボタンをクリックし、続けてルートに含める停留所を順番にクリックしていきます。完了したら、もう一度「Place Route」をクリックしてください。
 
-https://github.com/user-attachments/assets/e0000a27-6d95-45ea-813f-f5de5b06def6
+![Making a route](https://github.com/user-attachments/assets/e0000a27-6d95-45ea-813f-f5de5b06def6)
 
-# 3. 車両の購入
+### 3. 車両の購入
 
 車庫をクリックして車両を選択します。車両にはバスとトラックの2種類があります。バスは乗客を、トラックは資材や製品を輸送します。価格・速度・積載量・維持費は車両によって異なるため、よく検討して選んでください。
 
-https://github.com/user-attachments/assets/47ffd767-5d70-4728-be83-f31829d98a53
+![Purchasing vehicles](https://github.com/user-attachments/assets/47ffd767-5d70-4728-be83-f31829d98a53)
 
 ## 使用技術
 
@@ -157,7 +157,7 @@ https://github.com/user-attachments/assets/47ffd767-5d70-4728-be83-f31829d98a53
 
 ## スクリーンショットと設計資料
 
-# 1. UMLクラス図
+### 1. UMLクラス図
 
 これらのUML図は、クラス間の関係とメソッドの役割を一目で分かりやすく可視化するために設計されました。MVCアーキテクチャに沿って、チーム開発をスムーズに進めることに大きく貢献しました。
 
@@ -173,13 +173,13 @@ View
 Controller
 ![Controller Diagram](images/controller_UML.png)
 
-# 2. CI/CDパイプライン
+### 2. CI/CDパイプライン
 
 自動テストとチーム開発促進のため、GitLabのCIパイプラインを使用しました。
 
 ![CI Pipeline](images/pipeline.png)
 
-# 3. GitLabでのチーム開発
+### 3. GitLabでのチーム開発
 
 これらのスクリーンショットは、ブランチ管理・課題管理・タスク管理を含む、GitLabを用いたチーム開発のワークフローを示しています。
 
