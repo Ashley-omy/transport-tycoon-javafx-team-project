@@ -67,7 +67,7 @@ The application follows the MVC pattern:
 
 ### 1. UML Class Diagrams
 
-These UML diagrams were designed to clearly visualize class relationships and method responsibilities at a glance. Following the MVC architecture, they were used to support smoother team collaboration and system design.
+I was responsible for designing these UML diagrams to clearly visualize class relationships and method responsibilities at a glance. Following the MVC architecture, they were used to support smoother team collaboration and system design.
 
 Package
 ![Package Diagram](images/package_UML.png)
@@ -159,7 +159,7 @@ These screenshots demonstrate the collaborative development workflow using GitLa
 
 ### 1. UMLクラス図
 
-これらのUML図は、クラス間の関係とメソッドの役割を一目で分かりやすく可視化するために設計されました。MVCアーキテクチャに沿って、チーム開発をスムーズに進めることに大きく貢献しました。
+以下に掲載する画像は、私が設計・作成を担ったUML図です。チームメンバーが一目でクラス間の関係とメソッドの役割を理解できることを重視しました。開発フェーズを大きな滞りなく進めることに貢献しました。
 
 Package
 ![Package Diagram](images/package_UML.png)
