@@ -1,6 +1,6 @@
 # 🚚🚗Transport Tycoon JavaFX Team Project 🛣🌳💶
 
-_Please find the Japanese version below._
+（日本語の説明は下に記載しています。）
 
 A team-based Java game project inspired by Transport Tycoon, developed as part of a university software development course.
 
